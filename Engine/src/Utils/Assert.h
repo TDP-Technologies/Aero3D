@@ -1,7 +1,7 @@
 #ifndef AERO3D_UTILS_ASSERT_H_
 #define AERO3D_UTILS_ASSERT_H_
 
-#include "Utils/API.h"
+#include "Utils/Common.h"
 #include "Utils/Log.h"
 
 namespace aero3d {

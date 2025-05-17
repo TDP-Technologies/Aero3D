@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "Core/Configuration.h"
+#include "Utils/Common.h"
 
 namespace aero3d {
 
@@ -10,12 +11,14 @@ std::unique_ptr<RenderAPI> RenderCommand::s_API = nullptr;
 
 bool RenderCommand::Init(const char* api)
 {
-    return s_API->Init();
+    A3D_CHECK_INIT(s_API->Init());
+
+    return true;
 }
 
 void RenderCommand::Shutdown()
 {
-    s_API->Shutdown();
+    A3D_SHUTDOWN(s_API);
 }
 
 void RenderCommand::SetViewport(int x, int y, int width, int height)

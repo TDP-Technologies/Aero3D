@@ -21,27 +21,12 @@ bool Application::Init()
 {
     LogMsg("Application Initialize.");
 
-    if (!VFS::Init())
-    {
-        return false;
-    }
-
-    if (!EventBus::Init())
-    {
-        return false;
-    }
-
-    if (!Window::Init("Aero3D", 800,
-        600, "OpenGL"))
-    {
-        return false;
-    }
-
+    A3D_CHECK_INIT(VFS::Init());
+    A3D_CHECK_INIT(EventBus::Init());
+    A3D_CHECK_INIT(Window::Init("Aero3D", 800,
+        600, "Vulkan"));
     /*
-    if (!RenderCommand::Init("OpenGL"))
-    {
-        return false;
-    }
+    A3D_CHECK_INIT(RenderCommand::Init("Vulkan"));
     */
 
     SubscribeOnEvents();

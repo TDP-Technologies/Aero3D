@@ -5,7 +5,7 @@
 #include <SDL3/SDL_vulkan.h>
 
 #include "Utils/Log.h"
-
+#include "Utils/Common.h"
 #include "Platform/Vulkan/Internal/VulkanUtils.h"
 
 namespace aero3d {
@@ -30,10 +30,7 @@ bool VulkanCore::Init(SDL_Window* window)
         return false;
     }
 
-    if (!CreateInstance())
-    {
-        return false;
-    }
+    A3D_CHECK_INIT(CreateInstance());
 
     return true;
 }

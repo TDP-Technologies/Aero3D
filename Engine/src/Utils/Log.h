@@ -1,7 +1,7 @@
 #ifndef AERO3D_UTILS_LOG_H_
 #define AERO3D_UTILS_LOG_H_
 
-#include "Utils/Api.h"
+#include "Utils/Common.h"
 
 // macros to setup console color
 #define RESET       "\033[0m"

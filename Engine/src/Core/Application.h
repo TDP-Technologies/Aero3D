@@ -1,7 +1,7 @@
 #ifndef AERO3D_CORE_APPLICATION_H_
 #define AERO3D_CORE_APPLICATION_H_
 
-#include "Utils/API.h"
+#include "Utils/Common.h"
 
 namespace aero3d {
 

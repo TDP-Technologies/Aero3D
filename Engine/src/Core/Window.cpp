@@ -35,10 +35,7 @@ bool Window::Init(const char* title, int width, int height, const char* api)
     }
 
     s_Context = GraphicsContext::Create(api);
-    if (!s_Context->Init(s_Window))
-    {
-        return false;
-    }
+    A3D_CHECK_INIT(s_Context->Init(s_Window));
 
     return true;
 }
@@ -46,13 +43,13 @@ bool Window::Init(const char* title, int width, int height, const char* api)
 void Window::Shutdown()
 {
     LogMsg("Window Shutdown.");
+
     if (s_Window) {
         SDL_DestroyWindow(s_Window);
     }
-    if (s_Context)
-    {
-        s_Context->Shutdown();
-    }
+
+    A3D_SHUTDOWN(s_Context);
+
     SDL_QuitSubSystem(SDL_INIT_VIDEO);
 }
 

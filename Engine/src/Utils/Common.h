@@ -12,6 +12,6 @@
 #endif
 
 #define A3D_CHECK_INIT(cond) if (!cond) return false
-#define A3D_SHUTDOWN(obj) if (!obj) obj->Shutdown()
+#define A3D_SHUTDOWN(obj) if (obj) obj->Shutdown()
 
 #endif // AERO3D_UTILS_API_H_

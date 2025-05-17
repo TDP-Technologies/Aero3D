@@ -27,7 +27,7 @@ bool Window::Init(const char* title, int width, int height, const char* api)
 
     s_Window = SDL_CreateWindow(title,
         width, height,
-        SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+        SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE);
 
     if (!s_Window) {
         LogErr(ERROR_INFO, "SDL Create Window Failed. SDL Error: %s", SDL_GetError());

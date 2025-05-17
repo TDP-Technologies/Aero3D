@@ -5,6 +5,7 @@
 #include <SDL3/SDL_vulkan.h>
 
 #include "Utils/Log.h"
+#include "Utils/Assert.h"
 #include "Utils/Common.h"
 #include "Platform/Vulkan/Internal/VulkanUtils.h"
 
@@ -14,7 +15,7 @@ std::unique_ptr<VulkanCore> g_VulkanCore = std::make_unique<VulkanCore>();
 
 VulkanCore::VulkanCore()
     : m_Window(nullptr), m_Instance(VK_NULL_HANDLE), m_Surface(VK_NULL_HANDLE),
-    m_PhysDeviceCount(0), m_CurrentPhysDevice(0)
+    m_CurrentPhysDevice(0)
 {
 }
 
@@ -34,12 +35,14 @@ bool VulkanCore::Init(SDL_Window* window)
     A3D_CHECK_INIT(CreateInstance());
     A3D_CHECK_INIT(CreateSurface());
     A3D_CHECK_INIT(CreatePhysicalDevices());
+    A3D_CHECK_INIT(m_Device.Init());
 
     return true;
 }
 
 void VulkanCore::Shutdown()
 {
+    m_Device.Shutdown();
     vkDestroySurfaceKHR(m_Instance, m_Surface, nullptr);
     vkDestroyInstance(m_Instance, nullptr);
 }
@@ -85,18 +88,19 @@ bool VulkanCore::CreateSurface()
 
 bool VulkanCore::CreatePhysicalDevices()
 {
-    A3D_CHECK_VKRESULT(vkEnumeratePhysicalDevices(m_Instance, &m_PhysDeviceCount, nullptr));
+    uint32_t physDeviceCount;
+    A3D_CHECK_VKRESULT(vkEnumeratePhysicalDevices(m_Instance, &physDeviceCount, nullptr));
 
-    if (!m_PhysDeviceCount)
+    if (!physDeviceCount)
     {
         LogErr(ERROR_INFO, "Failed to Enum PhysDevices.");
         return false;
     }
 
-    std::vector<VkPhysicalDevice> vkDevices(m_PhysDeviceCount);
-    m_PhysDevices.reserve(m_PhysDeviceCount);
+    std::vector<VkPhysicalDevice> vkDevices(physDeviceCount);
+    m_PhysDevices.reserve(physDeviceCount);
 
-    A3D_CHECK_VKRESULT(vkEnumeratePhysicalDevices(m_Instance, &m_PhysDeviceCount, vkDevices.data()));
+    A3D_CHECK_VKRESULT(vkEnumeratePhysicalDevices(m_Instance, &physDeviceCount, vkDevices.data()));
 
     for (auto& vkDevice : vkDevices) {
         VulkanPhysicalDevice physDev{};
@@ -109,11 +113,32 @@ bool VulkanCore::CreatePhysicalDevices()
         uint32_t queueCount = 0;
         vkGetPhysicalDeviceQueueFamilyProperties(vkDevice, &queueCount, nullptr);
 
-        physDev.QueueFamilyProperties.reserve(queueCount);
+        physDev.QueueFamilyProperties.resize(queueCount);
         vkGetPhysicalDeviceQueueFamilyProperties(vkDevice, &queueCount, physDev.QueueFamilyProperties.data());
 
-        m_PhysDevices.emplace_back(physDev);
+        for (uint32_t i = 0; i < physDev.QueueFamilyProperties.size(); i++)
+        {
+            if (physDev.QueueFamilyProperties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) 
+            {
+                physDev.QueueFamilyIndices.GraphicsFamily = i;
+            }
+
+            VkBool32 presentSupport = false;
+            vkGetPhysicalDeviceSurfaceSupportKHR(vkDevice, i, m_Surface, &presentSupport);
+
+            if (presentSupport) 
+            {
+                physDev.QueueFamilyIndices.PresentFamily = i;
+            }
+        }
+
+        if (physDev.QueueFamilyIndices.IsComplete())
+        {
+            m_PhysDevices.emplace_back(physDev);
+        }
     }
+
+    Assert(ERROR_INFO, !m_PhysDevices.empty(), "Unnable to Find Suitable Physical Device.");
 
     return true;
 }

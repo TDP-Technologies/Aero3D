@@ -15,7 +15,7 @@ public:
     virtual bool Init(SDL_Window* window) = 0;
     virtual void Shutdown() = 0;
 
-    virtual void SwapBuffers(SDL_Window* window) = 0;
+    virtual void SwapBuffers() = 0;
 
     static std::unique_ptr<GraphicsContext> Create(const char* api);
 };

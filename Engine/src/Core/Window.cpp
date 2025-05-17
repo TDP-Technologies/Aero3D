@@ -34,13 +34,11 @@ bool Window::Init(const char* title, int width, int height, const char* api)
         return false;
     }
 
-    /*
     s_Context = GraphicsContext::Create(api);
     if (!s_Context->Init(s_Window))
     {
         return false;
     }
-    */
 
     return true;
 }
@@ -51,12 +49,10 @@ void Window::Shutdown()
     if (s_Window) {
         SDL_DestroyWindow(s_Window);
     }
-    /*
     if (s_Context)
     {
         s_Context->Shutdown();
     }
-    */
     SDL_QuitSubSystem(SDL_INIT_VIDEO);
 }
 
@@ -96,7 +92,7 @@ void Window::PollEvents(bool& running, bool& minimized)
 
 void Window::SwapBuffers()
 {
-    //s_Context->SwapBuffers(s_Window);
+    s_Context->SwapBuffers();
 }
 
 SDL_Window* Window::GetSDLWindow()

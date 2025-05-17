@@ -32,6 +32,13 @@ struct VulkanPhysicalDevice
     QueueFamilyIndices QueueFamilyIndices;
 };
 
+struct SwapChainSupportDetails 
+{
+    VkSurfaceCapabilitiesKHR Capabilities;
+    std::vector<VkSurfaceFormatKHR> Formats;
+    std::vector<VkPresentModeKHR> PresentModes;
+};
+
 class VulkanCore
 {
 public:
@@ -52,12 +59,14 @@ private:
     bool CreateInstance();
     bool CreateSurface();
     bool CreatePhysicalDevices();
+    bool CreateSwapchain();
 
 private:
     SDL_Window* m_Window;
 
     VkInstance m_Instance;
     VkSurfaceKHR m_Surface;
+    VkSwapchainKHR m_Swapchain;
 
     unsigned int m_CurrentPhysDevice;
     std::vector<VulkanPhysicalDevice> m_PhysDevices;

@@ -13,6 +13,10 @@ public:
 
     bool Init();
     void Shutdown();
+
+    VkDevice GetDevice() { return m_Device; }
+    VkQueue GetGraphicsQueue() { return m_GraphicsQueue; }
+    VkQueue GetPresentQueue() { return m_PresentQueue; }
     
 private:
     VkDevice m_Device;

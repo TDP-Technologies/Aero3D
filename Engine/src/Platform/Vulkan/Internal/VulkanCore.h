@@ -8,15 +8,9 @@
 #include <vulkan/vulkan.h>
 
 #include "Platform/Vulkan/Internal/VulkanDevice.h"
+#include "Platform/Vulkan/Internal/VulkanSwapchain.h"
 
 namespace aero3d {
-
-struct SwapChainSupportDetails 
-{
-    VkSurfaceCapabilitiesKHR Capabilities;
-    std::vector<VkSurfaceFormatKHR> Formats;
-    std::vector<VkPresentModeKHR> PresentModes;
-};
 
 class VulkanCore
 {
@@ -37,7 +31,6 @@ public:
 private:
     bool CreateInstance();
     bool CreateSurface();
-    bool CreateSwapchain();
     bool CreateImageViews();
     bool CreateRenderPass();
     bool CreateFramebuffers();
@@ -52,15 +45,12 @@ private:
 
     VkInstance m_Instance;
     VkSurfaceKHR m_Surface;
-    VkSwapchainKHR m_Swapchain;
 
     VulkanDevice m_Device;
+    VulkanSwapchain m_Swapchain;
 
     uint32_t m_CurrentImage;
-    std::vector<VkImage> m_SwapchainImages;
     std::vector<VkImageView> m_SwapchainImageViews;
-    VkFormat m_SwapchainImageFormat;
-    VkExtent2D m_SwapchainExtent;
 
     VkRenderPass m_RenderPass;
     std::vector<VkFramebuffer> m_SwapchainFramebuffers;

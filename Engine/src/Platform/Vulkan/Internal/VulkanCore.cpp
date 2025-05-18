@@ -14,90 +14,10 @@ namespace aero3d {
 
 std::unique_ptr<VulkanCore> g_VulkanCore = std::make_unique<VulkanCore>();
 
-static SwapChainSupportDetails QuerySwapChainSupport(VkPhysicalDevice device, VkSurfaceKHR surface) 
-{
-    SwapChainSupportDetails details;
-
-    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &details.Capabilities);
-
-    uint32_t formatCount;
-    vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, nullptr);
-    if (formatCount != 0) 
-    {
-        details.Formats.resize(formatCount);
-        vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, details.Formats.data());
-    }
-
-    uint32_t presentModeCount;
-    vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, nullptr);
-    if (presentModeCount != 0) 
-    {
-        details.PresentModes.resize(presentModeCount);
-        vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, details.PresentModes.data());
-    }
-
-    return details;
-}
-
-static VkSurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats) 
-{
-    for (const auto& format : availableFormats) 
-    {
-        if (format.format == VK_FORMAT_B8G8R8A8_SRGB &&
-            format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) 
-        {
-            return format;
-        }
-    }
-    return availableFormats[0];
-}
-
-static VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes) 
-{
-    for (const auto& mode : availablePresentModes) 
-    {
-        if (mode == VK_PRESENT_MODE_MAILBOX_KHR) 
-        {
-            return mode;
-        }
-    }
-    return VK_PRESENT_MODE_FIFO_KHR;
-}
-
-static VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, SDL_Window* window) 
-{
-    if (capabilities.currentExtent.width != UINT32_MAX) 
-    {
-        return capabilities.currentExtent;
-    }
-    else 
-    {
-        int width, height;
-        SDL_GetWindowSizeInPixels(window, &width, &height);
-
-        VkExtent2D actualExtent = {
-            static_cast<uint32_t>(width),
-            static_cast<uint32_t>(height)
-        };
-
-        actualExtent.width = std::clamp(actualExtent.width,
-            capabilities.minImageExtent.width,
-            capabilities.maxImageExtent.width);
-
-        actualExtent.height = std::clamp(actualExtent.height,
-            capabilities.minImageExtent.height,
-            capabilities.maxImageExtent.height);
-
-        return actualExtent;
-    }
-}
-
 VulkanCore::VulkanCore()
-    : m_Window(nullptr), m_Instance(VK_NULL_HANDLE), m_Surface(VK_NULL_HANDLE),
-    m_Swapchain(VK_NULL_HANDLE), m_SwapchainImageFormat(VK_FORMAT_UNDEFINED),
-    m_SwapchainExtent(0, 0), m_RenderPass(VK_NULL_HANDLE), m_CommandPool(VK_NULL_HANDLE), m_CurrentImage(0),
-    m_ImageAvailableSemaphore(VK_NULL_HANDLE), m_RenderFinishedSemaphore(VK_NULL_HANDLE), m_InFlightFence(VK_NULL_HANDLE),
-    m_ClearColor({ {0.0f, 1.0f, 0.0f, 1.0f} })
+    : m_Window(nullptr), m_Instance(VK_NULL_HANDLE), m_Surface(VK_NULL_HANDLE), m_RenderPass(VK_NULL_HANDLE),
+    m_CommandPool(VK_NULL_HANDLE), m_CurrentImage(0), m_ImageAvailableSemaphore(VK_NULL_HANDLE), 
+    m_RenderFinishedSemaphore(VK_NULL_HANDLE), m_InFlightFence(VK_NULL_HANDLE), m_ClearColor({ {0.0f, 1.0f, 0.0f, 1.0f} })
 {
 }
 
@@ -117,7 +37,7 @@ bool VulkanCore::Init(SDL_Window* window)
     A3D_CHECK_INIT(CreateInstance());
     A3D_CHECK_INIT(CreateSurface());
     A3D_CHECK_INIT(m_Device.Init(m_Instance, m_Surface));
-    A3D_CHECK_INIT(CreateSwapchain());
+    A3D_CHECK_INIT(m_Swapchain.Init(m_Device.GetPhysicalDevice(), m_Surface, m_Window, m_Device.GetDevice()));
     A3D_CHECK_INIT(CreateImageViews());
     A3D_CHECK_INIT(CreateRenderPass());
     A3D_CHECK_INIT(CreateFramebuffers());
@@ -142,7 +62,7 @@ void VulkanCore::Shutdown()
     for (auto imageView : m_SwapchainImageViews) {
         vkDestroyImageView(m_Device.GetDevice(), imageView, nullptr);
     }
-    vkDestroySwapchainKHR(m_Device.GetDevice(), m_Swapchain, nullptr);
+    m_Swapchain.Shutdown();
     m_Device.Shutdown();
     vkDestroySurfaceKHR(m_Instance, m_Surface, nullptr);
     vkDestroyInstance(m_Instance, nullptr);
@@ -154,7 +74,7 @@ void VulkanCore::SwapBuffers()
     vkWaitForFences(m_Device.GetDevice(), 1, &m_InFlightFence, VK_TRUE, UINT64_MAX);
     vkResetFences(m_Device.GetDevice(), 1, &m_InFlightFence);
 
-    vkAcquireNextImageKHR(m_Device.GetDevice(), m_Swapchain, UINT64_MAX, m_ImageAvailableSemaphore, VK_NULL_HANDLE, &m_CurrentImage);
+    vkAcquireNextImageKHR(m_Device.GetDevice(), m_Swapchain.GetSwapchain(), UINT64_MAX, m_ImageAvailableSemaphore, VK_NULL_HANDLE, &m_CurrentImage);
 
     VkSubmitInfo submitInfo{};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -180,7 +100,7 @@ void VulkanCore::SwapBuffers()
     presentInfo.waitSemaphoreCount = 1;
     presentInfo.pWaitSemaphores = signalSemaphores;
 
-    VkSwapchainKHR swapchains[] = { m_Swapchain };
+    VkSwapchainKHR swapchains[] = { m_Swapchain.GetSwapchain()};
     presentInfo.swapchainCount = 1;
     presentInfo.pSwapchains = swapchains;
     presentInfo.pImageIndices = &m_CurrentImage;
@@ -208,7 +128,7 @@ void VulkanCore::RecordCommands()
     renderPassInfo.renderPass = m_RenderPass;
     renderPassInfo.framebuffer = m_SwapchainFramebuffers[m_CurrentImage];
     renderPassInfo.renderArea.offset = { 0, 0 };
-    renderPassInfo.renderArea.extent = m_SwapchainExtent;
+    renderPassInfo.renderArea.extent = m_Swapchain.GetExtent();
 
     renderPassInfo.clearValueCount = 1;
     renderPassInfo.pClearValues = &m_ClearColor;
@@ -261,80 +181,17 @@ bool VulkanCore::CreateSurface()
     return true;
 }
 
-bool VulkanCore::CreateSwapchain()
-{
-    const VulkanPhysicalDevice& physDevice = m_Device.GetPhysicalDevice();
-    SwapChainSupportDetails swapChainSupport = QuerySwapChainSupport(physDevice.Device, m_Surface);
-
-    VkSurfaceFormatKHR surfaceFormat = ChooseSwapSurfaceFormat(swapChainSupport.Formats);
-    VkPresentModeKHR presentMode = ChooseSwapPresentMode(swapChainSupport.PresentModes);
-    VkExtent2D extent = ChooseSwapExtent(swapChainSupport.Capabilities, m_Window);
-
-    uint32_t imageCount = swapChainSupport.Capabilities.minImageCount + 1;
-    if (swapChainSupport.Capabilities.maxImageCount > 0 &&
-        imageCount > swapChainSupport.Capabilities.maxImageCount) 
-    {
-        imageCount = swapChainSupport.Capabilities.maxImageCount;
-    }
-
-    VkSwapchainCreateInfoKHR createInfo{};
-    createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-    createInfo.surface = m_Surface;
-
-    createInfo.minImageCount = imageCount;
-    createInfo.imageFormat = surfaceFormat.format;
-    createInfo.imageColorSpace = surfaceFormat.colorSpace;
-    createInfo.imageExtent = extent;
-    createInfo.imageArrayLayers = 1;
-    createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-
-    DeviceQueueFamilyIndices indices = physDevice.QueueFamilyIndices;
-    uint32_t queueFamilyIndices[] = { indices.GraphicsFamily.value(), indices.PresentFamily.value() };
-
-    if (indices.GraphicsFamily != indices.PresentFamily) 
-    {
-        createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
-        createInfo.queueFamilyIndexCount = 2;
-        createInfo.pQueueFamilyIndices = queueFamilyIndices;
-    }
-    else 
-    {
-        createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-    }
-
-    createInfo.preTransform = swapChainSupport.Capabilities.currentTransform;
-    createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-    createInfo.presentMode = presentMode;
-    createInfo.clipped = VK_TRUE;
-    createInfo.oldSwapchain = VK_NULL_HANDLE;
-
-    A3D_CHECK_VKRESULT(vkCreateSwapchainKHR(m_Device.GetDevice(), &createInfo, nullptr, &m_Swapchain));
-    if (!m_Swapchain)
-    {
-        LogErr(ERROR_INFO, "Failed to create Swapchain.");
-        return false;
-    }
-
-    vkGetSwapchainImagesKHR(m_Device.GetDevice(), m_Swapchain, &imageCount, nullptr);
-    m_SwapchainImages.resize(imageCount);
-    vkGetSwapchainImagesKHR(m_Device.GetDevice(), m_Swapchain, &imageCount, m_SwapchainImages.data());
-
-    m_SwapchainImageFormat = surfaceFormat.format;
-    m_SwapchainExtent = extent;
-
-    return true;
-}
-
 bool VulkanCore::CreateImageViews()
 {
-    m_SwapchainImageViews.resize(m_SwapchainImages.size());
+    std::vector<VkImage> swapchainImages = m_Swapchain.GetSwapchainImages();
+    m_SwapchainImageViews.resize(swapchainImages.size());
 
-    for (size_t i = 0; i < m_SwapchainImages.size(); i++) {
+    for (size_t i = 0; i < swapchainImages.size(); i++) {
         VkImageViewCreateInfo viewInfo{};
         viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-        viewInfo.image = m_SwapchainImages[i];
+        viewInfo.image = swapchainImages[i];
         viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-        viewInfo.format = m_SwapchainImageFormat;
+        viewInfo.format = m_Swapchain.GetImageFormat();
 
         viewInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
         viewInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
@@ -356,7 +213,7 @@ bool VulkanCore::CreateImageViews()
 bool VulkanCore::CreateRenderPass()
 {
     VkAttachmentDescription colorAttachment{};
-    colorAttachment.format = m_SwapchainImageFormat;
+    colorAttachment.format = m_Swapchain.GetImageFormat();
     colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
 
     colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
@@ -415,13 +272,14 @@ bool VulkanCore::CreateFramebuffers()
             m_SwapchainImageViews[i]
         };
 
+        VkExtent2D swapchainExtent = m_Swapchain.GetExtent();
         VkFramebufferCreateInfo framebufferInfo{};
         framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
         framebufferInfo.renderPass = m_RenderPass;
         framebufferInfo.attachmentCount = 1;
         framebufferInfo.pAttachments = attachments;
-        framebufferInfo.width = m_SwapchainExtent.width;
-        framebufferInfo.height = m_SwapchainExtent.height;
+        framebufferInfo.width = swapchainExtent.width;
+        framebufferInfo.height = swapchainExtent.height;
         framebufferInfo.layers = 1;
 
         A3D_CHECK_VKRESULT(vkCreateFramebuffer(m_Device.GetDevice(), &framebufferInfo, nullptr, &m_SwapchainFramebuffers[i]));

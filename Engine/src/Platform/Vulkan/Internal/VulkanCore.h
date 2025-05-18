@@ -70,6 +70,9 @@ private:
     bool CreateCommandBuffersAndCommandPool();
     bool CreateSyncObjects();
 
+    void RecordCommands();
+    void EndCommands();
+
 private:
     SDL_Window* m_Window;
 
@@ -82,6 +85,7 @@ private:
 
     VulkanDevice m_Device;
 
+    uint32_t m_CurrentImage;
     std::vector<VkImage> m_SwapchainImages;
     std::vector<VkImageView> m_SwapchainImageViews;
     VkFormat m_SwapchainImageFormat;

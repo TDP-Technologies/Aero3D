@@ -95,7 +95,7 @@ static VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities,
 VulkanCore::VulkanCore()
     : m_Window(nullptr), m_Instance(VK_NULL_HANDLE), m_Surface(VK_NULL_HANDLE),
     m_Swapchain(VK_NULL_HANDLE), m_CurrentPhysDevice(0), m_SwapchainImageFormat(VK_FORMAT_UNDEFINED),
-    m_SwapchainExtent(0, 0), m_RenderPass(VK_NULL_HANDLE), m_CommandPool(VK_NULL_HANDLE),
+    m_SwapchainExtent(0, 0), m_RenderPass(VK_NULL_HANDLE), m_CommandPool(VK_NULL_HANDLE), m_CurrentImage(0),
     m_ImageAvailableSemaphore(VK_NULL_HANDLE), m_RenderFinishedSemaphore(VK_NULL_HANDLE), m_InFlightFence(VK_NULL_HANDLE),
     m_ClearColor({ {0.0f, 1.0f, 0.0f, 1.0f} })
 {
@@ -125,6 +125,8 @@ bool VulkanCore::Init(SDL_Window* window)
     A3D_CHECK_INIT(CreateCommandBuffersAndCommandPool());
     A3D_CHECK_INIT(CreateSyncObjects());
 
+    RecordCommands();
+
     return true;
 }
 
@@ -149,11 +151,11 @@ void VulkanCore::Shutdown()
 
 void VulkanCore::SwapBuffers()
 {
+    EndCommands();
     vkWaitForFences(m_Device.GetDevice(), 1, &m_InFlightFence, VK_TRUE, UINT64_MAX);
     vkResetFences(m_Device.GetDevice(), 1, &m_InFlightFence);
 
-    uint32_t imageIndex;
-    vkAcquireNextImageKHR(m_Device.GetDevice(), m_Swapchain, UINT64_MAX, m_ImageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+    vkAcquireNextImageKHR(m_Device.GetDevice(), m_Swapchain, UINT64_MAX, m_ImageAvailableSemaphore, VK_NULL_HANDLE, &m_CurrentImage);
 
     VkSubmitInfo submitInfo{};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -165,7 +167,7 @@ void VulkanCore::SwapBuffers()
     submitInfo.pWaitDstStageMask = waitStages;
 
     submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = &m_CommandBuffers[imageIndex];
+    submitInfo.pCommandBuffers = &m_CommandBuffers[m_CurrentImage];
 
     VkSemaphore signalSemaphores[] = { m_RenderFinishedSemaphore };
     submitInfo.signalSemaphoreCount = 1;
@@ -182,14 +184,43 @@ void VulkanCore::SwapBuffers()
     VkSwapchainKHR swapchains[] = { m_Swapchain };
     presentInfo.swapchainCount = 1;
     presentInfo.pSwapchains = swapchains;
-    presentInfo.pImageIndices = &imageIndex;
+    presentInfo.pImageIndices = &m_CurrentImage;
 
     vkQueuePresentKHR(m_Device.GetPresentQueue(), &presentInfo);
+    RecordCommands();
 }
 
 void VulkanCore::SetClearColor(float r, float g, float b, float a)
 {
     m_ClearColor.color = { r, g, b, a };
+}
+
+void VulkanCore::RecordCommands()
+{
+    VkCommandBufferBeginInfo beginInfo{};
+    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    beginInfo.flags = 0;
+    beginInfo.pInheritanceInfo = nullptr;
+
+    vkBeginCommandBuffer(m_CommandBuffers[m_CurrentImage], &beginInfo);
+
+    VkRenderPassBeginInfo renderPassInfo{};
+    renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+    renderPassInfo.renderPass = m_RenderPass;
+    renderPassInfo.framebuffer = m_SwapchainFramebuffers[m_CurrentImage];
+    renderPassInfo.renderArea.offset = { 0, 0 };
+    renderPassInfo.renderArea.extent = m_SwapchainExtent;
+
+    renderPassInfo.clearValueCount = 1;
+    renderPassInfo.pClearValues = &m_ClearColor;
+
+    vkCmdBeginRenderPass(m_CommandBuffers[m_CurrentImage], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+}
+
+void VulkanCore::EndCommands()
+{
+    vkCmdEndRenderPass(m_CommandBuffers[m_CurrentImage]);
+    vkEndCommandBuffer(m_CommandBuffers[m_CurrentImage]);
 }
 
 bool VulkanCore::CreateInstance()

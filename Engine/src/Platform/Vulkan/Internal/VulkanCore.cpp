@@ -95,7 +95,7 @@ static VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities,
 VulkanCore::VulkanCore()
     : m_Window(nullptr), m_Instance(VK_NULL_HANDLE), m_Surface(VK_NULL_HANDLE),
     m_Swapchain(VK_NULL_HANDLE), m_CurrentPhysDevice(0), m_SwapchainImageFormat(VK_FORMAT_UNDEFINED),
-    m_SwapchainExtent(0, 0)
+    m_SwapchainExtent(0, 0), m_RenderPass(VK_NULL_HANDLE)
 {
 }
 
@@ -119,12 +119,16 @@ bool VulkanCore::Init(SDL_Window* window)
     A3D_CHECK_INIT(CreateSwapchain());
     A3D_CHECK_INIT(CreateImageViews());
     A3D_CHECK_INIT(CreateRenderPass());
+    A3D_CHECK_INIT(CreateFramebuffers());
 
     return true;
 }
 
 void VulkanCore::Shutdown()
 {
+    for (auto framebuffer : m_SwapchainFramebuffers) {
+        vkDestroyFramebuffer(m_Device.GetDevice(), framebuffer, nullptr);
+    }
     vkDestroyRenderPass(m_Device.GetDevice(), m_RenderPass, nullptr);
     for (auto imageView : m_SwapchainImageViews) {
         vkDestroyImageView(m_Device.GetDevice(), imageView, nullptr);
@@ -371,6 +375,30 @@ bool VulkanCore::CreateRenderPass()
     {
         LogErr(ERROR_INFO, "Failed to create RenderPass.");
         return false;
+    }
+
+    return true;
+}
+
+bool VulkanCore::CreateFramebuffers()
+{
+    m_SwapchainFramebuffers.resize(m_SwapchainImageViews.size());
+
+    for (size_t i = 0; i < m_SwapchainImageViews.size(); i++) {
+        VkImageView attachments[] = {
+            m_SwapchainImageViews[i]
+        };
+
+        VkFramebufferCreateInfo framebufferInfo{};
+        framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+        framebufferInfo.renderPass = m_RenderPass;
+        framebufferInfo.attachmentCount = 1;
+        framebufferInfo.pAttachments = attachments;
+        framebufferInfo.width = m_SwapchainExtent.width;
+        framebufferInfo.height = m_SwapchainExtent.height;
+        framebufferInfo.layers = 1;
+
+        A3D_CHECK_VKRESULT(vkCreateFramebuffer(m_Device.GetDevice(), &framebufferInfo, nullptr, &m_SwapchainFramebuffers[i]));
     }
 
     return true;

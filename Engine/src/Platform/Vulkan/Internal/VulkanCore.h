@@ -62,6 +62,7 @@ private:
     bool CreateSwapchain();
     bool CreateImageViews();
     bool CreateRenderPass();
+    bool CreateFramebuffers();
 
 private:
     SDL_Window* m_Window;
@@ -81,6 +82,7 @@ private:
     VkExtent2D m_SwapchainExtent;
 
     VkRenderPass m_RenderPass;
+    std::vector<VkFramebuffer> m_SwapchainFramebuffers;
 
 };
 

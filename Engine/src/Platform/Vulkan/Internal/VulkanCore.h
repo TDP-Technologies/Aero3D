@@ -60,6 +60,7 @@ private:
     bool CreateSurface();
     bool CreatePhysicalDevices();
     bool CreateSwapchain();
+    bool CreateImageViews();
 
 private:
     SDL_Window* m_Window;
@@ -72,6 +73,11 @@ private:
     std::vector<VulkanPhysicalDevice> m_PhysDevices;
 
     VulkanDevice m_Device;
+
+    std::vector<VkImage> m_SwapchainImages;
+    std::vector<VkImageView> m_SwapchainImageViews;
+    VkFormat m_SwapchainImageFormat;
+    VkExtent2D m_SwapchainExtent;
 };
 
 extern std::unique_ptr<VulkanCore> g_VulkanCore;

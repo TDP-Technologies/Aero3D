@@ -94,7 +94,8 @@ static VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities,
 
 VulkanCore::VulkanCore()
     : m_Window(nullptr), m_Instance(VK_NULL_HANDLE), m_Surface(VK_NULL_HANDLE),
-    m_Swapchain(VK_NULL_HANDLE), m_CurrentPhysDevice(0)
+    m_Swapchain(VK_NULL_HANDLE), m_CurrentPhysDevice(0), m_SwapchainImageFormat(VK_FORMAT_UNDEFINED),
+    m_SwapchainExtent(0, 0)
 {
 }
 
@@ -116,12 +117,16 @@ bool VulkanCore::Init(SDL_Window* window)
     A3D_CHECK_INIT(CreatePhysicalDevices());
     A3D_CHECK_INIT(m_Device.Init());
     A3D_CHECK_INIT(CreateSwapchain());
+    A3D_CHECK_INIT(CreateImageViews());
 
     return true;
 }
 
 void VulkanCore::Shutdown()
 {
+    for (auto imageView : m_SwapchainImageViews) {
+        vkDestroyImageView(m_Device.GetDevice(), imageView, nullptr);
+    }
     vkDestroySwapchainKHR(m_Device.GetDevice(), m_Swapchain, nullptr);
     m_Device.Shutdown();
     vkDestroySurfaceKHR(m_Instance, m_Surface, nullptr);
@@ -276,6 +281,41 @@ bool VulkanCore::CreateSwapchain()
     {
         LogErr(ERROR_INFO, "Failed to create Swapchain.");
         return false;
+    }
+
+    vkGetSwapchainImagesKHR(m_Device.GetDevice(), m_Swapchain, &imageCount, nullptr);
+    m_SwapchainImages.resize(imageCount);
+    vkGetSwapchainImagesKHR(m_Device.GetDevice(), m_Swapchain, &imageCount, m_SwapchainImages.data());
+
+    m_SwapchainImageFormat = surfaceFormat.format;
+    m_SwapchainExtent = extent;
+
+    return true;
+}
+
+bool VulkanCore::CreateImageViews()
+{
+    m_SwapchainImageViews.resize(m_SwapchainImages.size());
+
+    for (size_t i = 0; i < m_SwapchainImages.size(); i++) {
+        VkImageViewCreateInfo viewInfo{};
+        viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+        viewInfo.image = m_SwapchainImages[i];
+        viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+        viewInfo.format = m_SwapchainImageFormat;
+
+        viewInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+        viewInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+        viewInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+        viewInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+
+        viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        viewInfo.subresourceRange.baseMipLevel = 0;
+        viewInfo.subresourceRange.levelCount = 1;
+        viewInfo.subresourceRange.baseArrayLayer = 0;
+        viewInfo.subresourceRange.layerCount = 1;
+
+        A3D_CHECK_VKRESULT(vkCreateImageView(m_Device.GetDevice(), &viewInfo, nullptr, &m_SwapchainImageViews[i]));
     }
 
     return true;

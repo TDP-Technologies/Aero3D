@@ -48,6 +48,8 @@ public:
     bool Init(SDL_Window* window);
     void Shutdown();
 
+    void SwapBuffers();
+
     VkInstance GetInstance() { return m_Instance; }
     VkSurfaceKHR GetSurface() { return m_Surface; }
 
@@ -64,6 +66,7 @@ private:
     bool CreateRenderPass();
     bool CreateFramebuffers();
     bool CreateCommandBuffersAndCommandPool();
+    bool CreateSyncObjects();
 
 private:
     SDL_Window* m_Window;
@@ -87,6 +90,10 @@ private:
 
     VkCommandPool m_CommandPool;
     std::vector<VkCommandBuffer> m_CommandBuffers;
+
+    VkSemaphore m_ImageAvailableSemaphore;
+    VkSemaphore m_RenderFinishedSemaphore;
+    VkFence m_InFlightFence;
 
 };
 

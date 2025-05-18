@@ -32,7 +32,7 @@ void VulkanContext::Shutdown()
 
 void VulkanContext::SwapBuffers()
 {
-
+    g_VulkanCore->SwapBuffers();
 }
 
 } // namespace aero3d

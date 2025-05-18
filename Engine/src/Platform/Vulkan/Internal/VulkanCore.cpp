@@ -95,7 +95,8 @@ static VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities,
 VulkanCore::VulkanCore()
     : m_Window(nullptr), m_Instance(VK_NULL_HANDLE), m_Surface(VK_NULL_HANDLE),
     m_Swapchain(VK_NULL_HANDLE), m_CurrentPhysDevice(0), m_SwapchainImageFormat(VK_FORMAT_UNDEFINED),
-    m_SwapchainExtent(0, 0), m_RenderPass(VK_NULL_HANDLE), m_CommandPool(VK_NULL_HANDLE)
+    m_SwapchainExtent(0, 0), m_RenderPass(VK_NULL_HANDLE), m_CommandPool(VK_NULL_HANDLE),
+    m_ImageAvailableSemaphore(VK_NULL_HANDLE), m_RenderFinishedSemaphore(VK_NULL_HANDLE), m_InFlightFence(VK_NULL_HANDLE)
 {
 }
 
@@ -121,12 +122,16 @@ bool VulkanCore::Init(SDL_Window* window)
     A3D_CHECK_INIT(CreateRenderPass());
     A3D_CHECK_INIT(CreateFramebuffers());
     A3D_CHECK_INIT(CreateCommandBuffersAndCommandPool());
+    A3D_CHECK_INIT(CreateSyncObjects());
 
     return true;
 }
 
 void VulkanCore::Shutdown()
 {
+    vkDestroyFence(m_Device.GetDevice(), m_InFlightFence, nullptr);
+    vkDestroySemaphore(m_Device.GetDevice(), m_RenderFinishedSemaphore, nullptr);
+    vkDestroySemaphore(m_Device.GetDevice(), m_ImageAvailableSemaphore, nullptr);
     vkDestroyCommandPool(m_Device.GetDevice(), m_CommandPool, nullptr);
     for (auto framebuffer : m_SwapchainFramebuffers) {
         vkDestroyFramebuffer(m_Device.GetDevice(), framebuffer, nullptr);
@@ -139,6 +144,46 @@ void VulkanCore::Shutdown()
     m_Device.Shutdown();
     vkDestroySurfaceKHR(m_Instance, m_Surface, nullptr);
     vkDestroyInstance(m_Instance, nullptr);
+}
+
+void VulkanCore::SwapBuffers()
+{
+    vkWaitForFences(m_Device.GetDevice(), 1, &m_InFlightFence, VK_TRUE, UINT64_MAX);
+    vkResetFences(m_Device.GetDevice(), 1, &m_InFlightFence);
+
+    uint32_t imageIndex;
+    vkAcquireNextImageKHR(m_Device.GetDevice(), m_Swapchain, UINT64_MAX, m_ImageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+
+    VkSubmitInfo submitInfo{};
+    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+
+    VkSemaphore waitSemaphores[] = { m_ImageAvailableSemaphore };
+    VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+    submitInfo.waitSemaphoreCount = 1;
+    submitInfo.pWaitSemaphores = waitSemaphores;
+    submitInfo.pWaitDstStageMask = waitStages;
+
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers = &m_CommandBuffers[imageIndex];
+
+    VkSemaphore signalSemaphores[] = { m_RenderFinishedSemaphore };
+    submitInfo.signalSemaphoreCount = 1;
+    submitInfo.pSignalSemaphores = signalSemaphores;
+
+    A3D_CHECK_VKRESULT(vkQueueSubmit(m_Device.GetGraphicsQueue(), 1, &submitInfo, m_InFlightFence));
+
+    VkPresentInfoKHR presentInfo{};
+    presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+
+    presentInfo.waitSemaphoreCount = 1;
+    presentInfo.pWaitSemaphores = signalSemaphores;
+
+    VkSwapchainKHR swapchains[] = { m_Swapchain };
+    presentInfo.swapchainCount = 1;
+    presentInfo.pSwapchains = swapchains;
+    presentInfo.pImageIndices = &imageIndex;
+
+    vkQueuePresentKHR(m_Device.GetPresentQueue(), &presentInfo);
 }
 
 bool VulkanCore::CreateInstance()
@@ -443,7 +488,7 @@ bool VulkanCore::CreateCommandBuffersAndCommandPool()
         renderPassInfo.renderArea.offset = { 0, 0 };
         renderPassInfo.renderArea.extent = m_SwapchainExtent;
 
-        VkClearValue clearColor = { {{0.0f, 0.0f, 0.0f, 1.0f}} };
+        VkClearValue clearColor = { {{0.0f, 1.0f, 0.0f, 1.0f}} };
         renderPassInfo.clearValueCount = 1;
         renderPassInfo.pClearValues = &clearColor;
 
@@ -452,6 +497,22 @@ bool VulkanCore::CreateCommandBuffersAndCommandPool()
 
         A3D_CHECK_VKRESULT(vkEndCommandBuffer(m_CommandBuffers[i]));
     }
+
+    return true;
+}
+
+bool VulkanCore::CreateSyncObjects()
+{
+    VkSemaphoreCreateInfo semaphoreInfo{};
+    semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+    VkFenceCreateInfo fenceInfo{};
+    fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+    fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+
+    A3D_CHECK_VKRESULT(vkCreateSemaphore(m_Device.GetDevice(), &semaphoreInfo, nullptr, &m_ImageAvailableSemaphore));
+    A3D_CHECK_VKRESULT(vkCreateSemaphore(m_Device.GetDevice(), &semaphoreInfo, nullptr, &m_RenderFinishedSemaphore));
+    A3D_CHECK_VKRESULT(vkCreateFence(m_Device.GetDevice(), &fenceInfo, nullptr, &m_InFlightFence));
 
     return true;
 }

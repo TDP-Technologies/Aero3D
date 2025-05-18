@@ -94,7 +94,7 @@ static VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities,
 
 VulkanCore::VulkanCore()
     : m_Window(nullptr), m_Instance(VK_NULL_HANDLE), m_Surface(VK_NULL_HANDLE),
-    m_Swapchain(VK_NULL_HANDLE), m_CurrentPhysDevice(0), m_SwapchainImageFormat(VK_FORMAT_UNDEFINED),
+    m_Swapchain(VK_NULL_HANDLE), m_SwapchainImageFormat(VK_FORMAT_UNDEFINED),
     m_SwapchainExtent(0, 0), m_RenderPass(VK_NULL_HANDLE), m_CommandPool(VK_NULL_HANDLE), m_CurrentImage(0),
     m_ImageAvailableSemaphore(VK_NULL_HANDLE), m_RenderFinishedSemaphore(VK_NULL_HANDLE), m_InFlightFence(VK_NULL_HANDLE),
     m_ClearColor({ {0.0f, 1.0f, 0.0f, 1.0f} })
@@ -116,8 +116,7 @@ bool VulkanCore::Init(SDL_Window* window)
 
     A3D_CHECK_INIT(CreateInstance());
     A3D_CHECK_INIT(CreateSurface());
-    A3D_CHECK_INIT(CreatePhysicalDevices());
-    A3D_CHECK_INIT(m_Device.Init());
+    A3D_CHECK_INIT(m_Device.Init(m_Instance, m_Surface));
     A3D_CHECK_INIT(CreateSwapchain());
     A3D_CHECK_INIT(CreateImageViews());
     A3D_CHECK_INIT(CreateRenderPass());
@@ -262,66 +261,9 @@ bool VulkanCore::CreateSurface()
     return true;
 }
 
-bool VulkanCore::CreatePhysicalDevices()
-{
-    uint32_t physDeviceCount;
-    A3D_CHECK_VKRESULT(vkEnumeratePhysicalDevices(m_Instance, &physDeviceCount, nullptr));
-
-    if (!physDeviceCount)
-    {
-        LogErr(ERROR_INFO, "Failed to Enum PhysDevices.");
-        return false;
-    }
-
-    std::vector<VkPhysicalDevice> vkDevices(physDeviceCount);
-    m_PhysDevices.reserve(physDeviceCount);
-
-    A3D_CHECK_VKRESULT(vkEnumeratePhysicalDevices(m_Instance, &physDeviceCount, vkDevices.data()));
-
-    for (auto& vkDevice : vkDevices) {
-        VulkanPhysicalDevice physDev{};
-        physDev.Device = vkDevice;
-
-        vkGetPhysicalDeviceProperties(vkDevice, &physDev.Properties);
-        vkGetPhysicalDeviceFeatures(vkDevice, &physDev.Features);
-        vkGetPhysicalDeviceMemoryProperties(vkDevice, &physDev.MemoryProperties);
-
-        uint32_t queueCount = 0;
-        vkGetPhysicalDeviceQueueFamilyProperties(vkDevice, &queueCount, nullptr);
-
-        physDev.QueueFamilyProperties.resize(queueCount);
-        vkGetPhysicalDeviceQueueFamilyProperties(vkDevice, &queueCount, physDev.QueueFamilyProperties.data());
-
-        for (uint32_t i = 0; i < physDev.QueueFamilyProperties.size(); i++)
-        {
-            if (physDev.QueueFamilyProperties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) 
-            {
-                physDev.QueueFamilyIndices.GraphicsFamily = i;
-            }
-
-            VkBool32 presentSupport = false;
-            vkGetPhysicalDeviceSurfaceSupportKHR(vkDevice, i, m_Surface, &presentSupport);
-
-            if (presentSupport) 
-            {
-                physDev.QueueFamilyIndices.PresentFamily = i;
-            }
-        }
-
-        if (physDev.QueueFamilyIndices.IsComplete())
-        {
-            m_PhysDevices.emplace_back(physDev);
-        }
-    }
-
-    Assert(ERROR_INFO, !m_PhysDevices.empty(), "Unnable to Find Suitable Physical Device.");
-
-    return true;
-}
-
 bool VulkanCore::CreateSwapchain()
 {
-    VulkanPhysicalDevice& physDevice = m_PhysDevices[m_CurrentPhysDevice];
+    const VulkanPhysicalDevice& physDevice = m_Device.GetPhysicalDevice();
     SwapChainSupportDetails swapChainSupport = QuerySwapChainSupport(physDevice.Device, m_Surface);
 
     VkSurfaceFormatKHR surfaceFormat = ChooseSwapSurfaceFormat(swapChainSupport.Formats);
@@ -346,7 +288,7 @@ bool VulkanCore::CreateSwapchain()
     createInfo.imageArrayLayers = 1;
     createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
-    QueueFamilyIndices indices = physDevice.QueueFamilyIndices;
+    DeviceQueueFamilyIndices indices = physDevice.QueueFamilyIndices;
     uint32_t queueFamilyIndices[] = { indices.GraphicsFamily.value(), indices.PresentFamily.value() };
 
     if (indices.GraphicsFamily != indices.PresentFamily) 
@@ -492,7 +434,7 @@ bool VulkanCore::CreateCommandBuffersAndCommandPool()
 {
     VkCommandPoolCreateInfo poolInfo{};
     poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-    poolInfo.queueFamilyIndex = m_PhysDevices[m_CurrentPhysDevice].QueueFamilyIndices.GraphicsFamily.value();
+    poolInfo.queueFamilyIndex = m_Device.GetPhysicalDevice().QueueFamilyIndices.GraphicsFamily.value();
     poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 
     A3D_CHECK_VKRESULT(vkCreateCommandPool(m_Device.GetDevice(), &poolInfo, nullptr, &m_CommandPool));
@@ -511,28 +453,6 @@ bool VulkanCore::CreateCommandBuffersAndCommandPool()
     allocInfo.commandBufferCount = static_cast<uint32_t>(m_CommandBuffers.size());
 
     A3D_CHECK_VKRESULT(vkAllocateCommandBuffers(m_Device.GetDevice(), &allocInfo, m_CommandBuffers.data()));
-
-    for (size_t i = 0; i < m_CommandBuffers.size(); ++i) {
-        VkCommandBufferBeginInfo beginInfo{};
-        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-
-        A3D_CHECK_VKRESULT(vkBeginCommandBuffer(m_CommandBuffers[i], &beginInfo));
-
-        VkRenderPassBeginInfo renderPassInfo{};
-        renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-        renderPassInfo.renderPass = m_RenderPass;
-        renderPassInfo.framebuffer = m_SwapchainFramebuffers[i];
-        renderPassInfo.renderArea.offset = { 0, 0 };
-        renderPassInfo.renderArea.extent = m_SwapchainExtent;
-
-        renderPassInfo.clearValueCount = 1;
-        renderPassInfo.pClearValues = &m_ClearColor;
-
-        vkCmdBeginRenderPass(m_CommandBuffers[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-        vkCmdEndRenderPass(m_CommandBuffers[i]);
-
-        A3D_CHECK_VKRESULT(vkEndCommandBuffer(m_CommandBuffers[i]));
-    }
 
     return true;
 }

@@ -4,10 +4,11 @@
 
 #include "Core/Configuration.h"
 #include "Utils/Common.h"
+#include "Platform/Vulkan/VulkanAPI.h"
 
 namespace aero3d {
 
-std::unique_ptr<RenderAPI> RenderCommand::s_API = nullptr;
+std::unique_ptr<RenderAPI> RenderCommand::s_API = std::make_unique<VulkanAPI>();
 
 bool RenderCommand::Init(const char* api)
 {

@@ -96,7 +96,8 @@ VulkanCore::VulkanCore()
     : m_Window(nullptr), m_Instance(VK_NULL_HANDLE), m_Surface(VK_NULL_HANDLE),
     m_Swapchain(VK_NULL_HANDLE), m_CurrentPhysDevice(0), m_SwapchainImageFormat(VK_FORMAT_UNDEFINED),
     m_SwapchainExtent(0, 0), m_RenderPass(VK_NULL_HANDLE), m_CommandPool(VK_NULL_HANDLE),
-    m_ImageAvailableSemaphore(VK_NULL_HANDLE), m_RenderFinishedSemaphore(VK_NULL_HANDLE), m_InFlightFence(VK_NULL_HANDLE)
+    m_ImageAvailableSemaphore(VK_NULL_HANDLE), m_RenderFinishedSemaphore(VK_NULL_HANDLE), m_InFlightFence(VK_NULL_HANDLE),
+    m_ClearColor({ {0.0f, 1.0f, 0.0f, 1.0f} })
 {
 }
 
@@ -184,6 +185,11 @@ void VulkanCore::SwapBuffers()
     presentInfo.pImageIndices = &imageIndex;
 
     vkQueuePresentKHR(m_Device.GetPresentQueue(), &presentInfo);
+}
+
+void VulkanCore::SetClearColor(float r, float g, float b, float a)
+{
+    m_ClearColor.color = { r, g, b, a };
 }
 
 bool VulkanCore::CreateInstance()
@@ -488,9 +494,8 @@ bool VulkanCore::CreateCommandBuffersAndCommandPool()
         renderPassInfo.renderArea.offset = { 0, 0 };
         renderPassInfo.renderArea.extent = m_SwapchainExtent;
 
-        VkClearValue clearColor = { {{0.0f, 1.0f, 0.0f, 1.0f}} };
         renderPassInfo.clearValueCount = 1;
-        renderPassInfo.pClearValues = &clearColor;
+        renderPassInfo.pClearValues = &m_ClearColor;
 
         vkCmdBeginRenderPass(m_CommandBuffers[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
         vkCmdEndRenderPass(m_CommandBuffers[i]);

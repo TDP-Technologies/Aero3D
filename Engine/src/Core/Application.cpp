@@ -25,9 +25,7 @@ bool Application::Init()
     A3D_CHECK_INIT(EventBus::Init());
     A3D_CHECK_INIT(Window::Init("Aero3D", 800,
         600, "Vulkan"));
-    /*
     A3D_CHECK_INIT(RenderCommand::Init("Vulkan"));
-    */
 
     SubscribeOnEvents();
 
@@ -38,6 +36,8 @@ bool Application::Init()
 
 void Application::Run()
 {
+    RenderCommand::SetClearColor(1.0f, 0.5f, 0.3f, 1.0f);
+
     while (m_IsRunning)
     {
         Window::PollEvents(m_IsRunning, m_Minimized);
@@ -55,7 +55,7 @@ void Application::Shutdown()
 {
     LogMsg("Application Shutdown.");
 
-    //RenderCommand::Shutdown();
+    RenderCommand::Shutdown();
     Window::Shutdown();
     EventBus::Shutdown();
     VFS::Shutdown();

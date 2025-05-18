@@ -50,6 +50,8 @@ public:
 
     void SwapBuffers();
 
+    void SetClearColor(float r, float g, float b, float a);
+
     VkInstance GetInstance() { return m_Instance; }
     VkSurfaceKHR GetSurface() { return m_Surface; }
 
@@ -94,6 +96,8 @@ private:
     VkSemaphore m_ImageAvailableSemaphore;
     VkSemaphore m_RenderFinishedSemaphore;
     VkFence m_InFlightFence;
+
+    VkClearValue m_ClearColor;
 
 };
 

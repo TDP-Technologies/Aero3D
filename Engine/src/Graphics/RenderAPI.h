@@ -16,9 +16,7 @@ public:
     enum class API
     {
         None,
-        OpenGL,
         Vulkan,
-        DirectX11,
         DirectX12
     };
 

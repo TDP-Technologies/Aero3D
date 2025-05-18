@@ -63,6 +63,7 @@ private:
     bool CreateImageViews();
     bool CreateRenderPass();
     bool CreateFramebuffers();
+    bool CreateCommandBuffersAndCommandPool();
 
 private:
     SDL_Window* m_Window;
@@ -83,6 +84,9 @@ private:
 
     VkRenderPass m_RenderPass;
     std::vector<VkFramebuffer> m_SwapchainFramebuffers;
+
+    VkCommandPool m_CommandPool;
+    std::vector<VkCommandBuffer> m_CommandBuffers;
 
 };
 

@@ -95,7 +95,7 @@ static VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities,
 VulkanCore::VulkanCore()
     : m_Window(nullptr), m_Instance(VK_NULL_HANDLE), m_Surface(VK_NULL_HANDLE),
     m_Swapchain(VK_NULL_HANDLE), m_CurrentPhysDevice(0), m_SwapchainImageFormat(VK_FORMAT_UNDEFINED),
-    m_SwapchainExtent(0, 0), m_RenderPass(VK_NULL_HANDLE)
+    m_SwapchainExtent(0, 0), m_RenderPass(VK_NULL_HANDLE), m_CommandPool(VK_NULL_HANDLE)
 {
 }
 
@@ -120,12 +120,14 @@ bool VulkanCore::Init(SDL_Window* window)
     A3D_CHECK_INIT(CreateImageViews());
     A3D_CHECK_INIT(CreateRenderPass());
     A3D_CHECK_INIT(CreateFramebuffers());
+    A3D_CHECK_INIT(CreateCommandBuffersAndCommandPool());
 
     return true;
 }
 
 void VulkanCore::Shutdown()
 {
+    vkDestroyCommandPool(m_Device.GetDevice(), m_CommandPool, nullptr);
     for (auto framebuffer : m_SwapchainFramebuffers) {
         vkDestroyFramebuffer(m_Device.GetDevice(), framebuffer, nullptr);
     }
@@ -399,6 +401,56 @@ bool VulkanCore::CreateFramebuffers()
         framebufferInfo.layers = 1;
 
         A3D_CHECK_VKRESULT(vkCreateFramebuffer(m_Device.GetDevice(), &framebufferInfo, nullptr, &m_SwapchainFramebuffers[i]));
+    }
+
+    return true;
+}
+
+bool VulkanCore::CreateCommandBuffersAndCommandPool()
+{
+    VkCommandPoolCreateInfo poolInfo{};
+    poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    poolInfo.queueFamilyIndex = m_PhysDevices[m_CurrentPhysDevice].QueueFamilyIndices.GraphicsFamily.value();
+    poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+
+    A3D_CHECK_VKRESULT(vkCreateCommandPool(m_Device.GetDevice(), &poolInfo, nullptr, &m_CommandPool));
+    if (!m_CommandPool)
+    {
+        LogErr(ERROR_INFO, "Failed to create Command Pool.");
+        return false;
+    }
+
+    m_CommandBuffers.resize(m_SwapchainFramebuffers.size());
+
+    VkCommandBufferAllocateInfo allocInfo{};
+    allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    allocInfo.commandPool = m_CommandPool;
+    allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    allocInfo.commandBufferCount = static_cast<uint32_t>(m_CommandBuffers.size());
+
+    A3D_CHECK_VKRESULT(vkAllocateCommandBuffers(m_Device.GetDevice(), &allocInfo, m_CommandBuffers.data()));
+
+    for (size_t i = 0; i < m_CommandBuffers.size(); ++i) {
+        VkCommandBufferBeginInfo beginInfo{};
+        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+
+        A3D_CHECK_VKRESULT(vkBeginCommandBuffer(m_CommandBuffers[i], &beginInfo));
+
+        VkRenderPassBeginInfo renderPassInfo{};
+        renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+        renderPassInfo.renderPass = m_RenderPass;
+        renderPassInfo.framebuffer = m_SwapchainFramebuffers[i];
+        renderPassInfo.renderArea.offset = { 0, 0 };
+        renderPassInfo.renderArea.extent = m_SwapchainExtent;
+
+        VkClearValue clearColor = { {{0.0f, 0.0f, 0.0f, 1.0f}} };
+        renderPassInfo.clearValueCount = 1;
+        renderPassInfo.pClearValues = &clearColor;
+
+        vkCmdBeginRenderPass(m_CommandBuffers[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+        vkCmdEndRenderPass(m_CommandBuffers[i]);
+
+        A3D_CHECK_VKRESULT(vkEndCommandBuffer(m_CommandBuffers[i]));
     }
 
     return true;

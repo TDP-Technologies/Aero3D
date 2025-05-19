@@ -113,7 +113,7 @@ void VulkanGraphicsPipeline::CreatePipeline()
 
     VkRect2D scissor{};
     scissor.offset = { 0, 0 };
-    scissor.extent = { 1, 1 };
+    scissor.extent = { 800, 600 };
 
     VkPipelineViewportStateCreateInfo viewportState{};
     viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;

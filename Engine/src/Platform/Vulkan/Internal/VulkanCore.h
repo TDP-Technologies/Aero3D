@@ -23,7 +23,9 @@ public:
 
     void SwapBuffers();
 
+    void SetViewport(int x, int y, int width, int height);
     void SetClearColor(float r, float g, float b, float a);
+    void Clear();
 
     VkInstance GetInstance() { return m_Instance; }
     VkSurfaceKHR GetSurface() { return m_Surface; }
@@ -63,6 +65,7 @@ private:
     VkFence m_InFlightFence;
 
     VkClearValue m_ClearColor;
+    VkViewport m_Viewport;
 
 };
 

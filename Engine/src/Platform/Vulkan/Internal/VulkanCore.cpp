@@ -17,7 +17,8 @@ std::unique_ptr<VulkanCore> g_VulkanCore = std::make_unique<VulkanCore>();
 VulkanCore::VulkanCore()
     : m_Window(nullptr), m_Instance(VK_NULL_HANDLE), m_Surface(VK_NULL_HANDLE), m_RenderPass(VK_NULL_HANDLE),
     m_CommandPool(VK_NULL_HANDLE), m_CurrentImage(0), m_ImageAvailableSemaphore(VK_NULL_HANDLE), 
-    m_RenderFinishedSemaphore(VK_NULL_HANDLE), m_InFlightFence(VK_NULL_HANDLE), m_ClearColor({ {0.0f, 1.0f, 0.0f, 1.0f} })
+    m_RenderFinishedSemaphore(VK_NULL_HANDLE), m_InFlightFence(VK_NULL_HANDLE), m_ClearColor({ {0.0f, 1.0f, 0.0f, 1.0f} }),
+    m_Viewport({ 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f })
 {
 }
 
@@ -109,9 +110,37 @@ void VulkanCore::SwapBuffers()
     RecordCommands();
 }
 
+void VulkanCore::SetViewport(int x, int y, int width, int height)
+{
+    m_Viewport.x = static_cast<float>(x);
+    m_Viewport.x = static_cast<float>(x);
+
+    m_Viewport.width = static_cast<float>(width);
+    m_Viewport.height = static_cast<float>(height);
+}
+
 void VulkanCore::SetClearColor(float r, float g, float b, float a)
 {
     m_ClearColor.color = { r, g, b, a };
+}
+
+void VulkanCore::Clear()
+{
+    VkImageSubresourceRange range = {};
+    range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    range.baseMipLevel = 0;
+    range.levelCount = 1;
+    range.baseArrayLayer = 0;
+    range.layerCount = 1;
+
+    vkCmdClearColorImage(
+        m_CommandBuffers[m_CurrentImage],
+        m_Swapchain.GetSwapchainImages()[m_CurrentImage],
+        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+        &m_ClearColor.color,
+        1,
+        &range
+    );
 }
 
 void VulkanCore::RecordCommands()
@@ -134,6 +163,7 @@ void VulkanCore::RecordCommands()
     renderPassInfo.pClearValues = &m_ClearColor;
 
     vkCmdBeginRenderPass(m_CommandBuffers[m_CurrentImage], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+    vkCmdSetViewport(m_CommandBuffers[m_CurrentImage], 0, 1, &m_Viewport);
 }
 
 void VulkanCore::EndCommands()
@@ -273,6 +303,10 @@ bool VulkanCore::CreateFramebuffers()
         };
 
         VkExtent2D swapchainExtent = m_Swapchain.GetExtent();
+        
+        m_Viewport.width = static_cast<float>(swapchainExtent.width);
+        m_Viewport.width = static_cast<float>(swapchainExtent.height);
+
         VkFramebufferCreateInfo framebufferInfo{};
         framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
         framebufferInfo.renderPass = m_RenderPass;

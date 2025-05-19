@@ -24,7 +24,7 @@ void VulkanAPI::Shutdown()
 
 void VulkanAPI::SetViewport(int x, int y, int width, int height)
 {
-
+    g_VulkanCore->SetViewport(x, y, width, height);
 }
 
 void VulkanAPI::SetClearColor(float r, float g, float b, float a)
@@ -34,7 +34,7 @@ void VulkanAPI::SetClearColor(float r, float g, float b, float a)
 
 void VulkanAPI::Clear()
 {
-
+    g_VulkanCore->Clear();
 }
 
 void VulkanAPI::Draw(std::shared_ptr<VertexBuffer> vb, size_t count)

@@ -113,7 +113,7 @@ void VulkanCore::SwapBuffers()
 void VulkanCore::SetViewport(int x, int y, int width, int height)
 {
     m_Viewport.x = static_cast<float>(x);
-    m_Viewport.x = static_cast<float>(x);
+    m_Viewport.y = static_cast<float>(y);
 
     m_Viewport.width = static_cast<float>(width);
     m_Viewport.height = static_cast<float>(height);
@@ -310,7 +310,7 @@ bool VulkanCore::CreateFramebuffers()
         VkExtent2D swapchainExtent = m_Swapchain.GetExtent();
         
         m_Viewport.width = static_cast<float>(swapchainExtent.width);
-        m_Viewport.width = static_cast<float>(swapchainExtent.height);
+        m_Viewport.height = static_cast<float>(swapchainExtent.height);
 
         VkFramebufferCreateInfo framebufferInfo{};
         framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;

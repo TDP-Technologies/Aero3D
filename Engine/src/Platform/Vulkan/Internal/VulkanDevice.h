@@ -36,12 +36,12 @@ public:
     bool Init(VkInstance instance, VkSurfaceKHR surface);
     void Shutdown();
 
-    const VulkanPhysicalDevice& GetPhysicalDevice() { return m_PhysDevices[m_CurrentPhysDevice]; }
+    const VulkanPhysicalDevice& GetPhysicalDevice() const { return m_PhysDevices[m_CurrentPhysDevice]; }
     unsigned int GetCurrentPhysDeviceIndex() { return m_CurrentPhysDevice; }
 
-    VkDevice GetDevice() { return m_Device; }
-    VkQueue GetGraphicsQueue() { return m_GraphicsQueue; }
-    VkQueue GetPresentQueue() { return m_PresentQueue; }
+    VkDevice GetDevice() const { return m_Device; }
+    VkQueue GetGraphicsQueue() const { return m_GraphicsQueue; }
+    VkQueue GetPresentQueue() const { return m_PresentQueue; }
 
     void SetPhysicalDevice(unsigned int index) { m_CurrentPhysDevice = index; }
     

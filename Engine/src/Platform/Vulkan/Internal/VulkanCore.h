@@ -30,6 +30,11 @@ public:
     VkInstance GetInstance() { return m_Instance; }
     VkSurfaceKHR GetSurface() { return m_Surface; }
 
+    const VulkanDevice& GetDevice() { return m_Device; }
+    const VulkanSwapchain& GetSwapchain() { return m_Swapchain; }
+
+    VkRenderPass GetRenderPass() { return m_RenderPass; }
+
 private:
     bool CreateInstance();
     bool CreateSurface();

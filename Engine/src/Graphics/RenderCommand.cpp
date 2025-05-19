@@ -62,9 +62,9 @@ std::shared_ptr<ConstantBuffer> RenderCommand::CreateConstantBuffer(const void* 
     return s_API->CreateConstantBuffer(data, size);
 }
 
-std::shared_ptr<Shader> RenderCommand::CreateShader(std::string vertexPath, std::string pixelPath)
+std::shared_ptr<GraphicsPipeline> RenderCommand::CreateGraphicsPipeline(std::string vertexPath, std::string pixelPath)
 {
-    return s_API->CreateShader(vertexPath, pixelPath);
+    return s_API->CreateGraphicsPipeline(vertexPath, pixelPath);
 }
 
 std::shared_ptr<Texture> RenderCommand::CreateTexture(std::string path)

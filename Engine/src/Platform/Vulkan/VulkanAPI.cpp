@@ -1,6 +1,7 @@
 #include "Platform/Vulkan/VulkanAPI.h"
 
 #include "Platform/Vulkan/Internal/VulkanCore.h"
+#include "Platform/Vulkan/VulkanGraphicsPipeline.h"
 
 namespace aero3d {
 
@@ -62,9 +63,9 @@ std::shared_ptr<ConstantBuffer> VulkanAPI::CreateConstantBuffer(const void* data
     return nullptr;
 }
 
-std::shared_ptr<Shader> VulkanAPI::CreateShader(std::string& vertexPath, std::string& pixelPath)
+std::shared_ptr<GraphicsPipeline> VulkanAPI::CreateGraphicsPipeline(std::string& vertexPath, std::string& pixelPath)
 {
-    return nullptr;
+    return std::make_shared<VulkanGraphicsPipeline>(vertexPath, pixelPath);
 }
 
 std::shared_ptr<Texture> VulkanAPI::CreateTexture(std::string& path)

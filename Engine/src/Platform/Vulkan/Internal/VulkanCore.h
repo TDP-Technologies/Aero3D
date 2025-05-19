@@ -12,6 +12,14 @@
 
 namespace aero3d {
 
+constexpr int FRAMES = 3;
+
+struct FrameSyncObjects {
+    VkSemaphore ImageAvailableSemaphore;
+    VkSemaphore RenderFinishedSemaphore;
+    VkFence InFlightFence;
+};
+
 class VulkanCore
 {
 public:
@@ -67,9 +75,8 @@ private:
     VkCommandPool m_CommandPool;
     std::vector<VkCommandBuffer> m_CommandBuffers;
 
-    VkSemaphore m_ImageAvailableSemaphore;
-    VkSemaphore m_RenderFinishedSemaphore;
-    VkFence m_InFlightFence;
+    int m_CurrentFrame;
+    FrameSyncObjects m_SyncObjects[FRAMES];
 
     VkClearValue m_ClearColor;
     VkViewport m_Viewport;

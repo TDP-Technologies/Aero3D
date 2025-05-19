@@ -40,6 +40,7 @@ void Application::Run()
         RenderCommand::CreateGraphicsPipeline("res/shaders/vertex.glsl", "res/shaders/pixel.glsl");
 
     RenderCommand::SetClearColor(1.0f, 0.5f, 0.3f, 1.0f);
+    RenderCommand::SetViewport(0, 0, 800, 600);
 
     while (m_IsRunning)
     {

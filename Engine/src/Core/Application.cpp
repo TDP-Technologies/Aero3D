@@ -39,7 +39,7 @@ void Application::Run()
     std::shared_ptr<GraphicsPipeline> pipeline = 
         RenderCommand::CreateGraphicsPipeline("res/shaders/vertex.glsl", "res/shaders/pixel.glsl");
 
-    RenderCommand::SetClearColor(1.0f, 0.5f, 0.3f, 1.0f);
+    RenderCommand::SetClearColor(0.0f, 0.5f, 0.3f, 1.0f);
     RenderCommand::SetViewport(0, 0, 800, 600);
 
     while (m_IsRunning)
@@ -48,7 +48,11 @@ void Application::Run()
 
         if (!m_Minimized)
         {
+            RenderCommand::RecordCommands();
+
             pipeline->Bind();
+
+            RenderCommand::EndCommands();
         }
 
         Window::SwapBuffers();

@@ -22,6 +22,16 @@ void RenderCommand::Shutdown()
     A3D_SHUTDOWN(s_API);
 }
 
+void RenderCommand::RecordCommands()
+{
+    s_API->RecordCommands();
+}
+
+void RenderCommand::EndCommands()
+{
+    s_API->EndCommands();
+}
+
 void RenderCommand::SetViewport(int x, int y, int width, int height)
 {
     s_API->SetViewport(x, y, width, height);

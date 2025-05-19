@@ -17,7 +17,7 @@ std::unique_ptr<VulkanCore> g_VulkanCore = std::make_unique<VulkanCore>();
 VulkanCore::VulkanCore()
     : m_Window(nullptr), m_Instance(VK_NULL_HANDLE), m_Surface(VK_NULL_HANDLE), m_RenderPass(VK_NULL_HANDLE),
     m_CommandPool(VK_NULL_HANDLE), m_CurrentImage(0), m_CurrentFrame(0), m_ClearColor({{0.0f, 1.0f, 0.0f, 1.0f}}),
-    m_Viewport({ 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f })
+    m_Viewport({ 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f }), m_SyncObjects()
 {
 }
 
@@ -44,37 +44,40 @@ bool VulkanCore::Init(SDL_Window* window)
     A3D_CHECK_INIT(CreateCommandBuffersAndCommandPool());
     A3D_CHECK_INIT(CreateSyncObjects());
 
-    RecordCommands();
-
     return true;
 }
 
 void VulkanCore::Shutdown()
 {
+    vkDeviceWaitIdle(m_Device.GetDevice());
+
     for (int i = 0; i < FRAMES; i++)
     {
         vkDestroyFence(m_Device.GetDevice(), m_SyncObjects[i].InFlightFence, nullptr);
         vkDestroySemaphore(m_Device.GetDevice(), m_SyncObjects[i].RenderFinishedSemaphore, nullptr);
         vkDestroySemaphore(m_Device.GetDevice(), m_SyncObjects[i].ImageAvailableSemaphore, nullptr);
     }
+
     vkDestroyCommandPool(m_Device.GetDevice(), m_CommandPool, nullptr);
+
     for (auto framebuffer : m_SwapchainFramebuffers) {
         vkDestroyFramebuffer(m_Device.GetDevice(), framebuffer, nullptr);
     }
+
     vkDestroyRenderPass(m_Device.GetDevice(), m_RenderPass, nullptr);
     for (auto imageView : m_SwapchainImageViews) {
         vkDestroyImageView(m_Device.GetDevice(), imageView, nullptr);
     }
+
     m_Swapchain.Shutdown();
     m_Device.Shutdown();
+
     vkDestroySurfaceKHR(m_Instance, m_Surface, nullptr);
     vkDestroyInstance(m_Instance, nullptr);
 }
 
 void VulkanCore::SwapBuffers()
 {
-    EndCommands();
-
     VkSubmitInfo submitInfo{};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
@@ -108,8 +111,6 @@ void VulkanCore::SwapBuffers()
     vkQueuePresentKHR(m_Device.GetPresentQueue(), &presentInfo);
 
     m_CurrentFrame = (m_CurrentFrame + 1) % FRAMES;
-
-    RecordCommands();
 }
 
 void VulkanCore::SetViewport(int x, int y, int width, int height)
@@ -373,7 +374,7 @@ bool VulkanCore::CreateSyncObjects()
     fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
     fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-    for (int i; i < FRAMES; i++)
+    for (int i = 0; i < FRAMES; i++)
     {
         A3D_CHECK_VKRESULT(vkCreateSemaphore(m_Device.GetDevice(), &semaphoreInfo, nullptr,
             &m_SyncObjects[i].ImageAvailableSemaphore));

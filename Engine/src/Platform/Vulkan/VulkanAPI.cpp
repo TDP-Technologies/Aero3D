@@ -23,6 +23,16 @@ void VulkanAPI::Shutdown()
 
 }
 
+void VulkanAPI::RecordCommands()
+{
+    g_VulkanCore->RecordCommands();
+}
+
+void VulkanAPI::EndCommands()
+{
+    g_VulkanCore->EndCommands();
+}
+
 void VulkanAPI::SetViewport(int x, int y, int width, int height)
 {
     g_VulkanCore->SetViewport(x, y, width, height);

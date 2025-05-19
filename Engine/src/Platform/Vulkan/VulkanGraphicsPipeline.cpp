@@ -22,6 +22,7 @@ VulkanGraphicsPipeline::VulkanGraphicsPipeline(std::string& vertexShaderPath,
 
 VulkanGraphicsPipeline::~VulkanGraphicsPipeline()
 {
+    vkDeviceWaitIdle(m_Device);
     vkDestroyPipeline(m_Device, m_Pipeline, nullptr);
     vkDestroyPipelineLayout(m_Device, m_Layout, nullptr);
     vkDestroyShaderModule(m_Device, m_VertexShader, nullptr);

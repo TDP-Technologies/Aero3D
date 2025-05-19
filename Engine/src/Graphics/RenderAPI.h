@@ -26,6 +26,9 @@ public:
     virtual bool Init() = 0;
     virtual void Shutdown() = 0;
 
+    virtual void RecordCommands() = 0;
+    virtual void EndCommands() = 0;
+
     virtual void SetViewport(int x, int y, int width, int height) = 0;
 
     virtual void SetClearColor(float r, float g, float b, float a) = 0;

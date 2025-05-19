@@ -14,6 +14,9 @@ public:
     virtual bool Init() override;
     virtual void Shutdown() override;
 
+    virtual void RecordCommands() override;
+    virtual void EndCommands() override;
+
     virtual void SetViewport(int x, int y, int width, int height) override;
 
     virtual void SetClearColor(float r, float g, float b, float a) override;

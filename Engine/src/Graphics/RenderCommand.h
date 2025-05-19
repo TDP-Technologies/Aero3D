@@ -17,6 +17,9 @@ public:
     static bool Init(const char* api);
     static void Shutdown();
 
+    static void RecordCommands();
+    static void EndCommands();
+
     static void SetViewport(int x, int y, int width, int height);
 
     static void SetClearColor(float r, float g, float b, float a);

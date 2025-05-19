@@ -29,6 +29,9 @@ public:
     bool Init(SDL_Window* window);
     void Shutdown();
 
+    void RecordCommands();
+    void EndCommands();
+
     void SwapBuffers();
 
     void SetViewport(int x, int y, int width, int height);
@@ -53,9 +56,6 @@ private:
     bool CreateFramebuffers();
     bool CreateCommandBuffersAndCommandPool();
     bool CreateSyncObjects();
-
-    void RecordCommands();
-    void EndCommands();
 
 private:
     SDL_Window* m_Window;

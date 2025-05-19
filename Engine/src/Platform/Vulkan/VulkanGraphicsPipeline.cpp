@@ -4,6 +4,8 @@
 
 #include "Platform/Vulkan/Internal/VulkanCore.h"
 #include "Platform/Vulkan/Internal/VulkanUtils.h"
+#include "Utils/Log.h"
+#include "IO/VFS.h"
 
 namespace aero3d {
 
@@ -13,6 +15,7 @@ VulkanGraphicsPipeline::VulkanGraphicsPipeline(std::string& vertexShaderPath,
 {
     m_Device = g_VulkanCore->GetDevice().GetDevice();
 
+    CreateShaderModules(vertexShaderPath, pixelShaderPath);
     CreatePipelineLayout();
     CreatePipeline();
 }
@@ -21,16 +24,56 @@ VulkanGraphicsPipeline::~VulkanGraphicsPipeline()
 {
     vkDestroyPipeline(m_Device, m_Pipeline, nullptr);
     vkDestroyPipelineLayout(m_Device, m_Layout, nullptr);
+    vkDestroyShaderModule(m_Device, m_VertexShader, nullptr);
+    vkDestroyShaderModule(m_Device, m_PixelShader, nullptr);
 }
 
 void VulkanGraphicsPipeline::Bind()
 {
-    //vkCmdBindPipeline(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
+    vkCmdBindPipeline(g_VulkanCore->GetCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_Pipeline);
 }
 
 void VulkanGraphicsPipeline::Unbind()
 {
 
+}
+
+std::vector<uint32_t> VulkanGraphicsPipeline::CompileGLSL(const std::string& source,
+    shaderc_shader_kind kind, const std::string& name)
+{
+    shaderc::Compiler compiler;
+    shaderc::CompileOptions options;
+
+    shaderc::SpvCompilationResult result = compiler.CompileGlslToSpv(source, kind, name.c_str(), options);
+
+    if (result.GetCompilationStatus() != shaderc_compilation_status_success) {
+        LogErr(ERROR_INFO, "Failed to compile Vulkan Shader");
+    }
+
+    return { result.cbegin(), result.cend() };
+}
+
+void VulkanGraphicsPipeline::CreateShaderModules(std::string& vertexShaderPath,
+    std::string& pixelShaderPath)
+{
+    std::string vertexSource = VFS::ReadFile(vertexShaderPath)->ReadString();
+    std::string pixelSource = VFS::ReadFile(pixelShaderPath)->ReadString();
+
+    std::vector<uint32_t> spirvVertex = CompileGLSL(vertexSource, shaderc_vertex_shader, vertexShaderPath);
+    std::vector<uint32_t> spirvPixel = CompileGLSL(pixelSource, shaderc_fragment_shader, pixelShaderPath);
+
+    VkShaderModuleCreateInfo createInfo{};
+    createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+
+    createInfo.codeSize = spirvVertex.size() * sizeof(uint32_t);
+    createInfo.pCode = spirvVertex.data();
+
+    A3D_CHECK_VKRESULT(vkCreateShaderModule(m_Device, &createInfo, nullptr, &m_VertexShader));
+
+    createInfo.codeSize = spirvPixel.size() * sizeof(uint32_t);
+    createInfo.pCode = spirvPixel.data();
+
+    A3D_CHECK_VKRESULT(vkCreateShaderModule(m_Device, &createInfo, nullptr, &m_PixelShader));
 }
 
 void VulkanGraphicsPipeline::CreatePipelineLayout()
@@ -48,13 +91,13 @@ void VulkanGraphicsPipeline::CreatePipeline()
     VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
     vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
     vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
-    vertShaderStageInfo.module = nullptr;
+    vertShaderStageInfo.module = m_VertexShader;
     vertShaderStageInfo.pName = "main";
 
     VkPipelineShaderStageCreateInfo fragShaderStageInfo{};
     fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
     fragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-    fragShaderStageInfo.module = nullptr;
+    fragShaderStageInfo.module = m_PixelShader;
     fragShaderStageInfo.pName = "main";
 
     VkPipelineShaderStageCreateInfo shaderStages[] = { vertShaderStageInfo, fragShaderStageInfo };
@@ -67,12 +110,16 @@ void VulkanGraphicsPipeline::CreatePipeline()
     inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
     inputAssembly.primitiveRestartEnable = VK_FALSE;
 
+    VkRect2D scissor{};
+    scissor.offset = { 0, 0 };
+    scissor.extent = { 1, 1 };
+
     VkPipelineViewportStateCreateInfo viewportState{};
     viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
     viewportState.viewportCount = 1;
     viewportState.pViewports = nullptr;
     viewportState.scissorCount = 1;
-    viewportState.pScissors = nullptr;
+    viewportState.pScissors = &scissor;
 
     VkPipelineRasterizationStateCreateInfo rasterizer{};
     rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
@@ -101,8 +148,7 @@ void VulkanGraphicsPipeline::CreatePipeline()
     colorBlending.pAttachments = &colorBlendAttachment;
 
     std::vector<VkDynamicState> dynamicStates = {
-        VK_DYNAMIC_STATE_VIEWPORT,
-        VK_DYNAMIC_STATE_SCISSOR,
+        VK_DYNAMIC_STATE_VIEWPORT
     };
 
     VkPipelineDynamicStateCreateInfo dynamicState{};

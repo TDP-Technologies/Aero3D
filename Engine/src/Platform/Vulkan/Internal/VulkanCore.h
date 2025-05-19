@@ -35,6 +35,8 @@ public:
 
     VkRenderPass GetRenderPass() { return m_RenderPass; }
 
+    VkCommandBuffer GetCommandBuffer() { return m_CommandBuffers[m_CurrentImage]; }
+
 private:
     bool CreateInstance();
     bool CreateSurface();

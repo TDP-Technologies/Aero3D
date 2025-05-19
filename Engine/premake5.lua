@@ -50,7 +50,14 @@ project "Engine"
 		links
 		{
 			"SDL3/SDL3.lib",
-			"Vulkan/vulkan-1.lib"
+			"Vulkan/vulkan-1.lib",
+			"Vulkan/shaderc.lib",
+			"Vulkan/shaderc_combined.lib",
+			"Vulkan/shaderc_util.lib",
+			"Vulkan/glslang.lib",
+			"Vulkan/SPIRV.lib",
+			"Vulkan/SPIRV-Tools.lib",
+			"Vulkan/SPIRV-Tools-opt.lib"
 		}
 
 		defines

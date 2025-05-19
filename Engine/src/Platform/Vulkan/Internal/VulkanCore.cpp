@@ -181,6 +181,10 @@ bool VulkanCore::CreateInstance()
         return false;
     }
 
+    const char* validationLayers[] = {
+        "VK_LAYER_KHRONOS_validation"
+    };
+
     VkApplicationInfo appInfo{};
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
     appInfo.pApplicationName = "Vulkan";
@@ -194,7 +198,8 @@ bool VulkanCore::CreateInstance()
     createInfo.pApplicationInfo = &appInfo;
     createInfo.enabledExtensionCount = extensionCount;
     createInfo.ppEnabledExtensionNames = extensions;
-    createInfo.enabledLayerCount = 0;
+    createInfo.enabledLayerCount = 1;
+    createInfo.ppEnabledLayerNames = validationLayers;
 
     A3D_CHECK_VKRESULT(vkCreateInstance(&createInfo, nullptr, &m_Instance));
 

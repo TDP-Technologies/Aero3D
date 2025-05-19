@@ -36,7 +36,9 @@ bool Application::Init()
 
 void Application::Run()
 {
-    std::shared_ptr<GraphicsPipeline> pipeline = RenderCommand::CreateGraphicsPipeline("", "");
+    std::shared_ptr<GraphicsPipeline> pipeline = 
+        RenderCommand::CreateGraphicsPipeline("res/shaders/vertex.glsl", "res/shaders/pixel.glsl");
+
     RenderCommand::SetClearColor(1.0f, 0.5f, 0.3f, 1.0f);
 
     while (m_IsRunning)
@@ -45,7 +47,7 @@ void Application::Run()
 
         if (!m_Minimized)
         {
-
+            pipeline->Bind();
         }
 
         Window::SwapBuffers();

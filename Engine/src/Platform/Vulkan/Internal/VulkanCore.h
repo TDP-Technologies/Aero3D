@@ -32,6 +32,8 @@ public:
     void RecordCommands();
     void EndCommands();
 
+    void Draw(size_t count);
+
     void SwapBuffers();
 
     void SetViewport(int x, int y, int width, int height);

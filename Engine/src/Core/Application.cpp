@@ -64,7 +64,7 @@ void Application::Run()
             RenderCommand::RecordCommands();
 
             pipeline->Bind();
-            vb->Bind();
+            RenderCommand::Draw(vb, 3);
 
             RenderCommand::EndCommands();
         }

@@ -51,7 +51,8 @@ void VulkanAPI::Clear()
 
 void VulkanAPI::Draw(std::shared_ptr<VertexBuffer> vb, size_t count)
 {
-
+    vb->Bind();
+    g_VulkanCore->Draw(count);
 }
 
 void VulkanAPI::DrawIndexed(std::shared_ptr<VertexBuffer> vb, std::shared_ptr<IndexBuffer> ib)

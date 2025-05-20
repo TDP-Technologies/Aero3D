@@ -177,10 +177,13 @@ void VulkanCore::RecordCommands()
 
 void VulkanCore::EndCommands()
 {
-    vkCmdDraw(m_CommandBuffers[m_CurrentFrame], 3, 1, 0, 0);
-
     vkCmdEndRenderPass(m_CommandBuffers[m_CurrentFrame]);
     vkEndCommandBuffer(m_CommandBuffers[m_CurrentFrame]);
+}
+
+void VulkanCore::Draw(size_t count)
+{
+    vkCmdDraw(m_CommandBuffers[m_CurrentFrame], count, 1, 0, 0);
 }
 
 bool VulkanCore::CreateInstance()

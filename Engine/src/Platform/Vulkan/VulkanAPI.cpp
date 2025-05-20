@@ -2,6 +2,7 @@
 
 #include "Platform/Vulkan/Internal/VulkanCore.h"
 #include "Platform/Vulkan/VulkanGraphicsPipeline.h"
+#include "Platform/Vulkan/VulkanBuffer.h"
 
 namespace aero3d {
 
@@ -58,17 +59,17 @@ void VulkanAPI::DrawIndexed(std::shared_ptr<VertexBuffer> vb, std::shared_ptr<In
 
 }
 
-std::shared_ptr<VertexBuffer> VulkanAPI::CreateVertexBuffer(BufferLayout& layout, const void* data, size_t size)
+std::shared_ptr<VertexBuffer> VulkanAPI::CreateVertexBuffer(BufferLayout& layout, void* data, size_t size)
+{
+    return std::make_shared<VulkanVertexBuffer>(data, size);
+}
+
+std::shared_ptr<IndexBuffer> VulkanAPI::CreateIndexBuffer(void* data, size_t size, size_t count)
 {
     return nullptr;
 }
 
-std::shared_ptr<IndexBuffer> VulkanAPI::CreateIndexBuffer(const void* data, size_t size, size_t count)
-{
-    return nullptr;
-}
-
-std::shared_ptr<ConstantBuffer> VulkanAPI::CreateConstantBuffer(const void* data, size_t size)
+std::shared_ptr<ConstantBuffer> VulkanAPI::CreateConstantBuffer(void* data, size_t size)
 {
     return nullptr;
 }

@@ -57,17 +57,17 @@ void RenderCommand::DrawIndexed(std::shared_ptr<VertexBuffer> vb, std::shared_pt
     s_API->DrawIndexed(vb, ib);
 }
 
-std::shared_ptr<VertexBuffer> RenderCommand::CreateVertexBuffer(BufferLayout& layout, const void* data, size_t size)
+std::shared_ptr<VertexBuffer> RenderCommand::CreateVertexBuffer(BufferLayout& layout, void* data, size_t size)
 {
     return s_API->CreateVertexBuffer(layout, data, size);
 }
 
-std::shared_ptr<IndexBuffer> RenderCommand::CreateIndexBuffer(const void* data, size_t size, size_t count)
+std::shared_ptr<IndexBuffer> RenderCommand::CreateIndexBuffer(void* data, size_t size, size_t count)
 {
     return s_API->CreateIndexBuffer(data, size, count);
 }
 
-std::shared_ptr<ConstantBuffer> RenderCommand::CreateConstantBuffer(const void* data, size_t size)
+std::shared_ptr<ConstantBuffer> RenderCommand::CreateConstantBuffer(void* data, size_t size)
 {
     return s_API->CreateConstantBuffer(data, size);
 }

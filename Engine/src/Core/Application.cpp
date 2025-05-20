@@ -42,6 +42,14 @@ void Application::Run()
     RenderCommand::SetClearColor(0.0f, 0.5f, 0.3f, 1.0f);
     RenderCommand::SetViewport(0, 0, 800, 600);
 
+    float vertices[] = {
+         0.0f, -0.5f,   1.0f, 0.0f, 0.0f,
+         0.5f,  0.5f,   0.0f, 1.0f, 0.0f,
+        -0.5f,  0.5f,   0.0f, 0.0f, 1.0f
+    };
+    BufferLayout layout = { {} };
+    std::shared_ptr<VertexBuffer> vb = RenderCommand::CreateVertexBuffer(layout, vertices, 15 * 4);
+
     while (m_IsRunning)
     {
         Window::PollEvents(m_IsRunning, m_Minimized);
@@ -51,6 +59,7 @@ void Application::Run()
             RenderCommand::RecordCommands();
 
             pipeline->Bind();
+            vb->Bind();
 
             RenderCommand::EndCommands();
         }

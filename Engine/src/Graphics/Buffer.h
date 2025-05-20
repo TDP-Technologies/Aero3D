@@ -14,7 +14,6 @@ public:
     ~VertexBuffer() = default;
 
     virtual void Bind() = 0;
-    virtual void Unbind() = 0;
 
     virtual void SetData(const void* data, size_t size) = 0;
 
@@ -35,7 +34,6 @@ public:
     ~IndexBuffer() = default;
 
     virtual void Bind() = 0;
-    virtual void Unbind() = 0;
 
     virtual size_t GetIndexCount() = 0;
 

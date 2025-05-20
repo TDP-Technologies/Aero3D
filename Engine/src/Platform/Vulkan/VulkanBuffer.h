@@ -14,7 +14,6 @@ public:
     ~VulkanVertexBuffer();
 
     virtual void Bind() override;
-    virtual void Unbind() override;
 
     virtual void SetData(const void* data, size_t size) override;
 

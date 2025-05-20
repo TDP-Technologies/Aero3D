@@ -58,11 +58,6 @@ void VulkanGraphicsPipeline::Bind()
     vkCmdBindPipeline(g_VulkanCore->GetCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_Pipeline);
 }
 
-void VulkanGraphicsPipeline::Unbind()
-{
-
-}
-
 std::vector<uint32_t> VulkanGraphicsPipeline::CompileGLSL(const std::string& source,
     shaderc_shader_kind kind, const std::string& name)
 {

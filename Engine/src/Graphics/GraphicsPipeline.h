@@ -1,8 +1,6 @@
 #ifndef AERO3D_GRAPHICS_GRAPHICSPIPELINE_H_
 #define AERO3D_GRAPHICS_GRAPHICSPIPELINE_H_
 
-#include "Utils/Assert.h"
-
 namespace aero3d {
 
 enum class ElementType
@@ -27,7 +25,7 @@ static int ElementTypeSize(ElementType type)
     case ElementType::MAT2: return 16;
     case ElementType::MAT3: return 36;
     case ElementType::MAT4: return 64;
-    default: Assert(ERROR_INFO, false, "This ElementType doesnt exist !"); return 0;
+    default: return 0;
     }
 }
 
@@ -58,9 +56,8 @@ struct LayoutElement
         case ElementType::MAT2: return 4;
         case ElementType::MAT3: return 9;
         case ElementType::MAT4: return 16;
-        default: Assert(ERROR_INFO, false, "This ElementType doesnt exist !");
+        default: return 0;
         }
-        return 0;
     }
 
 };
@@ -84,6 +81,7 @@ public:
 private:
     int m_Stride;
     std::vector<LayoutElement> m_Elements;
+
 };
 
 class GraphicsPipeline
@@ -92,7 +90,6 @@ public:
     virtual ~GraphicsPipeline() = default;
 
     virtual void Bind() = 0;
-    virtual void Unbind() = 0;
 
 };
 

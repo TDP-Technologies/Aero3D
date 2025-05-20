@@ -19,7 +19,6 @@ public:
     ~VulkanGraphicsPipeline();
 
     virtual void Bind() override;
-    virtual void Unbind() override;
 
 private:
     std::vector<uint32_t> CompileGLSL(const std::string& source, shaderc_shader_kind kind, const std::string& name);

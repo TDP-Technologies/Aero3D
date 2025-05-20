@@ -15,6 +15,8 @@ static uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags proper
             return i;
         }
     }
+
+    return 0;
 }
 
 VulkanVertexBuffer::VulkanVertexBuffer(void* data, size_t size)
@@ -63,11 +65,6 @@ void VulkanVertexBuffer::Bind()
 {
     VkDeviceSize offsets[] = { 0 };
     vkCmdBindVertexBuffers(g_VulkanCore->GetCommandBuffer(), 0, 1, &m_Buffer, offsets);
-}
-
-void VulkanVertexBuffer::Unbind()
-{
-
 }
 
 void VulkanVertexBuffer::SetData(const void* data, size_t size)

@@ -30,18 +30,19 @@ class A3D_API IndexBuffer
 {
 public:
     IndexBuffer(IndexBufferType type = IndexBufferType::UNSIGNED_INT)
-        : m_Type(type) {}
+        : m_Type(type), m_Count(0) {}
     ~IndexBuffer() = default;
 
     virtual void Bind() = 0;
 
-    virtual size_t GetIndexCount() = 0;
+    size_t GetIndexCount() { return m_Count; }
 
     void SetIndexBufferType(IndexBufferType type) { m_Type = type; }
     IndexBufferType GetIndexBufferType() { return m_Type; }
 
 protected:
     IndexBufferType m_Type;
+    size_t m_Count;
 
 };
 

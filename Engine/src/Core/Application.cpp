@@ -53,7 +53,12 @@ void Application::Run()
         -0.5f,  0.5f,   0.0f, 0.0f, 1.0f
     };
 
+    unsigned int indices[] = {
+        0, 1, 2
+    };
+
     std::shared_ptr<VertexBuffer> vb = RenderCommand::CreateVertexBuffer(vertices, 15 * 4);
+    std::shared_ptr<IndexBuffer> ib = RenderCommand::CreateIndexBuffer(indices, 12, 3);
 
     while (m_IsRunning)
     {
@@ -64,7 +69,7 @@ void Application::Run()
             RenderCommand::RecordCommands();
 
             pipeline->Bind();
-            RenderCommand::Draw(vb, 3);
+            RenderCommand::DrawIndexed(vb, ib);
 
             RenderCommand::EndCommands();
         }

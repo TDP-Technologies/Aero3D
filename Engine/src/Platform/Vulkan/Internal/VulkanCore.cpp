@@ -186,6 +186,11 @@ void VulkanCore::Draw(size_t count)
     vkCmdDraw(m_CommandBuffers[m_CurrentFrame], count, 1, 0, 0);
 }
 
+void VulkanCore::DrawIndexed(size_t count)
+{
+    vkCmdDrawIndexed(m_CommandBuffers[m_CurrentFrame], count, 1, 0, 0, 0);
+}
+
 bool VulkanCore::CreateInstance()
 {
     uint32_t extensionCount;

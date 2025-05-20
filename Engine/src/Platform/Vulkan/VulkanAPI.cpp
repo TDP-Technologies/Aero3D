@@ -57,7 +57,9 @@ void VulkanAPI::Draw(std::shared_ptr<VertexBuffer> vb, size_t count)
 
 void VulkanAPI::DrawIndexed(std::shared_ptr<VertexBuffer> vb, std::shared_ptr<IndexBuffer> ib)
 {
-
+    vb->Bind();
+    ib->Bind();
+    g_VulkanCore->DrawIndexed(ib->GetIndexCount());
 }
 
 std::shared_ptr<VertexBuffer> VulkanAPI::CreateVertexBuffer(void* data, size_t size)
@@ -67,7 +69,7 @@ std::shared_ptr<VertexBuffer> VulkanAPI::CreateVertexBuffer(void* data, size_t s
 
 std::shared_ptr<IndexBuffer> VulkanAPI::CreateIndexBuffer(void* data, size_t size, size_t count)
 {
-    return nullptr;
+    return std::make_shared<VulkanIndexBuffer>(data, size, count);
 }
 
 std::shared_ptr<ConstantBuffer> VulkanAPI::CreateConstantBuffer(void* data, size_t size)

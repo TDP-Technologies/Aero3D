@@ -25,6 +25,22 @@ private:
 
 };
 
+class VulkanIndexBuffer : public IndexBuffer
+{
+public:
+    VulkanIndexBuffer(void* data, size_t size, size_t count);
+    ~VulkanIndexBuffer();
+
+    virtual void Bind() override;
+
+private:
+    VkDevice m_Device;
+
+    VkBuffer m_Buffer;
+    VkDeviceMemory m_Memory;
+
+};
+
 } // namespace aero3d
 
 #endif // AERO3D_PLATFORM_VULKAN_VULKANBUFFER_H_

@@ -33,6 +33,7 @@ public:
     void EndCommands();
 
     void Draw(size_t count);
+    void DrawIndexed(size_t count);
 
     void SwapBuffers();
 

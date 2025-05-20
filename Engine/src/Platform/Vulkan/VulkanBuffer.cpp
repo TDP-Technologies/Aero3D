@@ -47,10 +47,9 @@ VulkanVertexBuffer::VulkanVertexBuffer(void* data, size_t size)
     A3D_CHECK_VKRESULT(vkBindBufferMemory(m_Device, m_Buffer, m_Memory, 0));
 
     void* dst;
-    vkMapMemory(m_Device, m_Memory, 0, bufferInfo.size, 0, &data);
+    A3D_CHECK_VKRESULT(vkMapMemory(m_Device, m_Memory, 0, bufferInfo.size, 0, &dst));
     memcpy(dst, data, (size_t)bufferInfo.size);
     vkUnmapMemory(m_Device, m_Memory);
-
 }
 
 VulkanVertexBuffer::~VulkanVertexBuffer()

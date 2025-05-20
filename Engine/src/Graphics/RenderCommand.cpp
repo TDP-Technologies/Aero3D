@@ -57,9 +57,9 @@ void RenderCommand::DrawIndexed(std::shared_ptr<VertexBuffer> vb, std::shared_pt
     s_API->DrawIndexed(vb, ib);
 }
 
-std::shared_ptr<VertexBuffer> RenderCommand::CreateVertexBuffer(BufferLayout& layout, void* data, size_t size)
+std::shared_ptr<VertexBuffer> RenderCommand::CreateVertexBuffer(void* data, size_t size)
 {
-    return s_API->CreateVertexBuffer(layout, data, size);
+    return s_API->CreateVertexBuffer(data, size);
 }
 
 std::shared_ptr<IndexBuffer> RenderCommand::CreateIndexBuffer(void* data, size_t size, size_t count)
@@ -72,9 +72,10 @@ std::shared_ptr<ConstantBuffer> RenderCommand::CreateConstantBuffer(void* data, 
     return s_API->CreateConstantBuffer(data, size);
 }
 
-std::shared_ptr<GraphicsPipeline> RenderCommand::CreateGraphicsPipeline(std::string vertexPath, std::string pixelPath)
+std::shared_ptr<GraphicsPipeline> RenderCommand::CreateGraphicsPipeline(VertexLayout& vertexLayout, 
+    std::string vertexPath, std::string pixelPath)
 {
-    return s_API->CreateGraphicsPipeline(vertexPath, pixelPath);
+    return s_API->CreateGraphicsPipeline(vertexLayout, vertexPath, pixelPath);
 }
 
 std::shared_ptr<Texture> RenderCommand::CreateTexture(std::string path)

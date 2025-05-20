@@ -9,15 +9,39 @@
 
 namespace aero3d {
 
-VulkanGraphicsPipeline::VulkanGraphicsPipeline(std::string& vertexShaderPath,
-    std::string& pixelShaderPath)
+static VkFormat ElementTypeToVkFormat(ElementType type)
+{
+    switch (type)
+    {
+    case ElementType::FLOAT:  return VK_FORMAT_R32_SFLOAT;
+    case ElementType::FLOAT2: return VK_FORMAT_R32G32_SFLOAT;
+    case ElementType::FLOAT3: return VK_FORMAT_R32G32B32_SFLOAT;
+    case ElementType::FLOAT4: return VK_FORMAT_R32G32B32A32_SFLOAT;
+
+    case ElementType::INT:  return VK_FORMAT_R32_SINT;
+    case ElementType::INT2: return VK_FORMAT_R32G32_SINT;
+    case ElementType::INT3: return VK_FORMAT_R32G32B32_SINT;
+    case ElementType::INT4: return VK_FORMAT_R32G32B32A32_SINT;
+
+    case ElementType::BOOL: return VK_FORMAT_R8_UINT;
+
+    case ElementType::MAT2: return VK_FORMAT_R32G32_SFLOAT;
+    case ElementType::MAT3: return VK_FORMAT_R32G32B32_SFLOAT;
+    case ElementType::MAT4: return VK_FORMAT_R32G32B32A32_SFLOAT;
+
+    default: return VK_FORMAT_UNDEFINED;
+    }
+}
+
+VulkanGraphicsPipeline::VulkanGraphicsPipeline(VertexLayout& vertexLayout, 
+    std::string& vertexShaderPath, std::string& pixelShaderPath)
     : m_Pipeline(VK_NULL_HANDLE), m_Device(VK_NULL_HANDLE)
 {
     m_Device = g_VulkanCore->GetDevice().GetDevice();
 
     CreateShaderModules(vertexShaderPath, pixelShaderPath);
     CreatePipelineLayout();
-    CreatePipeline();
+    CreatePipeline(vertexLayout);
 }
 
 VulkanGraphicsPipeline::~VulkanGraphicsPipeline()
@@ -87,7 +111,7 @@ void VulkanGraphicsPipeline::CreatePipelineLayout()
     A3D_CHECK_VKRESULT(vkCreatePipelineLayout(m_Device, &pipelineLayoutInfo, nullptr, &m_Layout));
 }
 
-void VulkanGraphicsPipeline::CreatePipeline()
+void VulkanGraphicsPipeline::CreatePipeline(VertexLayout& vertexLayout)
 {
     VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
     vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -102,9 +126,6 @@ void VulkanGraphicsPipeline::CreatePipeline()
     fragShaderStageInfo.pName = "main";
 
     VkPipelineShaderStageCreateInfo shaderStages[] = { vertShaderStageInfo, fragShaderStageInfo };
-
-    VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
-    vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 
     VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
     inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
@@ -156,6 +177,30 @@ void VulkanGraphicsPipeline::CreatePipeline()
     dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
     dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
     dynamicState.pDynamicStates = dynamicStates.data();
+
+    auto vertexElements = vertexLayout.GetElements();
+
+    VkVertexInputBindingDescription bindingDescription{};
+    bindingDescription.binding = 0;
+    bindingDescription.stride = vertexLayout.GetStride();
+    bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+    std::vector<VkVertexInputAttributeDescription> attributeDescriptions(vertexElements.size());
+
+    for (int i = 0; i < vertexElements.size(); i++)
+    {
+        attributeDescriptions[i].binding = 0;
+        attributeDescriptions[i].location = i;
+        attributeDescriptions[i].format = ElementTypeToVkFormat(vertexElements[i].Type);
+        attributeDescriptions[i].offset = vertexElements[i].Offset;
+    }
+
+    VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
+    vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+    vertexInputInfo.vertexBindingDescriptionCount = 1;
+    vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
+    vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
+    vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
 
     VkGraphicsPipelineCreateInfo pipelineInfo{};
     pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;

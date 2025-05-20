@@ -36,8 +36,13 @@ bool Application::Init()
 
 void Application::Run()
 {
+    VertexLayout layout = VertexLayout({
+    LayoutElement("inPos", ElementType::FLOAT2),
+    LayoutElement("inColor", ElementType::FLOAT3)
+        });
+
     std::shared_ptr<GraphicsPipeline> pipeline = 
-        RenderCommand::CreateGraphicsPipeline("res/shaders/vertex.glsl", "res/shaders/pixel.glsl");
+        RenderCommand::CreateGraphicsPipeline(layout, "res/shaders/vertex.glsl", "res/shaders/pixel.glsl");
 
     RenderCommand::SetClearColor(0.0f, 0.5f, 0.3f, 1.0f);
     RenderCommand::SetViewport(0, 0, 800, 600);
@@ -47,8 +52,8 @@ void Application::Run()
          0.5f,  0.5f,   0.0f, 1.0f, 0.0f,
         -0.5f,  0.5f,   0.0f, 0.0f, 1.0f
     };
-    BufferLayout layout = { {} };
-    std::shared_ptr<VertexBuffer> vb = RenderCommand::CreateVertexBuffer(layout, vertices, 15 * 4);
+
+    std::shared_ptr<VertexBuffer> vb = RenderCommand::CreateVertexBuffer(vertices, 15 * 4);
 
     while (m_IsRunning)
     {

@@ -14,7 +14,8 @@ namespace aero3d {
 class VulkanGraphicsPipeline : public GraphicsPipeline
 {
 public:
-    VulkanGraphicsPipeline(std::string& vertexShaderPath, std::string& pixelShaderPath);
+    VulkanGraphicsPipeline(VertexLayout& vertexLayout, 
+        std::string& vertexShaderPath, std::string& pixelShaderPath);
     ~VulkanGraphicsPipeline();
 
     virtual void Bind() override;
@@ -26,7 +27,7 @@ private:
     void CreateShaderModules(std::string& vertexShaderPath,
         std::string& pixelShaderPath);
     void CreatePipelineLayout();
-    void CreatePipeline();
+    void CreatePipeline(VertexLayout& vertexLayout);
 
 private:
     VkDevice m_Device;

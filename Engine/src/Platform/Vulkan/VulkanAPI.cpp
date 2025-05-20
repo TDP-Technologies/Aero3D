@@ -59,7 +59,7 @@ void VulkanAPI::DrawIndexed(std::shared_ptr<VertexBuffer> vb, std::shared_ptr<In
 
 }
 
-std::shared_ptr<VertexBuffer> VulkanAPI::CreateVertexBuffer(BufferLayout& layout, void* data, size_t size)
+std::shared_ptr<VertexBuffer> VulkanAPI::CreateVertexBuffer(void* data, size_t size)
 {
     return std::make_shared<VulkanVertexBuffer>(data, size);
 }
@@ -74,9 +74,9 @@ std::shared_ptr<ConstantBuffer> VulkanAPI::CreateConstantBuffer(void* data, size
     return nullptr;
 }
 
-std::shared_ptr<GraphicsPipeline> VulkanAPI::CreateGraphicsPipeline(std::string& vertexPath, std::string& pixelPath)
+std::shared_ptr<GraphicsPipeline> VulkanAPI::CreateGraphicsPipeline(VertexLayout& vertexLayout, std::string& vertexPath, std::string& pixelPath)
 {
-    return std::make_shared<VulkanGraphicsPipeline>(vertexPath, pixelPath);
+    return std::make_shared<VulkanGraphicsPipeline>(vertexLayout, vertexPath, pixelPath);
 }
 
 std::shared_ptr<Texture> VulkanAPI::CreateTexture(std::string& path)

@@ -28,11 +28,12 @@ public:
     static void Draw(std::shared_ptr<VertexBuffer> vb, size_t count);
     static void DrawIndexed(std::shared_ptr<VertexBuffer> vb, std::shared_ptr<IndexBuffer> ib);
 
-    static std::shared_ptr<VertexBuffer> CreateVertexBuffer(BufferLayout& layout, void* data, size_t size);
+    static std::shared_ptr<VertexBuffer> CreateVertexBuffer(void* data, size_t size);
     static std::shared_ptr<IndexBuffer> CreateIndexBuffer(void* data, size_t size, size_t count);
     static std::shared_ptr<ConstantBuffer> CreateConstantBuffer(void* data, size_t size);
 
-    static std::shared_ptr<GraphicsPipeline> CreateGraphicsPipeline(std::string vertexPath, std::string pixelPath);
+    static std::shared_ptr<GraphicsPipeline> CreateGraphicsPipeline(VertexLayout& vertexLayout, 
+        std::string vertexPath, std::string pixelPath);
     static std::shared_ptr<Texture> CreateTexture(std::string path);
 
     static RenderAPI::API GetAPI();

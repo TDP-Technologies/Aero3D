@@ -33,7 +33,7 @@ static VkIndexType GetVkIndexType(IndexBufferType type)
 VulkanVertexBuffer::VulkanVertexBuffer(void* data, size_t size)
     : m_Buffer(VK_NULL_HANDLE)
 {
-    m_Device = g_VulkanCore->GetDevice().GetLogicalDevice();
+    m_Device = g_VulkanCore->GetDevice()->GetHandle();
 
     VkBufferCreateInfo bufferInfo{};
     bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -52,7 +52,7 @@ VulkanVertexBuffer::VulkanVertexBuffer(void* data, size_t size)
     allocInfo.memoryTypeIndex = FindMemoryType(
         memRequirements.memoryTypeBits,
         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-        g_VulkanCore->GetDevice().GetPhysicalDevice().Device
+        g_VulkanCore->GetDevice()->GetPhysicalDevice().Device
     );
 
     A3D_CHECK_VKRESULT(vkAllocateMemory(m_Device, &allocInfo, nullptr, &m_Memory));
@@ -90,7 +90,7 @@ VulkanIndexBuffer::VulkanIndexBuffer(void* data, size_t size, size_t count)
     : m_Buffer(VK_NULL_HANDLE)
 {
     m_Count = count;
-    m_Device = g_VulkanCore->GetDevice().GetLogicalDevice();
+    m_Device = g_VulkanCore->GetDevice()->GetHandle();
 
     VkBufferCreateInfo bufferInfo{};
     bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -109,7 +109,7 @@ VulkanIndexBuffer::VulkanIndexBuffer(void* data, size_t size, size_t count)
     allocInfo.memoryTypeIndex = FindMemoryType(
         memRequirements.memoryTypeBits,
         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-        g_VulkanCore->GetDevice().GetPhysicalDevice().Device
+        g_VulkanCore->GetDevice()->GetPhysicalDevice().Device
     );
 
     A3D_CHECK_VKRESULT(vkAllocateMemory(m_Device, &allocInfo, nullptr, &m_Memory));

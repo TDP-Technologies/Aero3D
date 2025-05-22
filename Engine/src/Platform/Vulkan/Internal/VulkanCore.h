@@ -44,8 +44,8 @@ public:
     VkInstance GetInstance() { return m_Instance; }
     VkSurfaceKHR GetSurface() { return m_Surface; }
 
-    const VulkanDevice& GetDevice() { return m_Device; }
-    const VulkanSwapchain& GetSwapchain() { return m_Swapchain; }
+    const std::shared_ptr<VulkanDevice> GetDevice() const { return m_Device; }
+    const std::shared_ptr<VulkanSwapchain> GetSwapchain() const { return m_Swapchain; }
 
     VkRenderPass GetRenderPass() { return m_RenderPass; }
 
@@ -61,28 +61,31 @@ private:
     bool CreateSyncObjects();
 
 private:
-    SDL_Window* m_Window;
+    SDL_Window* m_Window = nullptr;
 
-    VkInstance m_Instance;
-    VkSurfaceKHR m_Surface;
+    VkInstance m_Instance = VK_NULL_HANDLE;
+    VkSurfaceKHR m_Surface = VK_NULL_HANDLE;
 
-    VulkanDevice m_Device;
-    VulkanSwapchain m_Swapchain;
+    std::shared_ptr<VulkanDevice> m_Device = nullptr;
+    std::shared_ptr<VulkanQueue> m_GraphicsQueue = nullptr;
+    std::shared_ptr<VulkanQueue> m_PresentQueue = nullptr;
 
-    uint32_t m_CurrentImage;
-    std::vector<VkImageView> m_SwapchainImageViews;
+    std::shared_ptr<VulkanSwapchain> m_Swapchain = nullptr;
 
-    VkRenderPass m_RenderPass;
-    std::vector<VkFramebuffer> m_SwapchainFramebuffers;
+    uint32_t m_CurrentImage = 0;
+    std::vector<VkImageView> m_SwapchainImageViews {};
 
-    VkCommandPool m_CommandPool;
-    std::vector<VkCommandBuffer> m_CommandBuffers;
+    VkRenderPass m_RenderPass = VK_NULL_HANDLE;
+    std::vector<VkFramebuffer> m_SwapchainFramebuffers {};
 
-    int m_CurrentFrame;
-    FrameSyncObjects m_SyncObjects[FRAMES];
+    VkCommandPool m_CommandPool = VK_NULL_HANDLE;
+    std::vector<VkCommandBuffer> m_CommandBuffers {};
 
-    VkClearValue m_ClearColor;
-    VkViewport m_Viewport;
+    int m_CurrentFrame = 0;
+    FrameSyncObjects m_SyncObjects[FRAMES] {};
+
+    VkClearValue m_ClearColor { {0.0f, 1.0f, 0.0f, 1.0f} };
+    VkViewport m_Viewport { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f };
 
 };
 

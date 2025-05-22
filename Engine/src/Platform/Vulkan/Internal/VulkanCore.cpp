@@ -37,7 +37,7 @@ bool VulkanCore::Init(SDL_Window* window)
     A3D_CHECK_INIT(CreateInstance());
     A3D_CHECK_INIT(CreateSurface());
     A3D_CHECK_INIT(m_Device.Init(m_Instance, m_Surface));
-    A3D_CHECK_INIT(m_Swapchain.Init(m_Device.GetPhysicalDevice(), m_Surface, m_Window, m_Device.GetDevice()));
+    A3D_CHECK_INIT(m_Swapchain.Init(m_Device.GetPhysicalDevice(), m_Surface, m_Window, m_Device.GetLogicalDevice()));
     A3D_CHECK_INIT(CreateImageViews());
     A3D_CHECK_INIT(CreateRenderPass());
     A3D_CHECK_INIT(CreateFramebuffers());
@@ -49,24 +49,24 @@ bool VulkanCore::Init(SDL_Window* window)
 
 void VulkanCore::Shutdown()
 {
-    vkDeviceWaitIdle(m_Device.GetDevice());
+    vkDeviceWaitIdle(m_Device.GetLogicalDevice());
 
     for (int i = 0; i < FRAMES; i++)
     {
-        vkDestroyFence(m_Device.GetDevice(), m_SyncObjects[i].InFlightFence, nullptr);
-        vkDestroySemaphore(m_Device.GetDevice(), m_SyncObjects[i].RenderFinishedSemaphore, nullptr);
-        vkDestroySemaphore(m_Device.GetDevice(), m_SyncObjects[i].ImageAvailableSemaphore, nullptr);
+        vkDestroyFence(m_Device.GetLogicalDevice(), m_SyncObjects[i].InFlightFence, nullptr);
+        vkDestroySemaphore(m_Device.GetLogicalDevice(), m_SyncObjects[i].RenderFinishedSemaphore, nullptr);
+        vkDestroySemaphore(m_Device.GetLogicalDevice(), m_SyncObjects[i].ImageAvailableSemaphore, nullptr);
     }
 
-    vkDestroyCommandPool(m_Device.GetDevice(), m_CommandPool, nullptr);
+    vkDestroyCommandPool(m_Device.GetLogicalDevice(), m_CommandPool, nullptr);
 
     for (auto framebuffer : m_SwapchainFramebuffers) {
-        vkDestroyFramebuffer(m_Device.GetDevice(), framebuffer, nullptr);
+        vkDestroyFramebuffer(m_Device.GetLogicalDevice(), framebuffer, nullptr);
     }
 
-    vkDestroyRenderPass(m_Device.GetDevice(), m_RenderPass, nullptr);
+    vkDestroyRenderPass(m_Device.GetLogicalDevice(), m_RenderPass, nullptr);
     for (auto imageView : m_SwapchainImageViews) {
-        vkDestroyImageView(m_Device.GetDevice(), imageView, nullptr);
+        vkDestroyImageView(m_Device.GetLogicalDevice(), imageView, nullptr);
     }
 
     m_Swapchain.Shutdown();
@@ -148,10 +148,10 @@ void VulkanCore::Clear()
 
 void VulkanCore::RecordCommands()
 {
-    vkWaitForFences(m_Device.GetDevice(), 1, &m_SyncObjects[m_CurrentFrame].InFlightFence, VK_TRUE, UINT64_MAX);
-    vkResetFences(m_Device.GetDevice(), 1, &m_SyncObjects[m_CurrentFrame].InFlightFence);
+    vkWaitForFences(m_Device.GetLogicalDevice(), 1, &m_SyncObjects[m_CurrentFrame].InFlightFence, VK_TRUE, UINT64_MAX);
+    vkResetFences(m_Device.GetLogicalDevice(), 1, &m_SyncObjects[m_CurrentFrame].InFlightFence);
 
-    vkAcquireNextImageKHR(m_Device.GetDevice(), m_Swapchain.GetSwapchain(),
+    vkAcquireNextImageKHR(m_Device.GetLogicalDevice(), m_Swapchain.GetSwapchain(),
         UINT64_MAX, m_SyncObjects[m_CurrentFrame].ImageAvailableSemaphore, VK_NULL_HANDLE, &m_CurrentImage);
 
     VkCommandBufferBeginInfo beginInfo{};
@@ -258,7 +258,7 @@ bool VulkanCore::CreateImageViews()
         viewInfo.subresourceRange.baseArrayLayer = 0;
         viewInfo.subresourceRange.layerCount = 1;
 
-        A3D_CHECK_VKRESULT(vkCreateImageView(m_Device.GetDevice(), &viewInfo, nullptr, &m_SwapchainImageViews[i]));
+        A3D_CHECK_VKRESULT(vkCreateImageView(m_Device.GetLogicalDevice(), &viewInfo, nullptr, &m_SwapchainImageViews[i]));
     }
 
     return true;
@@ -307,7 +307,7 @@ bool VulkanCore::CreateRenderPass()
     renderPassInfo.dependencyCount = 1;
     renderPassInfo.pDependencies = &dependency;
 
-    A3D_CHECK_VKRESULT(vkCreateRenderPass(m_Device.GetDevice(), &renderPassInfo, nullptr, &m_RenderPass));
+    A3D_CHECK_VKRESULT(vkCreateRenderPass(m_Device.GetLogicalDevice(), &renderPassInfo, nullptr, &m_RenderPass));
     if (!m_RenderPass)
     {
         LogErr(ERROR_INFO, "Failed to create RenderPass.");
@@ -340,7 +340,7 @@ bool VulkanCore::CreateFramebuffers()
         framebufferInfo.height = swapchainExtent.height;
         framebufferInfo.layers = 1;
 
-        A3D_CHECK_VKRESULT(vkCreateFramebuffer(m_Device.GetDevice(), &framebufferInfo, nullptr, &m_SwapchainFramebuffers[i]));
+        A3D_CHECK_VKRESULT(vkCreateFramebuffer(m_Device.GetLogicalDevice(), &framebufferInfo, nullptr, &m_SwapchainFramebuffers[i]));
     }
 
     return true;
@@ -353,7 +353,7 @@ bool VulkanCore::CreateCommandBuffersAndCommandPool()
     poolInfo.queueFamilyIndex = m_Device.GetPhysicalDevice().QueueFamilyIndices.GraphicsFamily.value();
     poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 
-    A3D_CHECK_VKRESULT(vkCreateCommandPool(m_Device.GetDevice(), &poolInfo, nullptr, &m_CommandPool));
+    A3D_CHECK_VKRESULT(vkCreateCommandPool(m_Device.GetLogicalDevice(), &poolInfo, nullptr, &m_CommandPool));
     if (!m_CommandPool)
     {
         LogErr(ERROR_INFO, "Failed to create Command Pool.");
@@ -368,7 +368,7 @@ bool VulkanCore::CreateCommandBuffersAndCommandPool()
     allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
     allocInfo.commandBufferCount = static_cast<uint32_t>(m_CommandBuffers.size());
 
-    A3D_CHECK_VKRESULT(vkAllocateCommandBuffers(m_Device.GetDevice(), &allocInfo, m_CommandBuffers.data()));
+    A3D_CHECK_VKRESULT(vkAllocateCommandBuffers(m_Device.GetLogicalDevice(), &allocInfo, m_CommandBuffers.data()));
 
     return true;
 }
@@ -384,11 +384,11 @@ bool VulkanCore::CreateSyncObjects()
 
     for (int i = 0; i < FRAMES; i++)
     {
-        A3D_CHECK_VKRESULT(vkCreateSemaphore(m_Device.GetDevice(), &semaphoreInfo, nullptr,
+        A3D_CHECK_VKRESULT(vkCreateSemaphore(m_Device.GetLogicalDevice(), &semaphoreInfo, nullptr,
             &m_SyncObjects[i].ImageAvailableSemaphore));
-        A3D_CHECK_VKRESULT(vkCreateSemaphore(m_Device.GetDevice(), &semaphoreInfo, nullptr, 
+        A3D_CHECK_VKRESULT(vkCreateSemaphore(m_Device.GetLogicalDevice(), &semaphoreInfo, nullptr,
             &m_SyncObjects[i].RenderFinishedSemaphore));
-        A3D_CHECK_VKRESULT(vkCreateFence(m_Device.GetDevice(), &fenceInfo, nullptr,
+        A3D_CHECK_VKRESULT(vkCreateFence(m_Device.GetLogicalDevice(), &fenceInfo, nullptr,
             &m_SyncObjects[i].InFlightFence));
     }
 

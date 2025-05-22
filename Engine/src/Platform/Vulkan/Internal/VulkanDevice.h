@@ -39,7 +39,7 @@ public:
     const VulkanPhysicalDevice& GetPhysicalDevice() const { return m_PhysDevices[m_CurrentPhysDevice]; }
     unsigned int GetCurrentPhysDeviceIndex() { return m_CurrentPhysDevice; }
 
-    VkDevice GetDevice() const { return m_Device; }
+    VkDevice GetLogicalDevice() const { return m_Device; }
     VkQueue GetGraphicsQueue() const { return m_GraphicsQueue; }
     VkQueue GetPresentQueue() const { return m_PresentQueue; }
 

@@ -37,7 +37,7 @@ VulkanGraphicsPipeline::VulkanGraphicsPipeline(VertexLayout& vertexLayout,
     std::string& vertexShaderPath, std::string& pixelShaderPath)
     : m_Pipeline(VK_NULL_HANDLE), m_Device(VK_NULL_HANDLE)
 {
-    m_Device = g_VulkanCore->GetDevice().GetDevice();
+    m_Device = g_VulkanCore->GetDevice().GetLogicalDevice();
 
     CreateShaderModules(vertexShaderPath, pixelShaderPath);
     CreatePipelineLayout();

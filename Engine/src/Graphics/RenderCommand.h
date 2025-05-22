@@ -3,6 +3,7 @@
 
 #include <memory>
 
+#include "Utils/Common.h"
 #include "Graphics/Buffer.h"
 #include "Graphics/RenderAPI.h"
 #include "Graphics/GraphicsPipeline.h"
@@ -24,21 +25,21 @@ public:
     static void SetClearColor(float r, float g, float b, float a);
     static void Clear();
 
-    static void Draw(std::shared_ptr<VertexBuffer> vb, size_t count);
-    static void DrawIndexed(std::shared_ptr<VertexBuffer> vb, std::shared_ptr<IndexBuffer> ib);
+    static void Draw(Ref<VertexBuffer> vb, size_t count);
+    static void DrawIndexed(Ref<VertexBuffer> vb, Ref<IndexBuffer> ib);
 
-    static std::shared_ptr<VertexBuffer> CreateVertexBuffer(void* data, size_t size);
-    static std::shared_ptr<IndexBuffer> CreateIndexBuffer(void* data, size_t size, size_t count);
-    static std::shared_ptr<ConstantBuffer> CreateConstantBuffer(void* data, size_t size);
+    static Ref<VertexBuffer> CreateVertexBuffer(void* data, size_t size);
+    static Ref<IndexBuffer> CreateIndexBuffer(void* data, size_t size, size_t count);
+    static Ref<ConstantBuffer> CreateConstantBuffer(void* data, size_t size);
 
-    static std::shared_ptr<GraphicsPipeline> CreateGraphicsPipeline(VertexLayout& vertexLayout, 
+    static Ref<GraphicsPipeline> CreateGraphicsPipeline(VertexLayout& vertexLayout,
         std::string vertexPath, std::string pixelPath);
-    static std::shared_ptr<Texture> CreateTexture(std::string path);
+    static Ref<Texture> CreateTexture(std::string path);
 
     static RenderAPI::API GetAPI();
 
 private:
-    static std::unique_ptr<RenderAPI> s_API;
+    static Scope<RenderAPI> s_API;
 
 };
 

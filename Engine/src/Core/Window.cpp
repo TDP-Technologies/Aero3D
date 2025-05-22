@@ -2,13 +2,14 @@
 
 #include <memory>
 
+#include "Utils/Common.h"
 #include "Utils/Log.h"
 #include "Event/EventBus.h"
 
 namespace aero3d {
 
 SDL_Window* Window::s_Window = nullptr;
-std::unique_ptr<GraphicsContext> Window::s_Context = nullptr;
+Scope<GraphicsContext> Window::s_Context = nullptr;
 
 bool Window::Init(const char* title, int width, int height, const char* api)
 {

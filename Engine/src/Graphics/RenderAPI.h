@@ -3,6 +3,7 @@
 
 #include <memory>
 
+#include "Utils/Common.h"
 #include "Graphics/Buffer.h"
 #include "Graphics/GraphicsPipeline.h"
 #include "Graphics/Texture.h"
@@ -33,16 +34,16 @@ public:
     virtual void SetClearColor(float r, float g, float b, float a) = 0;
     virtual void Clear() = 0;
 
-    virtual void Draw(std::shared_ptr<VertexBuffer> vb, size_t count) = 0;
-    virtual void DrawIndexed(std::shared_ptr<VertexBuffer> vb, std::shared_ptr<IndexBuffer> ib) = 0;
+    virtual void Draw(Ref<VertexBuffer> vb, size_t count) = 0;
+    virtual void DrawIndexed(Ref<VertexBuffer> vb, Ref<IndexBuffer> ib) = 0;
 
-    virtual std::shared_ptr<VertexBuffer> CreateVertexBuffer(void* data, size_t size) = 0;
-    virtual std::shared_ptr<IndexBuffer> CreateIndexBuffer(void* data, size_t size, size_t count) = 0;
-    virtual std::shared_ptr<ConstantBuffer> CreateConstantBuffer(void* data, size_t size) = 0;
+    virtual Ref<VertexBuffer> CreateVertexBuffer(void* data, size_t size) = 0;
+    virtual Ref<IndexBuffer> CreateIndexBuffer(void* data, size_t size, size_t count) = 0;
+    virtual Ref<ConstantBuffer> CreateConstantBuffer(void* data, size_t size) = 0;
 
-    virtual std::shared_ptr<GraphicsPipeline> CreateGraphicsPipeline(VertexLayout& vertexLayout, 
+    virtual Ref<GraphicsPipeline> CreateGraphicsPipeline(VertexLayout& vertexLayout,
         std::string& vertexPath, std::string& pixelPath) = 0;
-    virtual std::shared_ptr<Texture> CreateTexture(std::string& path) = 0;
+    virtual Ref<Texture> CreateTexture(std::string& path) = 0;
 
     virtual RenderAPI::API GetAPI() = 0;
 

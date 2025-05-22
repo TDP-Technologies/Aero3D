@@ -5,6 +5,7 @@
 
 #include "SDL3/SDL.h"
 
+#include "Utils/Common.h"
 #include "Graphics/GraphicsContext.h"
 
 namespace aero3d {
@@ -22,7 +23,7 @@ public:
 
 private:
     static SDL_Window* s_Window;
-    static std::unique_ptr<GraphicsContext> s_Context;
+    static Scope<GraphicsContext> s_Context;
 
 };
 

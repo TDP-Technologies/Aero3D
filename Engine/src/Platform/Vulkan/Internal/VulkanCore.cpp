@@ -12,7 +12,7 @@
 
 namespace aero3d {
 
-std::unique_ptr<VulkanCore> g_VulkanCore = std::make_unique<VulkanCore>();
+Scope<VulkanCore> g_VulkanCore = std::make_unique<VulkanCore>();
 
 VulkanCore::VulkanCore()
 {

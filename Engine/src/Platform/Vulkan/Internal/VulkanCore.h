@@ -7,6 +7,7 @@
 #include <SDL3/SDL.h>
 #include <vulkan/vulkan.h>
 
+#include "Utils/Common.h"
 #include "Platform/Vulkan/Internal/VulkanDevice.h"
 #include "Platform/Vulkan/Internal/VulkanSwapchain.h"
 
@@ -44,8 +45,8 @@ public:
     VkInstance GetInstance() { return m_Instance; }
     VkSurfaceKHR GetSurface() { return m_Surface; }
 
-    const std::shared_ptr<VulkanDevice> GetDevice() const { return m_Device; }
-    const std::shared_ptr<VulkanSwapchain> GetSwapchain() const { return m_Swapchain; }
+    const Ref<VulkanDevice> GetDevice() const { return m_Device; }
+    const Ref<VulkanSwapchain> GetSwapchain() const { return m_Swapchain; }
 
     VkRenderPass GetRenderPass() { return m_RenderPass; }
 
@@ -66,11 +67,11 @@ private:
     VkInstance m_Instance = VK_NULL_HANDLE;
     VkSurfaceKHR m_Surface = VK_NULL_HANDLE;
 
-    std::shared_ptr<VulkanDevice> m_Device = nullptr;
-    std::shared_ptr<VulkanQueue> m_GraphicsQueue = nullptr;
-    std::shared_ptr<VulkanQueue> m_PresentQueue = nullptr;
+    Ref<VulkanDevice> m_Device = nullptr;
+    Ref<VulkanQueue> m_GraphicsQueue = nullptr;
+    Ref<VulkanQueue> m_PresentQueue = nullptr;
 
-    std::shared_ptr<VulkanSwapchain> m_Swapchain = nullptr;
+    Ref<VulkanSwapchain> m_Swapchain = nullptr;
 
     uint32_t m_CurrentImage = 0;
     std::vector<VkImageView> m_SwapchainImageViews {};
@@ -89,7 +90,7 @@ private:
 
 };
 
-extern std::unique_ptr<VulkanCore> g_VulkanCore;
+extern Scope<VulkanCore> g_VulkanCore;
 
 } // namespace aero3d
 

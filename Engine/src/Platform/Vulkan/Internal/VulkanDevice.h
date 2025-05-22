@@ -7,6 +7,7 @@
 
 #include <vulkan/vulkan.h>
 
+#include "Utils/Common.h"
 #include "Platform/Vulkan/Internal/VulkanQueue.h"
 
 namespace aero3d {
@@ -44,8 +45,8 @@ public:
     unsigned int GetCurrentPhysDeviceIndex() { return m_CurrentPhysDevice; }
 
     VkDevice GetHandle() const { return m_Device; }
-    const std::shared_ptr<VulkanQueue> GetGraphicsQueue() const { return m_GraphicsQueue; }
-    const std::shared_ptr<VulkanQueue> GetPresentQueue() const { return m_PresentQueue; }
+    const Ref<VulkanQueue> GetGraphicsQueue() const { return m_GraphicsQueue; }
+    const Ref<VulkanQueue> GetPresentQueue() const { return m_PresentQueue; }
 
     void SetPhysicalDevice(unsigned int index) { m_CurrentPhysDevice = index; }
     
@@ -60,8 +61,8 @@ private:
     std::vector<VulkanPhysicalDevice> m_PhysDevices {};
 
     VkDevice m_Device = VK_NULL_HANDLE;
-    std::shared_ptr<VulkanQueue> m_GraphicsQueue = nullptr;
-    std::shared_ptr<VulkanQueue> m_PresentQueue = nullptr;
+    Ref<VulkanQueue> m_GraphicsQueue = nullptr;
+    Ref<VulkanQueue> m_PresentQueue = nullptr;
 
 };
 

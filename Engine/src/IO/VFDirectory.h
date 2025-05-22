@@ -6,6 +6,7 @@
 #include <string>
 
 #include "IO/VFile.h"
+#include "Utils/Common.h"
 
 namespace aero3d {
 
@@ -21,7 +22,7 @@ class VFDirectory
 public:
     virtual ~VFDirectory() = default;
     
-    virtual std::shared_ptr<VFile> OpenFile(std::string& path) = 0;
+    virtual Ref<VFile> OpenFile(std::string& path) = 0;
 
     virtual bool FileExists(std::string& path) = 0;
 

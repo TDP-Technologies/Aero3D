@@ -41,7 +41,7 @@ void Application::Run()
     LayoutElement("inColor", ElementType::FLOAT3)
         });
 
-    std::shared_ptr<GraphicsPipeline> pipeline = 
+    Ref<GraphicsPipeline> pipeline = 
         RenderCommand::CreateGraphicsPipeline(layout, "res/shaders/vertex.glsl", "res/shaders/pixel.glsl");
 
     RenderCommand::SetClearColor(0.0f, 0.5f, 0.3f, 1.0f);
@@ -57,8 +57,8 @@ void Application::Run()
         0, 1, 2
     };
 
-    std::shared_ptr<VertexBuffer> vb = RenderCommand::CreateVertexBuffer(vertices, 15 * 4);
-    std::shared_ptr<IndexBuffer> ib = RenderCommand::CreateIndexBuffer(indices, 12, 3);
+    Ref<VertexBuffer> vb = RenderCommand::CreateVertexBuffer(vertices, 15 * 4);
+    Ref<IndexBuffer> ib = RenderCommand::CreateIndexBuffer(indices, 12, 3);
 
     while (m_IsRunning)
     {

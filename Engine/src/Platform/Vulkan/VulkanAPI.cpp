@@ -49,40 +49,40 @@ void VulkanAPI::Clear()
     g_VulkanCore->Clear();
 }
 
-void VulkanAPI::Draw(std::shared_ptr<VertexBuffer> vb, size_t count)
+void VulkanAPI::Draw(Ref<VertexBuffer> vb, size_t count)
 {
     vb->Bind();
     g_VulkanCore->Draw(count);
 }
 
-void VulkanAPI::DrawIndexed(std::shared_ptr<VertexBuffer> vb, std::shared_ptr<IndexBuffer> ib)
+void VulkanAPI::DrawIndexed(Ref<VertexBuffer> vb, Ref<IndexBuffer> ib)
 {
     vb->Bind();
     ib->Bind();
     g_VulkanCore->DrawIndexed(ib->GetIndexCount());
 }
 
-std::shared_ptr<VertexBuffer> VulkanAPI::CreateVertexBuffer(void* data, size_t size)
+Ref<VertexBuffer> VulkanAPI::CreateVertexBuffer(void* data, size_t size)
 {
     return std::make_shared<VulkanVertexBuffer>(data, size);
 }
 
-std::shared_ptr<IndexBuffer> VulkanAPI::CreateIndexBuffer(void* data, size_t size, size_t count)
+Ref<IndexBuffer> VulkanAPI::CreateIndexBuffer(void* data, size_t size, size_t count)
 {
     return std::make_shared<VulkanIndexBuffer>(data, size, count);
 }
 
-std::shared_ptr<ConstantBuffer> VulkanAPI::CreateConstantBuffer(void* data, size_t size)
+Ref<ConstantBuffer> VulkanAPI::CreateConstantBuffer(void* data, size_t size)
 {
     return nullptr;
 }
 
-std::shared_ptr<GraphicsPipeline> VulkanAPI::CreateGraphicsPipeline(VertexLayout& vertexLayout, std::string& vertexPath, std::string& pixelPath)
+Ref<GraphicsPipeline> VulkanAPI::CreateGraphicsPipeline(VertexLayout& vertexLayout, std::string& vertexPath, std::string& pixelPath)
 {
     return std::make_shared<VulkanGraphicsPipeline>(vertexLayout, vertexPath, pixelPath);
 }
 
-std::shared_ptr<Texture> VulkanAPI::CreateTexture(std::string& path)
+Ref<Texture> VulkanAPI::CreateTexture(std::string& path)
 {
     return nullptr;
 }

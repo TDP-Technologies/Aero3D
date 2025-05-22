@@ -22,7 +22,7 @@ NativeVFDirectory::~NativeVFDirectory()
 {
 }
 
-std::shared_ptr<VFile> NativeVFDirectory::OpenFile(std::string& path)
+Ref<VFile> NativeVFDirectory::OpenFile(std::string& path)
 {
     HANDLE fileHandle = CreateFileA(
         A3D_RESOLVE_NATIVE_PATH(path).c_str(),

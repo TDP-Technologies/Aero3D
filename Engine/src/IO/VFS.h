@@ -7,6 +7,7 @@
 
 #include "IO/VFDirectory.h"
 #include "IO/VFile.h"
+#include "Utils/Common.h"
 
 namespace aero3d {
 
@@ -18,11 +19,11 @@ public:
     static void Mount(std::string virtualPath, std::string mounPoint, 
         DirType type = DirType::NATIVE, bool appendToFront = false);
 
-    static std::shared_ptr<VFile> ReadFile(std::string path);
+    static Ref<VFile> ReadFile(std::string path);
 
 private:
-    static std::vector<std::unique_ptr<VFDirectory>> s_Dirs;
-    static std::unique_ptr<VFDirectory> s_DefaultDir;
+    static std::vector<Scope<VFDirectory>> s_Dirs;
+    static Scope<VFDirectory> s_DefaultDir;
 
 };
 

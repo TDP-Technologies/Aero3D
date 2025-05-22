@@ -6,6 +6,7 @@
 #include <memory>
 
 #include "IO/VFile.h"
+#include "Utils/Common.h"
 #include "Graphics/RenderAPI.h"
 
 namespace aero3d {
@@ -22,7 +23,7 @@ public:
 
 private:
     std::map<std::string, std::string> m_ConfigMap;
-    std::shared_ptr<VFile> m_ConfigFile;
+    Ref<VFile> m_ConfigFile;
 
 };
 

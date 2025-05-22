@@ -86,8 +86,6 @@ static VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities,
 }
 
 VulkanSwapchain::VulkanSwapchain()
-    : m_Swapchain(VK_NULL_HANDLE), m_Surface(VK_NULL_HANDLE), m_Window(nullptr),
-    m_Device(VK_NULL_HANDLE), m_Extent(), m_ImageFormat(VK_FORMAT_UNDEFINED)
 {
 }
 

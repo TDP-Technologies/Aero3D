@@ -29,12 +29,12 @@ private:
     void CreatePipeline(VertexLayout& vertexLayout);
 
 private:
-    VkDevice m_Device;
+    VkDevice m_Device = VK_NULL_HANDLE;
 
-    VkShaderModule m_VertexShader;
-    VkShaderModule m_PixelShader;
-    VkPipelineLayout m_Layout;
-    VkPipeline m_Pipeline;
+    VkShaderModule m_VertexShader = VK_NULL_HANDLE;
+    VkShaderModule m_PixelShader = VK_NULL_HANDLE;
+    VkPipelineLayout m_Layout = VK_NULL_HANDLE;
+    VkPipeline m_Pipeline = VK_NULL_HANDLE;
 
 };
 

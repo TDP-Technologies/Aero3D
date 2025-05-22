@@ -31,11 +31,11 @@ public:
     virtual const std::string& GetName() const override;
 
 private:
-    uint64_t m_Length;
-    std::string m_VirtualPath;
-    void* m_Handle;
-    void* m_Data;
-    bool m_Opened;
+    uint64_t m_Length = 0;
+    std::string m_VirtualPath = "";
+    void* m_Handle = nullptr;
+    void* m_Data = nullptr;
+    bool m_Opened = false;
 
 };
 

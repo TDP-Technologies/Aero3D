@@ -27,7 +27,7 @@ public:
         SDL_Window* window, VkDevice device);
     void Shutdown();
 
-    VkSwapchainKHR GetSwapchain() { return m_Swapchain; }
+    VkSwapchainKHR GetHandle() { return m_Swapchain; }
     VkFormat GetImageFormat() { return m_ImageFormat; }
     VkExtent2D GetExtent() { return m_Extent; }
     std::vector<VkImage>& GetSwapchainImages() { return m_Images; }
@@ -36,14 +36,14 @@ private:
     void CreateSwapchain(const VulkanPhysicalDevice& physDevice);
 
 private:
-    VkDevice m_Device;
-    VkSurfaceKHR m_Surface;
-    SDL_Window* m_Window;
+    VkDevice m_Device = VK_NULL_HANDLE;
+    VkSurfaceKHR m_Surface = VK_NULL_HANDLE;
+    SDL_Window* m_Window = nullptr;
 
-    VkSwapchainKHR m_Swapchain;
-    VkFormat m_ImageFormat;
-    VkExtent2D m_Extent;
-    std::vector<VkImage> m_Images;
+    VkSwapchainKHR m_Swapchain = VK_NULL_HANDLE;
+    VkFormat m_ImageFormat = VK_FORMAT_UNDEFINED;
+    VkExtent2D m_Extent {};
+    std::vector<VkImage> m_Images {};
 
 };
 

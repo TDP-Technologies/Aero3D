@@ -29,8 +29,6 @@ enum class IndexBufferType
 class A3D_API IndexBuffer
 {
 public:
-    IndexBuffer(IndexBufferType type = IndexBufferType::UNSIGNED_INT)
-        : m_Type(type), m_Count(0) {}
     ~IndexBuffer() = default;
 
     virtual void Bind() = 0;
@@ -41,8 +39,8 @@ public:
     IndexBufferType GetIndexBufferType() { return m_Type; }
 
 protected:
-    IndexBufferType m_Type;
-    size_t m_Count;
+    IndexBufferType m_Type = IndexBufferType::UNSIGNED_INT;
+    size_t m_Count = 0;
 
 };
 

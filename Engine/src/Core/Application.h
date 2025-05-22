@@ -19,8 +19,8 @@ private:
     void SubscribeOnEvents();
 
 private:
-    bool m_IsRunning;
-    bool m_Minimized;
+    bool m_IsRunning = false;
+    bool m_Minimized = false;
 
 };
 

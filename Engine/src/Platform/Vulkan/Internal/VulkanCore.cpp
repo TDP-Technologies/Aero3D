@@ -103,7 +103,7 @@ void VulkanCore::SwapBuffers()
     presentInfo.waitSemaphoreCount = 1;
     presentInfo.pWaitSemaphores = signalSemaphores;
 
-    VkSwapchainKHR swapchains[] = { m_Swapchain->GetSwapchain()};
+    VkSwapchainKHR swapchains[] = { m_Swapchain->GetHandle()};
     presentInfo.swapchainCount = 1;
     presentInfo.pSwapchains = swapchains;
     presentInfo.pImageIndices = &m_CurrentImage;
@@ -151,7 +151,7 @@ void VulkanCore::RecordCommands()
     vkWaitForFences(m_Device->GetHandle(), 1, &m_SyncObjects[m_CurrentFrame].InFlightFence, VK_TRUE, UINT64_MAX);
     vkResetFences(m_Device->GetHandle(), 1, &m_SyncObjects[m_CurrentFrame].InFlightFence);
 
-    vkAcquireNextImageKHR(m_Device->GetHandle(), m_Swapchain->GetSwapchain(),
+    vkAcquireNextImageKHR(m_Device->GetHandle(), m_Swapchain->GetHandle(),
         UINT64_MAX, m_SyncObjects[m_CurrentFrame].ImageAvailableSemaphore, VK_NULL_HANDLE, &m_CurrentImage);
 
     VkCommandBufferBeginInfo beginInfo{};

@@ -31,7 +31,6 @@ static VkIndexType GetVkIndexType(IndexBufferType type)
 }
 
 VulkanVertexBuffer::VulkanVertexBuffer(void* data, size_t size)
-    : m_Buffer(VK_NULL_HANDLE)
 {
     m_Device = g_VulkanCore->GetDevice()->GetHandle();
 
@@ -87,7 +86,6 @@ void VulkanVertexBuffer::SetData(const void* data, size_t size)
 }
 
 VulkanIndexBuffer::VulkanIndexBuffer(void* data, size_t size, size_t count)
-    : m_Buffer(VK_NULL_HANDLE)
 {
     m_Count = count;
     m_Device = g_VulkanCore->GetDevice()->GetHandle();

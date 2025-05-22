@@ -5,6 +5,7 @@ namespace aero3d {
 
 enum class ElementType
 {
+    UNDEFINED,
     FLOAT, FLOAT2, FLOAT3, FLOAT4, INT, INT2, INT3, INT4,
     BOOL, MAT2, MAT3, MAT4
 };
@@ -31,13 +32,13 @@ static int ElementTypeSize(ElementType type)
 
 struct LayoutElement
 {
-    const char* Name;
-    int Size;
-    int Offset;
-    ElementType Type;
+    const char* Name = nullptr;
+    int Size = 0;
+    int Offset = 0;
+    ElementType Type = ElementType::UNDEFINED;
 
     LayoutElement(const char* name, ElementType type)
-        : Name(name), Type(type), Size(ElementTypeSize(type)), Offset(0) {
+        : Name(name), Type(type), Size(ElementTypeSize(type)) {
     }
 
     uint32_t GetComponentCount() const
@@ -66,7 +67,7 @@ struct VertexLayout
 {
 public:
     VertexLayout(std::vector<LayoutElement>&& elements)
-        : m_Elements(std::move(elements)), m_Stride(0)
+        : m_Elements(std::move(elements))
     {
         for (LayoutElement& element : m_Elements)
         {
@@ -79,8 +80,8 @@ public:
     int GetStride() const { return m_Stride; }
 
 private:
-    int m_Stride;
-    std::vector<LayoutElement> m_Elements;
+    int m_Stride = 0;
+    std::vector<LayoutElement> m_Elements {};
 
 };
 

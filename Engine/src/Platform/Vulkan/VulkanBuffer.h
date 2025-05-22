@@ -18,10 +18,10 @@ public:
     virtual void SetData(const void* data, size_t size) override;
 
 private:
-    VkDevice m_Device;
+    VkDevice m_Device = VK_NULL_HANDLE;
     
-    VkBuffer m_Buffer;
-    VkDeviceMemory m_Memory;
+    VkBuffer m_Buffer = VK_NULL_HANDLE;
+    VkDeviceMemory m_Memory = VK_NULL_HANDLE;
 
 };
 
@@ -34,10 +34,10 @@ public:
     virtual void Bind() override;
 
 private:
-    VkDevice m_Device;
+    VkDevice m_Device = VK_NULL_HANDLE;
 
-    VkBuffer m_Buffer;
-    VkDeviceMemory m_Memory;
+    VkBuffer m_Buffer = VK_NULL_HANDLE;
+    VkDeviceMemory m_Memory = VK_NULL_HANDLE;
 
 };
 

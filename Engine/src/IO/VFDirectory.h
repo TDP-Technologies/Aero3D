@@ -30,8 +30,8 @@ public:
     const std::string& GetVirualPath() const { return m_VirtualPath; }
 
 protected:
-    std::string m_MountPoint;
-    std::string m_VirtualPath;
+    std::string m_MountPoint = "";
+    std::string m_VirtualPath = "";
 
 };
 

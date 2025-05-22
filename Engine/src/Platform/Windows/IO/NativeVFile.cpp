@@ -8,7 +8,7 @@
 namespace aero3d {
 
 NativeVFile::NativeVFile(void* handle, std::string& virtualPath)
-    : m_Handle(handle), m_Data(nullptr), m_Length(0), m_VirtualPath(virtualPath), m_Opened(false)
+    : m_Handle(handle), m_VirtualPath(virtualPath), m_Opened(false)
 {
     if (m_Handle && m_Handle != INVALID_HANDLE_VALUE) m_Opened = true;
 

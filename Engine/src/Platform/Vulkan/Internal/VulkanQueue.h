@@ -16,8 +16,8 @@ public:
     uint32_t GetQueueFamilyIndex() const { return m_QueueFamilyIndex; }
 
 private:
-    VkQueue m_Queue;
-    uint32_t m_QueueFamilyIndex;
+    VkQueue m_Queue = VK_NULL_HANDLE;
+    uint32_t m_QueueFamilyIndex = 0;
 
 };
 

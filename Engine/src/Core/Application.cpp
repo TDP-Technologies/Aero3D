@@ -9,7 +9,6 @@
 namespace aero3d {
 
 Application::Application()
-    : m_IsRunning(false), m_Minimized(false)
 {
 }
 

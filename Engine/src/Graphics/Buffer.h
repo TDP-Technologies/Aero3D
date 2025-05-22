@@ -46,6 +46,17 @@ protected:
 
 };
 
+class ConstantBuffer
+{
+public:
+    virtual ~ConstantBuffer() = default;
+
+    virtual void Bind(size_t slot) = 0;
+
+    virtual void SetData(void* data, size_t slot) = 0;
+
+};
+
 } // namespace aero3d
 
 #endif // AERO3D_GRAPHICS_BUFFER_H_

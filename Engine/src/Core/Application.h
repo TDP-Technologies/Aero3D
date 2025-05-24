@@ -5,7 +5,7 @@
 
 namespace aero3d {
 
-class A3D_API Application
+class Application
 {
 public:
     Application();

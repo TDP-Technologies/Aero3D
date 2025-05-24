@@ -8,7 +8,7 @@
 
 namespace aero3d {
 
-class A3D_API VertexBuffer
+class VertexBuffer
 {
 public:
     ~VertexBuffer() = default;
@@ -26,7 +26,7 @@ enum class IndexBufferType
     UNSIGNED_INT
 };
 
-class A3D_API IndexBuffer
+class IndexBuffer
 {
 public:
     ~IndexBuffer() = default;

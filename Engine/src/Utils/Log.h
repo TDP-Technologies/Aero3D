@@ -26,9 +26,9 @@
 
 namespace aero3d {
 
-extern A3D_API void LogMsg(const char* fmt, ...);
+extern void LogMsg(const char* fmt, ...);
 
-extern A3D_API void LogErr(const char* file, const char* func, int line,
+extern void LogErr(const char* file, const char* func, int line,
     const char* fmt, ...);
 
 } // namespace aero3d

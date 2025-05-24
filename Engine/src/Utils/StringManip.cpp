@@ -1,6 +1,6 @@
 #include "Utils/StringManip.h"
 
-#include <string>
+#include <cstring>
 
 namespace aero3d {
 

@@ -23,7 +23,7 @@ static VkIndexType GetVkIndexType(IndexBufferType type)
 {
     switch (type)
     {
-    case IndexBufferType::UNSIGNED_BYTE: return VK_INDEX_TYPE_UINT8;
+    //case IndexBufferType::UNSIGNED_BYTE: return VK_INDEX_TYPE_UINT8;
     case IndexBufferType::UNSIGNED_SHORT: return VK_INDEX_TYPE_UINT16;
     case IndexBufferType::UNSIGNED_INT: return VK_INDEX_TYPE_UINT32;
     default: return VK_INDEX_TYPE_NONE_NV;

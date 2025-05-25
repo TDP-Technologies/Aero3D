@@ -5,12 +5,14 @@
 
 #include "Core/Configuration.h"
 #include "Utils/Assert.h"
+#include "Utils/Common.h"
+#include "Platform/Vulkan/VulkanContext.h"
 
 namespace aero3d {
 
-std::unique_ptr<GraphicsContext> GraphicsContext::Create(const char* api)
+    Scope<GraphicsContext> GraphicsContext::Create(const char* api)
 {
-    return nullptr;
+    return std::make_unique<VulkanContext>();
 }
 
 } // namespace aero3d

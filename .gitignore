@@ -11,3 +11,7 @@ Dependencies/
 **.vcxproj.filters
 **.vcxproj.user
 **.csproj
+
+#Build and vscode
+build/
+.vscode/

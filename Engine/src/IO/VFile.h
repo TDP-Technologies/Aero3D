@@ -2,6 +2,7 @@
 #define AERO3D_IO_VFILE_H_
 
 #include <string>
+#include <cstdint>
 
 namespace aero3d {
 

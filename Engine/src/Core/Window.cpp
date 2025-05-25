@@ -2,13 +2,14 @@
 
 #include <memory>
 
+#include "Utils/Common.h"
 #include "Utils/Log.h"
 #include "Event/EventBus.h"
 
 namespace aero3d {
 
 SDL_Window* Window::s_Window = nullptr;
-std::unique_ptr<GraphicsContext> Window::s_Context = nullptr;
+Scope<GraphicsContext> Window::s_Context = nullptr;
 
 bool Window::Init(const char* title, int width, int height, const char* api)
 {
@@ -27,20 +28,15 @@ bool Window::Init(const char* title, int width, int height, const char* api)
 
     s_Window = SDL_CreateWindow(title,
         width, height,
-        SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+        SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE);
 
     if (!s_Window) {
         LogErr(ERROR_INFO, "SDL Create Window Failed. SDL Error: %s", SDL_GetError());
         return false;
     }
 
-    /*
     s_Context = GraphicsContext::Create(api);
-    if (!s_Context->Init(s_Window))
-    {
-        return false;
-    }
-    */
+    A3D_CHECK_INIT(s_Context->Init(s_Window));
 
     return true;
 }
@@ -48,15 +44,13 @@ bool Window::Init(const char* title, int width, int height, const char* api)
 void Window::Shutdown()
 {
     LogMsg("Window Shutdown.");
+
     if (s_Window) {
         SDL_DestroyWindow(s_Window);
     }
-    /*
-    if (s_Context)
-    {
-        s_Context->Shutdown();
-    }
-    */
+
+    A3D_SHUTDOWN(s_Context);
+
     SDL_QuitSubSystem(SDL_INIT_VIDEO);
 }
 
@@ -96,7 +90,7 @@ void Window::PollEvents(bool& running, bool& minimized)
 
 void Window::SwapBuffers()
 {
-    //s_Context->SwapBuffers(s_Window);
+    s_Context->SwapBuffers();
 }
 
 SDL_Window* Window::GetSDLWindow()

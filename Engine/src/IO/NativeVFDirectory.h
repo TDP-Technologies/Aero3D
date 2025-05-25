@@ -11,7 +11,7 @@ public:
     NativeVFDirectory(std::string virtualPath, std::string mountPoint);
     ~NativeVFDirectory();
 
-    virtual std::shared_ptr<VFile> OpenFile(std::string& path) override;
+    virtual Ref<VFile> OpenFile(std::string& path) override;
 
     virtual bool FileExists(std::string& path) override;
 

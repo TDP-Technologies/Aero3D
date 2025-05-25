@@ -19,8 +19,8 @@ public:
     int GetHeight() { return m_Height; }
 
 private:
-    int m_Width;
-    int m_Height;
+    int m_Width = 0;
+    int m_Height = 0;
 
 };
 

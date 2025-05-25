@@ -3,13 +3,14 @@
 #include <memory>
 
 #include "IO/NativeVFDirectory.h"
+#include "Utils/Common.h"
 #include "Utils/Assert.h"
 #include "Utils/Log.h"
 
 namespace aero3d {
 
-std::vector<std::unique_ptr<VFDirectory>> VFS::s_Dirs = {};
-std::unique_ptr<VFDirectory> VFS::s_DefaultDir = std::make_unique<NativeVFDirectory>("", "");
+std::vector<Scope<VFDirectory>> VFS::s_Dirs = {};
+Scope<VFDirectory> VFS::s_DefaultDir = std::make_unique<NativeVFDirectory>("", "");
 
 bool VFS::Init()
 {
@@ -43,7 +44,7 @@ void VFS::Mount(std::string virtualPath, std::string mountPoint, DirType type, b
     }
 }
 
-std::shared_ptr<VFile> VFS::ReadFile(std::string path)
+Ref<VFile> VFS::ReadFile(std::string path)
 {
     for (const auto& dir : s_Dirs)
     {

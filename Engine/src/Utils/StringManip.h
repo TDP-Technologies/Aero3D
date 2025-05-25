@@ -3,12 +3,12 @@
 
 #include <string>
 
-#include "Utils/API.h"
+#include "Utils/Common.h"
 
 namespace aero3d {
 
-extern A3D_API std::string GetPathAfter(const char* path, const char* after);
-extern A3D_API std::string ExtractClassAndFunctionName(const char* prettyFunctionName);
+extern std::string GetPathAfter(const char* path, const char* after);
+extern std::string ExtractClassAndFunctionName(const char* prettyFunctionName);
 
 } // namespace aero3d
 

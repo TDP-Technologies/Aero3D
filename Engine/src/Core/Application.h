@@ -1,11 +1,11 @@
 #ifndef AERO3D_CORE_APPLICATION_H_
 #define AERO3D_CORE_APPLICATION_H_
 
-#include "Utils/API.h"
+#include "Utils/Common.h"
 
 namespace aero3d {
 
-class A3D_API Application
+class Application
 {
 public:
     Application();
@@ -19,8 +19,8 @@ private:
     void SubscribeOnEvents();
 
 private:
-    bool m_IsRunning;
-    bool m_Minimized;
+    bool m_IsRunning = false;
+    bool m_Minimized = false;
 
 };
 

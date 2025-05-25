@@ -3,12 +3,14 @@
 #define NOMINMAX
 #include <windows.h>
 
+#include <cstdlib>
+
 #include "Utils/Log.h"
 
 namespace aero3d {
 
-NativeVFile::NativeVFile(void* handle, std::string& virtualPath)
-    : m_Handle(handle), m_Data(nullptr), m_Length(0), m_VirtualPath(virtualPath), m_Opened(false)
+NativeVFile::NativeVFile(FileHandle handle, std::string& virtualPath)
+    : m_Handle(handle), m_VirtualPath(virtualPath), m_Opened(false)
 {
     if (m_Handle && m_Handle != INVALID_HANDLE_VALUE) m_Opened = true;
 
@@ -29,7 +31,7 @@ NativeVFile::~NativeVFile()
     if (m_Handle && m_Handle != INVALID_HANDLE_VALUE)
         CloseHandle(m_Handle);
 
-    if (m_Data) delete[] m_Data;
+    if (m_Data) free(m_Data);
 }
 
 void NativeVFile::ReadBytes(void* buffer, size_t size, size_t start)
@@ -141,7 +143,7 @@ void NativeVFile::Load()
 
 void NativeVFile::Unload()
 {
-    delete m_Data;
+    free(m_Data);
     m_Data = nullptr;
 }
 

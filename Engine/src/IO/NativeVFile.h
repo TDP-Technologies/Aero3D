@@ -7,10 +7,18 @@
 
 namespace aero3d {
 
+#ifdef _WIN32
+    using FileHandle = void*;
+    constexpr FileHandle FILE_HANDLE_NULL = nullptr;
+#else
+    using FileHandle = int;
+    constexpr FileHandle FILE_HANDLE_NULL = -1;
+#endif
+
 class NativeVFile : public VFile
 {
 public:
-    NativeVFile(void* handle, std::string& virtualPath);
+    NativeVFile(FileHandle handle, std::string& virtualPath);
     ~NativeVFile();
 
     virtual void ReadBytes(void* buffer, size_t size, size_t start = 0) override;
@@ -31,11 +39,11 @@ public:
     virtual const std::string& GetName() const override;
 
 private:
-    uint64_t m_Length;
-    std::string m_VirtualPath;
-    void* m_Handle;
-    void* m_Data;
-    bool m_Opened;
+    uint64_t m_Length = 0;
+    std::string m_VirtualPath = "";
+    FileHandle m_Handle = FILE_HANDLE_NULL;
+    void* m_Data = nullptr;
+    bool m_Opened = false;
 
 };
 

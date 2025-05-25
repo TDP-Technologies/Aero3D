@@ -9,7 +9,6 @@
 namespace aero3d {
 
 Application::Application()
-    : m_IsRunning(false), m_Minimized(false)
 {
 }
 
@@ -21,30 +20,15 @@ bool Application::Init()
 {
     LogMsg("Application Initialize.");
 
-    if (!VFS::Init())
-    {
-        return false;
-    }
-
-    if (!EventBus::Init())
-    {
-        return false;
-    }
-
-    if (!Window::Init("Aero3D", 800,
-        600, "OpenGL"))
-    {
-        return false;
-    }
-
-    /*
-    if (!RenderCommand::Init("OpenGL"))
-    {
-        return false;
-    }
-    */
+    A3D_CHECK_INIT(VFS::Init());
+    A3D_CHECK_INIT(EventBus::Init());
+    A3D_CHECK_INIT(Window::Init("Aero3D", 800,
+        600, "Vulkan"));
+    A3D_CHECK_INIT(RenderCommand::Init("Vulkan"));
 
     SubscribeOnEvents();
+
+    VFS::Mount("", "Sandbox/");
 
     m_IsRunning = true;
 
@@ -53,16 +37,44 @@ bool Application::Init()
 
 void Application::Run()
 {
+    VertexLayout layout = VertexLayout({
+    LayoutElement("inPos", ElementType::FLOAT2),
+    LayoutElement("inColor", ElementType::FLOAT3)
+        });
+
+    Ref<GraphicsPipeline> pipeline = 
+        RenderCommand::CreateGraphicsPipeline(layout, "res/shaders/vertex.glsl", "res/shaders/pixel.glsl");
+
+    RenderCommand::SetClearColor(0.0f, 0.5f, 0.3f, 1.0f);
+    RenderCommand::SetViewport(0, 0, 800, 600);
+
+    float vertices[] = {
+         0.0f, -0.5f,   1.0f, 0.0f, 0.0f,
+         0.5f,  0.5f,   0.0f, 1.0f, 0.0f,
+        -0.5f,  0.5f,   0.0f, 0.0f, 1.0f
+    };
+
+    unsigned int indices[] = {
+        0, 1, 2
+    };
+
+    Ref<VertexBuffer> vb = RenderCommand::CreateVertexBuffer(vertices, 15 * 4);
+    Ref<IndexBuffer> ib = RenderCommand::CreateIndexBuffer(indices, 12, 3);
+
     while (m_IsRunning)
     {
         Window::PollEvents(m_IsRunning, m_Minimized);
 
         if (!m_Minimized)
         {
+            RenderCommand::RecordCommands();
 
+            pipeline->Bind();
+            RenderCommand::DrawIndexed(vb, ib);
+
+            RenderCommand::EndCommands();
+            Window::SwapBuffers();
         }
-
-        Window::SwapBuffers();
     }
 }
 
@@ -70,7 +82,7 @@ void Application::Shutdown()
 {
     LogMsg("Application Shutdown.");
 
-    //RenderCommand::Shutdown();
+    RenderCommand::Shutdown();
     Window::Shutdown();
     EventBus::Shutdown();
     VFS::Shutdown();

@@ -3,7 +3,9 @@
 
 #include <memory>
 
-#include "SDL3/SDL.h"
+#include <SDL3/SDL.h>
+
+#include "Utils/Common.h"
 
 namespace aero3d {
 
@@ -15,9 +17,9 @@ public:
     virtual bool Init(SDL_Window* window) = 0;
     virtual void Shutdown() = 0;
 
-    virtual void SwapBuffers(SDL_Window* window) = 0;
+    virtual void SwapBuffers() = 0;
 
-    static std::unique_ptr<GraphicsContext> Create(const char* api);
+    static Scope<GraphicsContext> Create(const char* api);
 };
 
 } // namespace aero3d

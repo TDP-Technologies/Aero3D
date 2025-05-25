@@ -5,15 +5,15 @@
 
 #include "IO/VFile.h"
 
+namespace aero3d {
+
 #ifdef _WIN32
     using FileHandle = void*;
-    #define NullHandle = nullptr;
+    constexpr FileHandle FILE_HANDLE_NULL = nullptr;
 #else
     using FileHandle = int;
-    #define NullHandle -1;
+    constexpr FileHandle FILE_HANDLE_NULL = -1;
 #endif
-
-namespace aero3d {
 
 class NativeVFile : public VFile
 {
@@ -41,7 +41,7 @@ public:
 private:
     uint64_t m_Length = 0;
     std::string m_VirtualPath = "";
-    FileHandle m_Handle = NullHandle;
+    FileHandle m_Handle = FILE_HANDLE_NULL;
     void* m_Data = nullptr;
     bool m_Opened = false;
 

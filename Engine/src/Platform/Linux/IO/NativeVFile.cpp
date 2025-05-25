@@ -8,6 +8,7 @@
 #include <cstring>
 #include <limits>
 #include <cstddef>
+#include <cstdlib>
 
 #include "Utils/Log.h"
 
@@ -35,7 +36,7 @@ NativeVFile::~NativeVFile()
     if (m_Handle != -1)
         close(m_Handle);
 
-    if (m_Data) delete[] m_Data;
+    if (m_Data) free(m_Data);
 }
 
 void NativeVFile::ReadBytes(void* buffer, size_t size, size_t start)
@@ -130,7 +131,7 @@ void NativeVFile::Load()
 
 void NativeVFile::Unload()
 {
-    delete[] m_Data;
+    free(m_Data);
     m_Data = nullptr;
 }
 

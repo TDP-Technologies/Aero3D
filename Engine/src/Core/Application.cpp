@@ -73,9 +73,8 @@ void Application::Run()
             RenderCommand::DrawIndexed(vb, ib);
 
             RenderCommand::EndCommands();
+            Window::SwapBuffers();
         }
-
-        Window::SwapBuffers();
     }
 }
 

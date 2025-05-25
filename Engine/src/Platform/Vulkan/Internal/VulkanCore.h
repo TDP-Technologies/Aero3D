@@ -50,7 +50,7 @@ public:
 
     VkRenderPass GetRenderPass() { return m_RenderPass; }
 
-    VkCommandBuffer GetCommandBuffer() { return m_CommandBuffers[m_CurrentImage]; }
+    VkCommandBuffer GetCommandBuffer() { return m_CommandBuffers[m_CurrentFrame]; }
 
 private:
     bool CreateInstance();

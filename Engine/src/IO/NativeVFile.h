@@ -5,12 +5,20 @@
 
 #include "IO/VFile.h"
 
+#ifdef _WIN32
+    using FileHandle = void*;
+    #define NullHandle = nullptr;
+#else
+    using FileHandle = int;
+    #define NullHandle -1;
+#endif
+
 namespace aero3d {
 
 class NativeVFile : public VFile
 {
 public:
-    NativeVFile(void* handle, std::string& virtualPath);
+    NativeVFile(FileHandle handle, std::string& virtualPath);
     ~NativeVFile();
 
     virtual void ReadBytes(void* buffer, size_t size, size_t start = 0) override;
@@ -33,7 +41,7 @@ public:
 private:
     uint64_t m_Length = 0;
     std::string m_VirtualPath = "";
-    void* m_Handle = nullptr;
+    FileHandle m_Handle = NullHandle;
     void* m_Data = nullptr;
     bool m_Opened = false;
 

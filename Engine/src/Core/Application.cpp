@@ -28,6 +28,8 @@ bool Application::Init()
 
     SubscribeOnEvents();
 
+    VFS::Mount("", "Sandbox/");
+
     m_IsRunning = true;
 
     return true;

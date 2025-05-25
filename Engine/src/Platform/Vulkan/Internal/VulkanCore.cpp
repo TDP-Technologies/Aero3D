@@ -159,6 +159,7 @@ void VulkanCore::RecordCommands()
     beginInfo.flags = 0;
     beginInfo.pInheritanceInfo = nullptr;
 
+    vkResetCommandBuffer(m_CommandBuffers[m_CurrentFrame], 0);
     vkBeginCommandBuffer(m_CommandBuffers[m_CurrentFrame], &beginInfo);
 
     VkRenderPassBeginInfo renderPassInfo{};

@@ -101,12 +101,16 @@ bool VulkanSwapchain::Init(const VulkanPhysicalDevice& physDevice, VkSurfaceKHR 
     m_Window = window;
 
     CreateSwapchain(physDevice);
+    CreateImageViews();
 
     return true;
 }
 
 void VulkanSwapchain::Shutdown()
 {
+    for (auto imageView : m_ImageViews) {
+        vkDestroyImageView(m_Device, imageView, nullptr);
+    }
     vkDestroySwapchainKHR(m_Device, m_Swapchain, nullptr);
 }
 
@@ -164,6 +168,32 @@ void VulkanSwapchain::CreateSwapchain(const VulkanPhysicalDevice& physDevice)
 
     m_ImageFormat = surfaceFormat.format;
     m_Extent = extent;
+}
+
+void VulkanSwapchain::CreateImageViews()
+{
+    m_ImageViews.resize(m_Images.size());
+
+    for (size_t i = 0; i < m_Images.size(); i++) {
+        VkImageViewCreateInfo viewInfo{};
+        viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+        viewInfo.image = m_Images[i];
+        viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+        viewInfo.format = m_ImageFormat;
+
+        viewInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+        viewInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+        viewInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+        viewInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+
+        viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        viewInfo.subresourceRange.baseMipLevel = 0;
+        viewInfo.subresourceRange.levelCount = 1;
+        viewInfo.subresourceRange.baseArrayLayer = 0;
+        viewInfo.subresourceRange.layerCount = 1;
+
+        A3D_CHECK_VKRESULT(vkCreateImageView(m_Device, &viewInfo, nullptr, &m_ImageViews[i]));
+    }
 }
 
 } // namespace aero3d

@@ -39,7 +39,6 @@ bool VulkanCore::Init(SDL_Window* window)
     m_GraphicsQueue = m_Device->GetGraphicsQueue();
     m_PresentQueue = m_Device->GetPresentQueue();
     A3D_CHECK_INIT(m_Swapchain->Init(m_Device->GetPhysicalDevice(), m_Surface, m_Window, m_Device->GetHandle()));
-    A3D_CHECK_INIT(CreateImageViews());
     A3D_CHECK_INIT(CreateRenderPass());
     A3D_CHECK_INIT(CreateFramebuffers());
     A3D_CHECK_INIT(CreateCommandBuffersAndCommandPool());
@@ -63,9 +62,6 @@ void VulkanCore::Shutdown()
     }
 
     vkDestroyRenderPass(m_Device->GetHandle(), m_RenderPass, nullptr);
-    for (auto imageView : m_SwapchainImageViews) {
-        vkDestroyImageView(m_Device->GetHandle(), imageView, nullptr);
-    }
 
     A3D_SHUTDOWN(m_Swapchain);
     A3D_SHUTDOWN(m_Device);
@@ -133,7 +129,7 @@ void VulkanCore::Clear()
 
     vkCmdClearColorImage(
         m_CommandBuffers[m_CurrentImage],
-        m_Swapchain->GetSwapchainImages()[m_CurrentImage],
+        m_Swapchain->GetImage(m_CurrentImage),
         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
         &m_ClearColor.color,
         1,
@@ -231,35 +227,6 @@ bool VulkanCore::CreateSurface()
     return true;
 }
 
-bool VulkanCore::CreateImageViews()
-{
-    std::vector<VkImage> swapchainImages = m_Swapchain->GetSwapchainImages();
-    m_SwapchainImageViews.resize(swapchainImages.size());
-
-    for (size_t i = 0; i < swapchainImages.size(); i++) {
-        VkImageViewCreateInfo viewInfo{};
-        viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-        viewInfo.image = swapchainImages[i];
-        viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-        viewInfo.format = m_Swapchain->GetImageFormat();
-
-        viewInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
-        viewInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
-        viewInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
-        viewInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
-
-        viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        viewInfo.subresourceRange.baseMipLevel = 0;
-        viewInfo.subresourceRange.levelCount = 1;
-        viewInfo.subresourceRange.baseArrayLayer = 0;
-        viewInfo.subresourceRange.layerCount = 1;
-
-        A3D_CHECK_VKRESULT(vkCreateImageView(m_Device->GetHandle(), &viewInfo, nullptr, &m_SwapchainImageViews[i]));
-    }
-
-    return true;
-}
-
 bool VulkanCore::CreateRenderPass()
 {
     VkAttachmentDescription colorAttachment{};
@@ -315,11 +282,11 @@ bool VulkanCore::CreateRenderPass()
 
 bool VulkanCore::CreateFramebuffers()
 {
-    m_SwapchainFramebuffers.resize(m_SwapchainImageViews.size());
+    m_SwapchainFramebuffers.resize(m_Swapchain->GetNumImageViews());
 
-    for (size_t i = 0; i < m_SwapchainImageViews.size(); i++) {
+    for (size_t i = 0; i < m_Swapchain->GetNumImageViews(); i++) {
         VkImageView attachments[] = {
-            m_SwapchainImageViews[i]
+            m_Swapchain->GetImageView(i)
         };
 
         VkExtent2D swapchainExtent = m_Swapchain->GetExtent();

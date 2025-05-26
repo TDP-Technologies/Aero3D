@@ -47,7 +47,6 @@ public:
 private:
     bool CreateInstance();
     bool CreateSurface();
-    bool CreateImageViews();
     bool CreateRenderPass();
     bool CreateFramebuffers();
     bool CreateCommandBuffersAndCommandPool();
@@ -66,7 +65,6 @@ private:
     Ref<VulkanSwapchain> m_Swapchain = nullptr;
 
     uint32_t m_CurrentImage = 0;
-    std::vector<VkImageView> m_SwapchainImageViews {};
 
     VkRenderPass m_RenderPass = VK_NULL_HANDLE;
     std::vector<VkFramebuffer> m_SwapchainFramebuffers {};

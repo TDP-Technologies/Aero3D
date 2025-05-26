@@ -13,14 +13,6 @@
 
 namespace aero3d {
 
-constexpr int FRAMES = 3;
-
-struct FrameSyncObjects {
-    VkSemaphore ImageAvailableSemaphore;
-    VkSemaphore RenderFinishedSemaphore;
-    VkFence InFlightFence;
-};
-
 class VulkanCore
 {
 public:
@@ -50,7 +42,7 @@ public:
 
     VkRenderPass GetRenderPass() { return m_RenderPass; }
 
-    VkCommandBuffer GetCommandBuffer() { return m_CommandBuffers[m_CurrentFrame]; }
+    VkCommandBuffer GetCommandBuffer() { return m_CommandBuffers[m_CurrentImage]; }
 
 private:
     bool CreateInstance();
@@ -82,8 +74,9 @@ private:
     VkCommandPool m_CommandPool = VK_NULL_HANDLE;
     std::vector<VkCommandBuffer> m_CommandBuffers {};
 
-    int m_CurrentFrame = 0;
-    FrameSyncObjects m_SyncObjects[FRAMES] {};
+    VkSemaphore m_ImageAvailableSemaphore = VK_NULL_HANDLE;
+    VkSemaphore m_RenderFinishedSemaphore = VK_NULL_HANDLE;
+    VkFence m_InFlightFence = VK_NULL_HANDLE;
 
     VkClearValue m_ClearColor { {0.0f, 1.0f, 0.0f, 1.0f} };
     VkViewport m_Viewport { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f };

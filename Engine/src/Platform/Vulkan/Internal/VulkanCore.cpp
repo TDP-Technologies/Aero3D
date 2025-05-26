@@ -52,12 +52,9 @@ void VulkanCore::Shutdown()
 {
     vkDeviceWaitIdle(m_Device->GetHandle());
 
-    for (int i = 0; i < FRAMES; i++)
-    {
-        vkDestroyFence(m_Device->GetHandle(), m_SyncObjects[i].InFlightFence, nullptr);
-        vkDestroySemaphore(m_Device->GetHandle(), m_SyncObjects[i].RenderFinishedSemaphore, nullptr);
-        vkDestroySemaphore(m_Device->GetHandle(), m_SyncObjects[i].ImageAvailableSemaphore, nullptr);
-    }
+    vkDestroyFence(m_Device->GetHandle(), m_InFlightFence, nullptr);
+    vkDestroySemaphore(m_Device->GetHandle(), m_RenderFinishedSemaphore, nullptr);
+    vkDestroySemaphore(m_Device->GetHandle(), m_ImageAvailableSemaphore, nullptr);
 
     vkDestroyCommandPool(m_Device->GetHandle(), m_CommandPool, nullptr);
 
@@ -82,20 +79,20 @@ void VulkanCore::SwapBuffers()
     VkSubmitInfo submitInfo{};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-    VkSemaphore waitSemaphores[] = { m_SyncObjects[m_CurrentFrame].ImageAvailableSemaphore };
+    VkSemaphore waitSemaphores[] = { m_ImageAvailableSemaphore };
     VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
     submitInfo.waitSemaphoreCount = 1;
     submitInfo.pWaitSemaphores = waitSemaphores;
     submitInfo.pWaitDstStageMask = waitStages;
 
     submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = &m_CommandBuffers[m_CurrentFrame];
+    submitInfo.pCommandBuffers = &m_CommandBuffers[m_CurrentImage];
 
-    VkSemaphore signalSemaphores[] = { m_SyncObjects[m_CurrentFrame].RenderFinishedSemaphore };
+    VkSemaphore signalSemaphores[] = { m_RenderFinishedSemaphore };
     submitInfo.signalSemaphoreCount = 1;
     submitInfo.pSignalSemaphores = signalSemaphores;
 
-    m_GraphicsQueue->Submit(&submitInfo, m_SyncObjects[m_CurrentFrame].InFlightFence);
+    m_GraphicsQueue->Submit(&submitInfo, m_InFlightFence);
 
     VkPresentInfoKHR presentInfo{};
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -109,8 +106,6 @@ void VulkanCore::SwapBuffers()
     presentInfo.pImageIndices = &m_CurrentImage;
 
     vkQueuePresentKHR(m_PresentQueue->GetHandle(), &presentInfo);
-
-    m_CurrentFrame = (m_CurrentFrame + 1) % FRAMES;
 }
 
 void VulkanCore::SetViewport(int x, int y, int width, int height)
@@ -137,7 +132,7 @@ void VulkanCore::Clear()
     range.layerCount = 1;
 
     vkCmdClearColorImage(
-        m_CommandBuffers[m_CurrentFrame],
+        m_CommandBuffers[m_CurrentImage],
         m_Swapchain->GetSwapchainImages()[m_CurrentImage],
         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
         &m_ClearColor.color,
@@ -148,19 +143,19 @@ void VulkanCore::Clear()
 
 void VulkanCore::RecordCommands()
 {
-    vkWaitForFences(m_Device->GetHandle(), 1, &m_SyncObjects[m_CurrentFrame].InFlightFence, VK_TRUE, UINT64_MAX);
-    vkResetFences(m_Device->GetHandle(), 1, &m_SyncObjects[m_CurrentFrame].InFlightFence);
+    vkWaitForFences(m_Device->GetHandle(), 1, &m_InFlightFence, VK_TRUE, UINT64_MAX);
+    vkResetFences(m_Device->GetHandle(), 1, &m_InFlightFence);
 
     vkAcquireNextImageKHR(m_Device->GetHandle(), m_Swapchain->GetHandle(),
-        UINT64_MAX, m_SyncObjects[m_CurrentFrame].ImageAvailableSemaphore, VK_NULL_HANDLE, &m_CurrentImage);
+        UINT64_MAX, m_ImageAvailableSemaphore, VK_NULL_HANDLE, &m_CurrentImage);
 
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     beginInfo.flags = 0;
     beginInfo.pInheritanceInfo = nullptr;
 
-    vkResetCommandBuffer(m_CommandBuffers[m_CurrentFrame], 0);
-    vkBeginCommandBuffer(m_CommandBuffers[m_CurrentFrame], &beginInfo);
+    vkResetCommandBuffer(m_CommandBuffers[m_CurrentImage], 0);
+    vkBeginCommandBuffer(m_CommandBuffers[m_CurrentImage], &beginInfo);
 
     VkRenderPassBeginInfo renderPassInfo{};
     renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -172,24 +167,24 @@ void VulkanCore::RecordCommands()
     renderPassInfo.clearValueCount = 1;
     renderPassInfo.pClearValues = &m_ClearColor;
 
-    vkCmdBeginRenderPass(m_CommandBuffers[m_CurrentFrame], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-    vkCmdSetViewport(m_CommandBuffers[m_CurrentFrame], 0, 1, &m_Viewport);
+    vkCmdBeginRenderPass(m_CommandBuffers[m_CurrentImage], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+    vkCmdSetViewport(m_CommandBuffers[m_CurrentImage], 0, 1, &m_Viewport);
 }
 
 void VulkanCore::EndCommands()
 {
-    vkCmdEndRenderPass(m_CommandBuffers[m_CurrentFrame]);
-    vkEndCommandBuffer(m_CommandBuffers[m_CurrentFrame]);
+    vkCmdEndRenderPass(m_CommandBuffers[m_CurrentImage]);
+    vkEndCommandBuffer(m_CommandBuffers[m_CurrentImage]);
 }
 
 void VulkanCore::Draw(size_t count)
 {
-    vkCmdDraw(m_CommandBuffers[m_CurrentFrame], count, 1, 0, 0);
+    vkCmdDraw(m_CommandBuffers[m_CurrentImage], count, 1, 0, 0);
 }
 
 void VulkanCore::DrawIndexed(size_t count)
 {
-    vkCmdDrawIndexed(m_CommandBuffers[m_CurrentFrame], count, 1, 0, 0, 0);
+    vkCmdDrawIndexed(m_CommandBuffers[m_CurrentImage], count, 1, 0, 0, 0);
 }
 
 bool VulkanCore::CreateInstance()
@@ -383,15 +378,12 @@ bool VulkanCore::CreateSyncObjects()
     fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
     fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-    for (int i = 0; i < FRAMES; i++)
-    {
-        A3D_CHECK_VKRESULT(vkCreateSemaphore(m_Device->GetHandle(), &semaphoreInfo, nullptr,
-            &m_SyncObjects[i].ImageAvailableSemaphore));
-        A3D_CHECK_VKRESULT(vkCreateSemaphore(m_Device->GetHandle(), &semaphoreInfo, nullptr,
-            &m_SyncObjects[i].RenderFinishedSemaphore));
-        A3D_CHECK_VKRESULT(vkCreateFence(m_Device->GetHandle(), &fenceInfo, nullptr,
-            &m_SyncObjects[i].InFlightFence));
-    }
+    A3D_CHECK_VKRESULT(vkCreateSemaphore(m_Device->GetHandle(), &semaphoreInfo, nullptr,
+        &m_ImageAvailableSemaphore));
+    A3D_CHECK_VKRESULT(vkCreateSemaphore(m_Device->GetHandle(), &semaphoreInfo, nullptr,
+        &m_RenderFinishedSemaphore));
+    A3D_CHECK_VKRESULT(vkCreateFence(m_Device->GetHandle(), &fenceInfo, nullptr,
+        &m_InFlightFence));
 
     return true;
 }

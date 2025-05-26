@@ -14,6 +14,8 @@ public:
     virtual bool Init() override;
     virtual void Shutdown() override;
 
+    virtual void ResizeBuffers() override;
+
     virtual void RecordCommands() override;
     virtual void EndCommands() override;
 

@@ -27,6 +27,9 @@ public:
         SDL_Window* window, VkDevice device);
     void Shutdown();
 
+    void Recreate(const VulkanPhysicalDevice& physDevice, VkSurfaceKHR surface,
+        SDL_Window* window, VkDevice device);
+
     VkSwapchainKHR GetHandle() { return m_Swapchain; }
 
     VkFormat GetImageFormat() { return m_ImageFormat; }

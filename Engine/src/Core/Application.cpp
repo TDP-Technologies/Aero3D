@@ -96,7 +96,8 @@ void Application::SubscribeOnEvents()
         int width = std::max(1, windowResizeEvent.GetWidth());
         int height = std::max(1, windowResizeEvent.GetHeight());
 
-        //RenderCommand::SetViewport(0, 0, width, height);
+        RenderCommand::SetViewport(0, 0, width, height);
+        RenderCommand::ResizeBuffers();
     });
 }
 

@@ -34,6 +34,11 @@ void VulkanAPI::EndCommands()
     g_VulkanCore->EndCommands();
 }
 
+void VulkanAPI::ResizeBuffers()
+{
+    g_VulkanCore->Resize();
+}
+
 void VulkanAPI::SetViewport(int x, int y, int width, int height)
 {
     g_VulkanCore->SetViewport(x, y, width, height);

@@ -22,6 +22,8 @@ public:
     bool Init(SDL_Window* window);
     void Shutdown();
 
+    void Resize();
+
     void RecordCommands();
     void EndCommands();
 
@@ -78,6 +80,7 @@ private:
 
     VkClearValue m_ClearColor { {0.0f, 1.0f, 0.0f, 1.0f} };
     VkViewport m_Viewport { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f };
+    VkRect2D m_Scissor { {0, 0}, {0, 0} };
 
 };
 

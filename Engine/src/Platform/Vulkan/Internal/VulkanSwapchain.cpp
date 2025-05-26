@@ -114,6 +114,13 @@ void VulkanSwapchain::Shutdown()
     vkDestroySwapchainKHR(m_Device, m_Swapchain, nullptr);
 }
 
+void VulkanSwapchain::Recreate(const VulkanPhysicalDevice& physDevice, VkSurfaceKHR surface,
+    SDL_Window* window, VkDevice device)
+{
+    Shutdown();
+    Init(physDevice, surface, window, device);
+}
+
 void VulkanSwapchain::CreateSwapchain(const VulkanPhysicalDevice& physDevice)
 {
     SwapChainSupportDetails swapChainSupport = QuerySwapChainSupport(physDevice.Device, m_Surface);

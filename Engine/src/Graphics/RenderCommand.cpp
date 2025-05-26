@@ -32,6 +32,11 @@ void RenderCommand::EndCommands()
     s_API->EndCommands();
 }
 
+void RenderCommand::ResizeBuffers()
+{
+    s_API->ResizeBuffers();
+}
+
 void RenderCommand::SetViewport(int x, int y, int width, int height)
 {
     s_API->SetViewport(x, y, width, height);

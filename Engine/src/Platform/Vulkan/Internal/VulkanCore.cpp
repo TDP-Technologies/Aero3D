@@ -70,6 +70,17 @@ void VulkanCore::Shutdown()
     vkDestroyInstance(m_Instance, nullptr);
 }
 
+void VulkanCore::Resize()
+{
+    vkDeviceWaitIdle(m_Device->GetHandle());
+    for (auto framebuffer : m_SwapchainFramebuffers) {
+        vkDestroyFramebuffer(m_Device->GetHandle(), framebuffer, nullptr);
+    }
+
+    m_Swapchain->Recreate(m_Device->GetPhysicalDevice(), m_Surface, m_Window, m_Device->GetHandle());
+    CreateFramebuffers();
+}
+
 void VulkanCore::SwapBuffers()
 {
     VkSubmitInfo submitInfo{};
@@ -165,6 +176,7 @@ void VulkanCore::RecordCommands()
 
     vkCmdBeginRenderPass(m_CommandBuffers[m_CurrentImage], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
     vkCmdSetViewport(m_CommandBuffers[m_CurrentImage], 0, 1, &m_Viewport);
+    vkCmdSetScissor(m_CommandBuffers[m_CurrentImage], 0, 1, &m_Scissor);
 }
 
 void VulkanCore::EndCommands()
@@ -293,6 +305,8 @@ bool VulkanCore::CreateFramebuffers()
         
         m_Viewport.width = static_cast<float>(swapchainExtent.width);
         m_Viewport.height = static_cast<float>(swapchainExtent.height);
+        m_Scissor.extent.width = swapchainExtent.width;
+        m_Scissor.extent.height = swapchainExtent.height;
 
         VkFramebufferCreateInfo framebufferInfo{};
         framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;

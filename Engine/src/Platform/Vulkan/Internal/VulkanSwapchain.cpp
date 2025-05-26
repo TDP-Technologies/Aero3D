@@ -32,31 +32,6 @@ static SwapChainSupportDetails QuerySwapChainSupport(VkPhysicalDevice device, Vk
     return details;
 }
 
-static VkSurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
-{
-    for (const auto& format : availableFormats)
-    {
-        if (format.format == VK_FORMAT_B8G8R8A8_SRGB &&
-            format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
-        {
-            return format;
-        }
-    }
-    return availableFormats[0];
-}
-
-static VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes)
-{
-    for (const auto& mode : availablePresentModes)
-    {
-        if (mode == VK_PRESENT_MODE_MAILBOX_KHR)
-        {
-            return mode;
-        }
-    }
-    return VK_PRESENT_MODE_FIFO_KHR;
-}
-
 VulkanSwapchain::VulkanSwapchain()
 {
 }
@@ -99,7 +74,7 @@ void VulkanSwapchain::CreateSwapchain(const VulkanPhysicalDevice& physDevice, in
 
     VkSurfaceFormatKHR surfaceFormat = ChooseSwapSurfaceFormat(swapChainSupport.Formats);
     VkPresentModeKHR presentMode = ChooseSwapPresentMode(swapChainSupport.PresentModes);
-    VkExtent2D extent = { width, height };
+    VkExtent2D extent = { static_cast<uint32_t>(width), static_cast<uint32_t>(height) };
 
     uint32_t imageCount = swapChainSupport.Capabilities.minImageCount + 1;
     if (swapChainSupport.Capabilities.maxImageCount > 0 &&
@@ -154,24 +129,7 @@ void VulkanSwapchain::CreateImageViews()
     m_ImageViews.resize(m_Images.size());
 
     for (size_t i = 0; i < m_Images.size(); i++) {
-        VkImageViewCreateInfo viewInfo{};
-        viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-        viewInfo.image = m_Images[i];
-        viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-        viewInfo.format = m_ImageFormat;
-
-        viewInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
-        viewInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
-        viewInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
-        viewInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
-
-        viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        viewInfo.subresourceRange.baseMipLevel = 0;
-        viewInfo.subresourceRange.levelCount = 1;
-        viewInfo.subresourceRange.baseArrayLayer = 0;
-        viewInfo.subresourceRange.layerCount = 1;
-
-        A3D_CHECK_VKRESULT(vkCreateImageView(m_Device, &viewInfo, nullptr, &m_ImageViews[i]));
+        CreateImageView(m_Device, m_Images[i], m_ImageFormat, &m_ImageViews[i]);
     }
 }
 

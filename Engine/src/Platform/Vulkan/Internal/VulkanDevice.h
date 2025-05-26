@@ -45,9 +45,7 @@ public:
     unsigned int GetCurrentPhysDeviceIndex() { return m_CurrentPhysDevice; }
 
     VkDevice GetHandle() const { return m_Device; }
-    const Ref<VulkanQueue> GetGraphicsQueue() const { return m_GraphicsQueue; }
-    const Ref<VulkanQueue> GetPresentQueue() const { return m_PresentQueue; }
-
+    
     void SetPhysicalDevice(unsigned int index) { m_CurrentPhysDevice = index; }
     
 private:
@@ -61,8 +59,6 @@ private:
     std::vector<VulkanPhysicalDevice> m_PhysDevices {};
 
     VkDevice m_Device = VK_NULL_HANDLE;
-    Ref<VulkanQueue> m_GraphicsQueue = nullptr;
-    Ref<VulkanQueue> m_PresentQueue = nullptr;
 
 };
 

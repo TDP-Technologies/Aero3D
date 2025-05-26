@@ -127,16 +127,6 @@ void VulkanDevice::CreateLogicalDevice()
     {
         LogErr(ERROR_INFO, "Failed to create logical device.");
     }
-
-    VkQueue queue = nullptr;
-    uint32_t graphicsIndices = physDevice.QueueFamilyIndices.GraphicsFamily.value();
-    uint32_t presentIndices = physDevice.QueueFamilyIndices.PresentFamily.value();
-
-    vkGetDeviceQueue(m_Device, graphicsIndices, 0, &queue);
-    m_GraphicsQueue = std::make_shared<VulkanQueue>(queue, graphicsIndices);
-
-    vkGetDeviceQueue(m_Device, presentIndices, 0, &queue);
-    m_PresentQueue = std::make_shared<VulkanQueue>(queue, presentIndices);
 }
 
 } // namespace aero3d

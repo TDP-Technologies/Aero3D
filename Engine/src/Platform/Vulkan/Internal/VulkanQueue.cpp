@@ -4,9 +4,20 @@
 
 namespace aero3d {
 
-VulkanQueue::VulkanQueue(VkQueue queue, uint32_t queueFamilyIndex)
-    : m_Queue(queue), m_QueueFamilyIndex(queueFamilyIndex)
+VulkanQueue::VulkanQueue()
 {
+}
+
+VulkanQueue::~VulkanQueue()
+{
+}
+
+bool VulkanQueue::Init(VkDevice device, uint32_t queueFamilyIndex)
+{
+    m_QueueFamilyIndex = queueFamilyIndex;
+    vkGetDeviceQueue(device, queueFamilyIndex, 0, &m_Queue);
+
+    return true;
 }
 
 void VulkanQueue::Submit(const VkSubmitInfo* submitInfo, VkFence fence) 

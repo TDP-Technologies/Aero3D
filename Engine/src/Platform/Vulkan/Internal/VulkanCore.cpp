@@ -16,8 +16,6 @@ Scope<VulkanCore> g_VulkanCore = std::make_unique<VulkanCore>();
 
 VulkanCore::VulkanCore()
 {
-    m_Device = std::make_shared<VulkanDevice>();
-    m_Swapchain = std::make_shared<VulkanSwapchain>();
 }
 
 VulkanCore::~VulkanCore()
@@ -33,39 +31,46 @@ bool VulkanCore::Init(SDL_Window* window, int width, int height)
         return false;
     }
 
-    A3D_CHECK_INIT(CreateInstance());
-    A3D_CHECK_INIT(CreateSurface());
-    A3D_CHECK_INIT(m_Device->Init(m_Instance, m_Surface));
-    m_GraphicsQueue = m_Device->GetGraphicsQueue();
-    m_PresentQueue = m_Device->GetPresentQueue();
-    A3D_CHECK_INIT(m_Swapchain->Init(m_Device->GetPhysicalDevice(), m_Surface, m_Window,
-        m_Device->GetHandle(), width, height));
-    A3D_CHECK_INIT(CreateRenderPass());
-    A3D_CHECK_INIT(CreateFramebuffers());
-    A3D_CHECK_INIT(CreateCommandBuffersAndCommandPool());
-    A3D_CHECK_INIT(CreateSyncObjects());
+    CreateInstance();
+    CreateSurface();
+
+    m_Device.Init(m_Instance, m_Surface);
+
+    m_GraphicsQueue.Init(m_Device.GetHandle(),
+     m_Device.GetPhysicalDevice().QueueFamilyIndices.GraphicsFamily.value());
+
+    m_PresentQueue.Init(m_Device.GetHandle(), 
+    m_Device.GetPhysicalDevice().QueueFamilyIndices.PresentFamily.value());
+
+    m_Swapchain.Init(m_Device.GetPhysicalDevice(), m_Surface, m_Window,
+        m_Device.GetHandle(), width, height);
+
+    CreateRenderPass();
+    CreateFramebuffers();
+    CreateCommandBuffersAndCommandPool();
+    CreateSyncObjects();
 
     return true;
 }
 
 void VulkanCore::Shutdown()
 {
-    vkDeviceWaitIdle(m_Device->GetHandle());
+    vkDeviceWaitIdle(m_Device.GetHandle());
 
-    vkDestroyFence(m_Device->GetHandle(), m_InFlightFence, nullptr);
-    vkDestroySemaphore(m_Device->GetHandle(), m_RenderFinishedSemaphore, nullptr);
-    vkDestroySemaphore(m_Device->GetHandle(), m_ImageAvailableSemaphore, nullptr);
+    vkDestroyFence(m_Device.GetHandle(), m_InFlightFence, nullptr);
+    vkDestroySemaphore(m_Device.GetHandle(), m_RenderFinishedSemaphore, nullptr);
+    vkDestroySemaphore(m_Device.GetHandle(), m_ImageAvailableSemaphore, nullptr);
 
-    vkDestroyCommandPool(m_Device->GetHandle(), m_CommandPool, nullptr);
+    vkDestroyCommandPool(m_Device.GetHandle(), m_CommandPool, nullptr);
 
     for (auto framebuffer : m_SwapchainFramebuffers) {
-        vkDestroyFramebuffer(m_Device->GetHandle(), framebuffer, nullptr);
+        vkDestroyFramebuffer(m_Device.GetHandle(), framebuffer, nullptr);
     }
 
-    vkDestroyRenderPass(m_Device->GetHandle(), m_RenderPass, nullptr);
+    vkDestroyRenderPass(m_Device.GetHandle(), m_RenderPass, nullptr);
 
-    A3D_SHUTDOWN(m_Swapchain);
-    A3D_SHUTDOWN(m_Device);
+    m_Swapchain.Shutdown();
+    m_Device.Shutdown();
 
     vkDestroySurfaceKHR(m_Instance, m_Surface, nullptr);
     vkDestroyInstance(m_Instance, nullptr);
@@ -73,22 +78,22 @@ void VulkanCore::Shutdown()
 
 void VulkanCore::ResizeBuffers(int width, int height)
 {
-    vkDeviceWaitIdle(m_Device->GetHandle());
+    vkDeviceWaitIdle(m_Device.GetHandle());
     for (auto framebuffer : m_SwapchainFramebuffers) {
-        vkDestroyFramebuffer(m_Device->GetHandle(), framebuffer, nullptr);
+        vkDestroyFramebuffer(m_Device.GetHandle(), framebuffer, nullptr);
     }
 
-    m_Swapchain->Recreate(m_Device->GetPhysicalDevice(), m_Surface, m_Window, 
-        m_Device->GetHandle(), width, height);
+    m_Swapchain.Recreate(m_Device.GetPhysicalDevice(), m_Surface, m_Window, 
+        m_Device.GetHandle(), width, height);
     CreateFramebuffers();
 }
 
 void VulkanCore::RecordCommands()
 {
-    vkWaitForFences(m_Device->GetHandle(), 1, &m_InFlightFence, VK_TRUE, UINT64_MAX);
-    vkResetFences(m_Device->GetHandle(), 1, &m_InFlightFence);
+    vkWaitForFences(m_Device.GetHandle(), 1, &m_InFlightFence, VK_TRUE, UINT64_MAX);
+    vkResetFences(m_Device.GetHandle(), 1, &m_InFlightFence);
 
-    vkAcquireNextImageKHR(m_Device->GetHandle(), m_Swapchain->GetHandle(),
+    vkAcquireNextImageKHR(m_Device.GetHandle(), m_Swapchain.GetHandle(),
         UINT64_MAX, m_ImageAvailableSemaphore, VK_NULL_HANDLE, &m_CurrentImage);
 
     VkCommandBufferBeginInfo beginInfo{};
@@ -104,7 +109,7 @@ void VulkanCore::RecordCommands()
     renderPassInfo.renderPass = m_RenderPass;
     renderPassInfo.framebuffer = m_SwapchainFramebuffers[m_CurrentImage];
     renderPassInfo.renderArea.offset = { 0, 0 };
-    renderPassInfo.renderArea.extent = m_Swapchain->GetExtent();
+    renderPassInfo.renderArea.extent = m_Swapchain.GetExtent();
 
     renderPassInfo.clearValueCount = 1;
     renderPassInfo.pClearValues = &m_ClearColor;
@@ -148,7 +153,7 @@ void VulkanCore::SwapBuffers()
     submitInfo.signalSemaphoreCount = 1;
     submitInfo.pSignalSemaphores = signalSemaphores;
 
-    m_GraphicsQueue->Submit(&submitInfo, m_InFlightFence);
+    m_GraphicsQueue.Submit(&submitInfo, m_InFlightFence);
 
     VkPresentInfoKHR presentInfo{};
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -156,12 +161,12 @@ void VulkanCore::SwapBuffers()
     presentInfo.waitSemaphoreCount = 1;
     presentInfo.pWaitSemaphores = signalSemaphores;
 
-    VkSwapchainKHR swapchains[] = { m_Swapchain->GetHandle()};
+    VkSwapchainKHR swapchains[] = { m_Swapchain.GetHandle()};
     presentInfo.swapchainCount = 1;
     presentInfo.pSwapchains = swapchains;
     presentInfo.pImageIndices = &m_CurrentImage;
 
-    vkQueuePresentKHR(m_PresentQueue->GetHandle(), &presentInfo);
+    vkQueuePresentKHR(m_PresentQueue.GetHandle(), &presentInfo);
 }
 
 void VulkanCore::SetClearColor(float r, float g, float b, float a)
@@ -180,7 +185,7 @@ void VulkanCore::Clear()
 
     vkCmdClearColorImage(
         m_CommandBuffers[m_CurrentImage],
-        m_Swapchain->GetImage(m_CurrentImage),
+        m_Swapchain.GetImage(m_CurrentImage),
         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
         &m_ClearColor.color,
         1,
@@ -235,7 +240,7 @@ bool VulkanCore::CreateSurface()
 bool VulkanCore::CreateRenderPass()
 {
     VkAttachmentDescription colorAttachment{};
-    colorAttachment.format = m_Swapchain->GetImageFormat();
+    colorAttachment.format = m_Swapchain.GetImageFormat();
     colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
 
     colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
@@ -275,7 +280,7 @@ bool VulkanCore::CreateRenderPass()
     renderPassInfo.dependencyCount = 1;
     renderPassInfo.pDependencies = &dependency;
 
-    A3D_CHECK_VKRESULT(vkCreateRenderPass(m_Device->GetHandle(), &renderPassInfo, nullptr, &m_RenderPass));
+    A3D_CHECK_VKRESULT(vkCreateRenderPass(m_Device.GetHandle(), &renderPassInfo, nullptr, &m_RenderPass));
     if (!m_RenderPass)
     {
         LogErr(ERROR_INFO, "Failed to create RenderPass.");
@@ -287,14 +292,14 @@ bool VulkanCore::CreateRenderPass()
 
 bool VulkanCore::CreateFramebuffers()
 {
-    m_SwapchainFramebuffers.resize(m_Swapchain->GetNumImageViews());
+    m_SwapchainFramebuffers.resize(m_Swapchain.GetNumImageViews());
 
-    for (size_t i = 0; i < m_Swapchain->GetNumImageViews(); i++) {
+    for (size_t i = 0; i < m_Swapchain.GetNumImageViews(); i++) {
         VkImageView attachments[] = {
-            m_Swapchain->GetImageView(i)
+            m_Swapchain.GetImageView(i)
         };
 
-        VkExtent2D swapchainExtent = m_Swapchain->GetExtent();
+        VkExtent2D swapchainExtent = m_Swapchain.GetExtent();
         
         m_Viewport.width = static_cast<float>(swapchainExtent.width);
         m_Viewport.height = static_cast<float>(swapchainExtent.height);
@@ -310,7 +315,7 @@ bool VulkanCore::CreateFramebuffers()
         framebufferInfo.height = swapchainExtent.height;
         framebufferInfo.layers = 1;
 
-        A3D_CHECK_VKRESULT(vkCreateFramebuffer(m_Device->GetHandle(), &framebufferInfo, nullptr, &m_SwapchainFramebuffers[i]));
+        A3D_CHECK_VKRESULT(vkCreateFramebuffer(m_Device.GetHandle(), &framebufferInfo, nullptr, &m_SwapchainFramebuffers[i]));
     }
 
     return true;
@@ -320,10 +325,10 @@ bool VulkanCore::CreateCommandBuffersAndCommandPool()
 {
     VkCommandPoolCreateInfo poolInfo{};
     poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-    poolInfo.queueFamilyIndex = m_Device->GetPhysicalDevice().QueueFamilyIndices.GraphicsFamily.value();
+    poolInfo.queueFamilyIndex = m_Device.GetPhysicalDevice().QueueFamilyIndices.GraphicsFamily.value();
     poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 
-    A3D_CHECK_VKRESULT(vkCreateCommandPool(m_Device->GetHandle(), &poolInfo, nullptr, &m_CommandPool));
+    A3D_CHECK_VKRESULT(vkCreateCommandPool(m_Device.GetHandle(), &poolInfo, nullptr, &m_CommandPool));
     if (!m_CommandPool)
     {
         LogErr(ERROR_INFO, "Failed to create Command Pool.");
@@ -338,7 +343,7 @@ bool VulkanCore::CreateCommandBuffersAndCommandPool()
     allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
     allocInfo.commandBufferCount = static_cast<uint32_t>(m_CommandBuffers.size());
 
-    A3D_CHECK_VKRESULT(vkAllocateCommandBuffers(m_Device->GetHandle(), &allocInfo, m_CommandBuffers.data()));
+    A3D_CHECK_VKRESULT(vkAllocateCommandBuffers(m_Device.GetHandle(), &allocInfo, m_CommandBuffers.data()));
 
     return true;
 }
@@ -352,11 +357,11 @@ bool VulkanCore::CreateSyncObjects()
     fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
     fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-    A3D_CHECK_VKRESULT(vkCreateSemaphore(m_Device->GetHandle(), &semaphoreInfo, nullptr,
+    A3D_CHECK_VKRESULT(vkCreateSemaphore(m_Device.GetHandle(), &semaphoreInfo, nullptr,
         &m_ImageAvailableSemaphore));
-    A3D_CHECK_VKRESULT(vkCreateSemaphore(m_Device->GetHandle(), &semaphoreInfo, nullptr,
+    A3D_CHECK_VKRESULT(vkCreateSemaphore(m_Device.GetHandle(), &semaphoreInfo, nullptr,
         &m_RenderFinishedSemaphore));
-    A3D_CHECK_VKRESULT(vkCreateFence(m_Device->GetHandle(), &fenceInfo, nullptr,
+    A3D_CHECK_VKRESULT(vkCreateFence(m_Device.GetHandle(), &fenceInfo, nullptr,
         &m_InFlightFence));
 
     return true;

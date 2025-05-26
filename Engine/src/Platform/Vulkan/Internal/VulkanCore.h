@@ -38,8 +38,8 @@ public:
     VkInstance GetInstance() { return m_Instance; }
     VkSurfaceKHR GetSurface() { return m_Surface; }
 
-    const Ref<VulkanDevice> GetDevice() const { return m_Device; }
-    const Ref<VulkanSwapchain> GetSwapchain() const { return m_Swapchain; }
+    const VulkanDevice* GetDevice() const { return &m_Device; }
+    const VulkanSwapchain* GetSwapchain() const { return &m_Swapchain; }
 
     VkRenderPass GetRenderPass() { return m_RenderPass; }
 
@@ -59,11 +59,11 @@ private:
     VkInstance m_Instance = VK_NULL_HANDLE;
     VkSurfaceKHR m_Surface = VK_NULL_HANDLE;
 
-    Ref<VulkanDevice> m_Device = nullptr;
-    Ref<VulkanQueue> m_GraphicsQueue = nullptr;
-    Ref<VulkanQueue> m_PresentQueue = nullptr;
+    VulkanDevice m_Device;
+    VulkanQueue m_GraphicsQueue;
+    VulkanQueue m_PresentQueue;
 
-    Ref<VulkanSwapchain> m_Swapchain = nullptr;
+    VulkanSwapchain m_Swapchain;
 
     uint32_t m_CurrentImage = 0;
 

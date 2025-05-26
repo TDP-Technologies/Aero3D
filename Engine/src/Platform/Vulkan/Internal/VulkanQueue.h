@@ -7,7 +7,10 @@ namespace aero3d {
 
 class VulkanQueue {
 public:
-    VulkanQueue(VkQueue queue, uint32_t queueFamilyIndex);
+    VulkanQueue();
+    ~VulkanQueue();
+
+    bool Init(VkDevice device, uint32_t queueFamilyIndex);
 
     void Submit(const VkSubmitInfo* submitInfo, VkFence fence);
     void WaitIdle();

@@ -36,7 +36,7 @@ bool Window::Init(const char* title, int width, int height, const char* api)
     }
 
     s_Context = GraphicsContext::Create(api);
-    A3D_CHECK_INIT(s_Context->Init(s_Window));
+    A3D_CHECK_INIT(s_Context->Init(s_Window, width, height));
 
     return true;
 }

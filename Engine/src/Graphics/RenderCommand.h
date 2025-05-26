@@ -20,9 +20,7 @@ public:
     static void RecordCommands();
     static void EndCommands();
 
-    static void ResizeBuffers();
-
-    static void SetViewport(int x, int y, int width, int height);
+    static void ResizeBuffers(int width, int height);
 
     static void SetClearColor(float r, float g, float b, float a);
     static void Clear();

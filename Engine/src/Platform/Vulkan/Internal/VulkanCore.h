@@ -19,10 +19,10 @@ public:
     VulkanCore();
     ~VulkanCore();
 
-    bool Init(SDL_Window* window);
+    bool Init(SDL_Window* window, int width, int height);
     void Shutdown();
 
-    void Resize();
+    void ResizeBuffers(int width, int height);
 
     void RecordCommands();
     void EndCommands();
@@ -32,7 +32,6 @@ public:
 
     void SwapBuffers();
 
-    void SetViewport(int x, int y, int width, int height);
     void SetClearColor(float r, float g, float b, float a);
     void Clear();
 

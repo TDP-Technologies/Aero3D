@@ -14,7 +14,7 @@ class GraphicsContext
 public:
     virtual ~GraphicsContext() = default;
 
-    virtual bool Init(SDL_Window* window) = 0;
+    virtual bool Init(SDL_Window* window, int width, int height) = 0;
     virtual void Shutdown() = 0;
 
     virtual void SwapBuffers() = 0;

@@ -24,7 +24,7 @@ VulkanCore::~VulkanCore()
 {
 }
 
-bool VulkanCore::Init(SDL_Window* window)
+bool VulkanCore::Init(SDL_Window* window, int width, int height)
 {
     m_Window = window;
 
@@ -38,7 +38,8 @@ bool VulkanCore::Init(SDL_Window* window)
     A3D_CHECK_INIT(m_Device->Init(m_Instance, m_Surface));
     m_GraphicsQueue = m_Device->GetGraphicsQueue();
     m_PresentQueue = m_Device->GetPresentQueue();
-    A3D_CHECK_INIT(m_Swapchain->Init(m_Device->GetPhysicalDevice(), m_Surface, m_Window, m_Device->GetHandle()));
+    A3D_CHECK_INIT(m_Swapchain->Init(m_Device->GetPhysicalDevice(), m_Surface, m_Window,
+        m_Device->GetHandle(), width, height));
     A3D_CHECK_INIT(CreateRenderPass());
     A3D_CHECK_INIT(CreateFramebuffers());
     A3D_CHECK_INIT(CreateCommandBuffersAndCommandPool());
@@ -70,82 +71,16 @@ void VulkanCore::Shutdown()
     vkDestroyInstance(m_Instance, nullptr);
 }
 
-void VulkanCore::Resize()
+void VulkanCore::ResizeBuffers(int width, int height)
 {
     vkDeviceWaitIdle(m_Device->GetHandle());
     for (auto framebuffer : m_SwapchainFramebuffers) {
         vkDestroyFramebuffer(m_Device->GetHandle(), framebuffer, nullptr);
     }
 
-    m_Swapchain->Recreate(m_Device->GetPhysicalDevice(), m_Surface, m_Window, m_Device->GetHandle());
+    m_Swapchain->Recreate(m_Device->GetPhysicalDevice(), m_Surface, m_Window, 
+        m_Device->GetHandle(), width, height);
     CreateFramebuffers();
-}
-
-void VulkanCore::SwapBuffers()
-{
-    VkSubmitInfo submitInfo{};
-    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-
-    VkSemaphore waitSemaphores[] = { m_ImageAvailableSemaphore };
-    VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-    submitInfo.waitSemaphoreCount = 1;
-    submitInfo.pWaitSemaphores = waitSemaphores;
-    submitInfo.pWaitDstStageMask = waitStages;
-
-    submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = &m_CommandBuffers[m_CurrentImage];
-
-    VkSemaphore signalSemaphores[] = { m_RenderFinishedSemaphore };
-    submitInfo.signalSemaphoreCount = 1;
-    submitInfo.pSignalSemaphores = signalSemaphores;
-
-    m_GraphicsQueue->Submit(&submitInfo, m_InFlightFence);
-
-    VkPresentInfoKHR presentInfo{};
-    presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-
-    presentInfo.waitSemaphoreCount = 1;
-    presentInfo.pWaitSemaphores = signalSemaphores;
-
-    VkSwapchainKHR swapchains[] = { m_Swapchain->GetHandle()};
-    presentInfo.swapchainCount = 1;
-    presentInfo.pSwapchains = swapchains;
-    presentInfo.pImageIndices = &m_CurrentImage;
-
-    vkQueuePresentKHR(m_PresentQueue->GetHandle(), &presentInfo);
-}
-
-void VulkanCore::SetViewport(int x, int y, int width, int height)
-{
-    m_Viewport.x = static_cast<float>(x);
-    m_Viewport.y = static_cast<float>(y);
-
-    m_Viewport.width = static_cast<float>(width);
-    m_Viewport.height = static_cast<float>(height);
-}
-
-void VulkanCore::SetClearColor(float r, float g, float b, float a)
-{
-    m_ClearColor.color = { r, g, b, a };
-}
-
-void VulkanCore::Clear()
-{
-    VkImageSubresourceRange range = {};
-    range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-    range.baseMipLevel = 0;
-    range.levelCount = 1;
-    range.baseArrayLayer = 0;
-    range.layerCount = 1;
-
-    vkCmdClearColorImage(
-        m_CommandBuffers[m_CurrentImage],
-        m_Swapchain->GetImage(m_CurrentImage),
-        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-        &m_ClearColor.color,
-        1,
-        &range
-    );
 }
 
 void VulkanCore::RecordCommands()
@@ -193,6 +128,64 @@ void VulkanCore::Draw(size_t count)
 void VulkanCore::DrawIndexed(size_t count)
 {
     vkCmdDrawIndexed(m_CommandBuffers[m_CurrentImage], count, 1, 0, 0, 0);
+}
+
+void VulkanCore::SwapBuffers()
+{
+    VkSubmitInfo submitInfo{};
+    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+
+    VkSemaphore waitSemaphores[] = { m_ImageAvailableSemaphore };
+    VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+    submitInfo.waitSemaphoreCount = 1;
+    submitInfo.pWaitSemaphores = waitSemaphores;
+    submitInfo.pWaitDstStageMask = waitStages;
+
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers = &m_CommandBuffers[m_CurrentImage];
+
+    VkSemaphore signalSemaphores[] = { m_RenderFinishedSemaphore };
+    submitInfo.signalSemaphoreCount = 1;
+    submitInfo.pSignalSemaphores = signalSemaphores;
+
+    m_GraphicsQueue->Submit(&submitInfo, m_InFlightFence);
+
+    VkPresentInfoKHR presentInfo{};
+    presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+
+    presentInfo.waitSemaphoreCount = 1;
+    presentInfo.pWaitSemaphores = signalSemaphores;
+
+    VkSwapchainKHR swapchains[] = { m_Swapchain->GetHandle()};
+    presentInfo.swapchainCount = 1;
+    presentInfo.pSwapchains = swapchains;
+    presentInfo.pImageIndices = &m_CurrentImage;
+
+    vkQueuePresentKHR(m_PresentQueue->GetHandle(), &presentInfo);
+}
+
+void VulkanCore::SetClearColor(float r, float g, float b, float a)
+{
+    m_ClearColor.color = { r, g, b, a };
+}
+
+void VulkanCore::Clear()
+{
+    VkImageSubresourceRange range = {};
+    range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    range.baseMipLevel = 0;
+    range.levelCount = 1;
+    range.baseArrayLayer = 0;
+    range.layerCount = 1;
+
+    vkCmdClearColorImage(
+        m_CommandBuffers[m_CurrentImage],
+        m_Swapchain->GetImage(m_CurrentImage),
+        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+        &m_ClearColor.color,
+        1,
+        &range
+    );
 }
 
 bool VulkanCore::CreateInstance()

@@ -24,11 +24,11 @@ public:
     ~VulkanSwapchain();
 
     bool Init(const VulkanPhysicalDevice& physDevice, VkSurfaceKHR surface,
-        SDL_Window* window, VkDevice device);
+        SDL_Window* window, VkDevice device, int width, int height);
     void Shutdown();
 
     void Recreate(const VulkanPhysicalDevice& physDevice, VkSurfaceKHR surface,
-        SDL_Window* window, VkDevice device);
+        SDL_Window* window, VkDevice device, int width, int height);
 
     VkSwapchainKHR GetHandle() { return m_Swapchain; }
 
@@ -44,9 +44,8 @@ public:
     VkImageView GetImageView(uint32_t index) { return m_ImageViews[index]; }
 
 private:
-    void CreateSwapchain(const VulkanPhysicalDevice& physDevice);
+    void CreateSwapchain(const VulkanPhysicalDevice& physDevice, int width, int height);
     void CreateImageViews();
-    void CreateFrameBuffers();
 
 private:
     VkDevice m_Device = VK_NULL_HANDLE;

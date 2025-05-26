@@ -32,14 +32,9 @@ void RenderCommand::EndCommands()
     s_API->EndCommands();
 }
 
-void RenderCommand::ResizeBuffers()
+void RenderCommand::ResizeBuffers(int width, int height)
 {
-    s_API->ResizeBuffers();
-}
-
-void RenderCommand::SetViewport(int x, int y, int width, int height)
-{
-    s_API->SetViewport(x, y, width, height);
+    s_API->ResizeBuffers(width, height);
 }
 
 void RenderCommand::SetClearColor(float r, float g, float b, float a)

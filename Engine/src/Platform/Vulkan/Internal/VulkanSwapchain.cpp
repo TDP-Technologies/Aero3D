@@ -57,34 +57,6 @@ static VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR
     return VK_PRESENT_MODE_FIFO_KHR;
 }
 
-static VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, SDL_Window* window)
-{
-    if (capabilities.currentExtent.width != UINT32_MAX)
-    {
-        return capabilities.currentExtent;
-    }
-    else
-    {
-        int width, height;
-        SDL_GetWindowSizeInPixels(window, &width, &height);
-
-        VkExtent2D actualExtent = {
-            static_cast<uint32_t>(width),
-            static_cast<uint32_t>(height)
-        };
-
-        actualExtent.width = std::clamp(actualExtent.width,
-            capabilities.minImageExtent.width,
-            capabilities.maxImageExtent.width);
-
-        actualExtent.height = std::clamp(actualExtent.height,
-            capabilities.minImageExtent.height,
-            capabilities.maxImageExtent.height);
-
-        return actualExtent;
-    }
-}
-
 VulkanSwapchain::VulkanSwapchain()
 {
 }
@@ -94,13 +66,13 @@ VulkanSwapchain::~VulkanSwapchain()
 }
 
 bool VulkanSwapchain::Init(const VulkanPhysicalDevice& physDevice, VkSurfaceKHR surface,
-                            SDL_Window* window, VkDevice device)
+    SDL_Window* window, VkDevice device, int width, int height)
 {
     m_Device = device;
     m_Surface = surface;
     m_Window = window;
 
-    CreateSwapchain(physDevice);
+    CreateSwapchain(physDevice, width, height);
     CreateImageViews();
 
     return true;
@@ -115,19 +87,19 @@ void VulkanSwapchain::Shutdown()
 }
 
 void VulkanSwapchain::Recreate(const VulkanPhysicalDevice& physDevice, VkSurfaceKHR surface,
-    SDL_Window* window, VkDevice device)
+    SDL_Window* window, VkDevice device, int width, int height)
 {
     Shutdown();
-    Init(physDevice, surface, window, device);
+    Init(physDevice, surface, window, device, width, height);
 }
 
-void VulkanSwapchain::CreateSwapchain(const VulkanPhysicalDevice& physDevice)
+void VulkanSwapchain::CreateSwapchain(const VulkanPhysicalDevice& physDevice, int width, int height)
 {
     SwapChainSupportDetails swapChainSupport = QuerySwapChainSupport(physDevice.Device, m_Surface);
 
     VkSurfaceFormatKHR surfaceFormat = ChooseSwapSurfaceFormat(swapChainSupport.Formats);
     VkPresentModeKHR presentMode = ChooseSwapPresentMode(swapChainSupport.PresentModes);
-    VkExtent2D extent = ChooseSwapExtent(swapChainSupport.Capabilities, m_Window);
+    VkExtent2D extent = { width, height };
 
     uint32_t imageCount = swapChainSupport.Capabilities.minImageCount + 1;
     if (swapChainSupport.Capabilities.maxImageCount > 0 &&

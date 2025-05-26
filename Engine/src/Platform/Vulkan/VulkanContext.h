@@ -13,7 +13,7 @@ public:
     VulkanContext();
     ~VulkanContext();
 
-    virtual bool Init(SDL_Window* window) override;
+    virtual bool Init(SDL_Window* window, int width, int height) override;
     virtual void Shutdown() override;
 
     virtual void SwapBuffers() override;

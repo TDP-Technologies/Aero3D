@@ -46,7 +46,6 @@ void Application::Run()
         RenderCommand::CreateGraphicsPipeline(layout, "res/shaders/vertex.glsl", "res/shaders/pixel.glsl");
 
     RenderCommand::SetClearColor(0.0f, 0.5f, 0.3f, 1.0f);
-    RenderCommand::SetViewport(0, 0, 800, 600);
 
     float vertices[] = {
          0.0f, -0.5f,   1.0f, 0.0f, 0.0f,
@@ -96,8 +95,7 @@ void Application::SubscribeOnEvents()
         int width = std::max(1, windowResizeEvent.GetWidth());
         int height = std::max(1, windowResizeEvent.GetHeight());
 
-        RenderCommand::SetViewport(0, 0, width, height);
-        RenderCommand::ResizeBuffers();
+        RenderCommand::ResizeBuffers(width, height);
     });
 }
 

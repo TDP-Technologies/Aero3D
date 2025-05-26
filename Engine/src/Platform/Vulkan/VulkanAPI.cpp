@@ -34,14 +34,9 @@ void VulkanAPI::EndCommands()
     g_VulkanCore->EndCommands();
 }
 
-void VulkanAPI::ResizeBuffers()
+void VulkanAPI::ResizeBuffers(int width, int height)
 {
-    g_VulkanCore->Resize();
-}
-
-void VulkanAPI::SetViewport(int x, int y, int width, int height)
-{
-    g_VulkanCore->SetViewport(x, y, width, height);
+    g_VulkanCore->ResizeBuffers(width, height);
 }
 
 void VulkanAPI::SetClearColor(float r, float g, float b, float a)

@@ -14,11 +14,11 @@ VulkanContext::~VulkanContext()
 {
 }
 
-bool VulkanContext::Init(SDL_Window* window)
+bool VulkanContext::Init(SDL_Window* window, int width, int height)
 {
     LogMsg("Graphics Context Initialize.");
 
-    A3D_CHECK_INIT(g_VulkanCore->Init(window));
+    A3D_CHECK_INIT(g_VulkanCore->Init(window, width, height));
 
     return true;
 }

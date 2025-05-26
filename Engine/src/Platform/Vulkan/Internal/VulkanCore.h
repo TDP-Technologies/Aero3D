@@ -46,12 +46,9 @@ public:
     VkCommandBuffer GetCommandBuffer() { return m_CommandBuffers[m_CurrentImage]; }
 
 private:
-    bool CreateInstance();
-    bool CreateSurface();
-    bool CreateRenderPass();
-    bool CreateFramebuffers();
-    bool CreateCommandBuffersAndCommandPool();
-    bool CreateSyncObjects();
+    void CreateFramebuffers();
+    void CreateCommandBuffersAndCommandPool();
+    void CreateSyncObjects();
 
 private:
     SDL_Window* m_Window = nullptr;

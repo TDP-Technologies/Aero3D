@@ -15,8 +15,6 @@ public:
 
     virtual void Bind() = 0;
 
-    virtual void SetData(void* data, size_t size) = 0;
-
 };
 
 enum class IndexBufferType

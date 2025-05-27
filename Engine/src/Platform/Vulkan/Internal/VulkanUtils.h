@@ -52,12 +52,13 @@ void CreateImageView(VkDevice device, VkImage image, VkFormat imageFormat, VkIma
 uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties, 
     VkPhysicalDevice physicalDevice);
 
-void CreateBuffer(VkDevice device, VkBufferUsageFlags usage, size_t size, VkBuffer* buffer);
-
-void AllocateBufferMemory(VkDevice device, VkBuffer buffer, VkMemoryPropertyFlags properties,
-    VkPhysicalDevice physDevice, VkDeviceMemory* pDeviceMemory);
+void CreateBuffer(VkDevice device, VkBufferUsageFlags usage, size_t size, VkBuffer* buffer,
+    VkMemoryPropertyFlags properties, VkPhysicalDevice physDevice, VkDeviceMemory* pDeviceMemory);
 
 void WriteBufferMemory(VkDevice device, VkDeviceMemory memory, void* data, size_t size);
+
+void PrepareStagingBuffer(VkDevice device, VkBuffer* pBuffer, VkPhysicalDevice physDevice,
+    VkDeviceMemory* pMemory, void* data, size_t size);
 
 } // namespace aero3d
 

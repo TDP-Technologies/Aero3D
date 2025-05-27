@@ -40,6 +40,9 @@ public:
     VkInstance GetInstance() { return m_Instance; }
     VkSurfaceKHR GetSurface() { return m_Surface; }
 
+    VkDevice GetDeviceHandle() { return m_Device.GetHandle(); }
+    VkPhysicalDevice GetPhysDeviceHandle() { return m_Device.GetPhysicalDevice().Device; }
+
     const VulkanDevice* GetDevice() const { return &m_Device; }
     const VulkanSwapchain* GetSwapchain() const { return &m_Swapchain; }
 

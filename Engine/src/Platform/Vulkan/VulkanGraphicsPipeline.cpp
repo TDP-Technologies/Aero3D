@@ -36,7 +36,7 @@ static VkFormat ElementTypeToVkFormat(ElementType type)
 VulkanGraphicsPipeline::VulkanGraphicsPipeline(VertexLayout& vertexLayout, 
     std::string& vertexShaderPath, std::string& pixelShaderPath)
 {
-    m_Device = g_VulkanCore->GetDevice()->GetHandle();
+    m_Device = g_VulkanCore->GetDeviceHandle();
 
     CreateShaderModules(vertexShaderPath, pixelShaderPath);
     CreatePipelineLayout();

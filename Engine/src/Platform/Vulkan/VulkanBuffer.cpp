@@ -17,28 +17,21 @@ static VkIndexType GetVkIndexType(IndexBufferType type)
 
 VulkanVertexBuffer::VulkanVertexBuffer(void* data, size_t size)
 {
-    m_Device = g_VulkanCore->GetDevice()->GetHandle();
+    m_Device = g_VulkanCore->GetDeviceHandle();
 
-    CreateBuffer(m_Device, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, size, &m_StagingBuffer);
+    VkBuffer stagingBuffer = VK_NULL_HANDLE;
+    VkDeviceMemory stagingMemory = VK_NULL_HANDLE;
 
-    AllocateBufferMemory(m_Device, m_StagingBuffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-        g_VulkanCore->GetDevice()->GetPhysicalDevice().Device, &m_StagingMemory);
+    PrepareStagingBuffer(m_Device, &stagingBuffer, g_VulkanCore->GetPhysDeviceHandle(), 
+        &stagingMemory, data, size);
 
-    A3D_CHECK_VKRESULT(vkBindBufferMemory(m_Device, m_StagingBuffer, m_StagingMemory, 0));
+    CreateBuffer(m_Device, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, size, &m_Buffer,
+        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, g_VulkanCore->GetPhysDeviceHandle(), &m_Memory);
+    
+    g_VulkanCore->CopyBuffer(stagingBuffer, m_Buffer, size);
 
-    WriteBufferMemory(m_Device, m_StagingMemory, data, size);
-
-    CreateBuffer(m_Device, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, size, &m_Buffer);
-
-    AllocateBufferMemory(m_Device, m_Buffer, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-        g_VulkanCore->GetDevice()->GetPhysicalDevice().Device, &m_Memory);
-
-    A3D_CHECK_VKRESULT(vkBindBufferMemory(m_Device, m_Buffer, m_Memory, 0));
-
-    g_VulkanCore->CopyBuffer(m_StagingBuffer, m_Buffer, size);
-
-    vkDestroyBuffer(m_Device, m_StagingBuffer, nullptr);
-    vkFreeMemory(m_Device, m_StagingMemory, nullptr);
+    vkDestroyBuffer(m_Device, stagingBuffer, nullptr);
+    vkFreeMemory(m_Device, stagingMemory, nullptr);
 }
 
 VulkanVertexBuffer::~VulkanVertexBuffer()
@@ -55,36 +48,24 @@ void VulkanVertexBuffer::Bind()
     vkCmdBindVertexBuffers(g_VulkanCore->GetCommandBuffer(), 0, 1, &m_Buffer, offsets);
 }
 
-void VulkanVertexBuffer::SetData(void* data, size_t size)
-{
-    WriteBufferMemory(m_Device, m_StagingMemory, data, size);
-}
-
 VulkanIndexBuffer::VulkanIndexBuffer(void* data, size_t size, size_t count)
 {
     m_Count = count;
-    m_Device = g_VulkanCore->GetDevice()->GetHandle();
+    m_Device = g_VulkanCore->GetDeviceHandle();
 
-    CreateBuffer(m_Device, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, size, &m_StagingBuffer);
+    VkBuffer stagingBuffer = VK_NULL_HANDLE;
+    VkDeviceMemory stagingMemory = VK_NULL_HANDLE;
 
-    AllocateBufferMemory(m_Device, m_StagingBuffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-        g_VulkanCore->GetDevice()->GetPhysicalDevice().Device, &m_StagingMemory);
+    PrepareStagingBuffer(m_Device, &stagingBuffer, g_VulkanCore->GetPhysDeviceHandle(), 
+        &stagingMemory, data, size);
 
-    A3D_CHECK_VKRESULT(vkBindBufferMemory(m_Device, m_StagingBuffer, m_StagingMemory, 0));
+    CreateBuffer(m_Device, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, size, &m_Buffer,
+        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, g_VulkanCore->GetPhysDeviceHandle(), &m_Memory);
 
-    WriteBufferMemory(m_Device, m_StagingMemory, data, size);
+    g_VulkanCore->CopyBuffer(stagingBuffer, m_Buffer, size);
 
-    CreateBuffer(m_Device, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, size, &m_Buffer);
-
-    AllocateBufferMemory(m_Device, m_Buffer, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-        g_VulkanCore->GetDevice()->GetPhysicalDevice().Device, &m_Memory);
-
-    A3D_CHECK_VKRESULT(vkBindBufferMemory(m_Device, m_Buffer, m_Memory, 0));
-
-    g_VulkanCore->CopyBuffer(m_StagingBuffer, m_Buffer, size);
-
-    vkDestroyBuffer(m_Device, m_StagingBuffer, nullptr);
-    vkFreeMemory(m_Device, m_StagingMemory, nullptr);
+    vkDestroyBuffer(m_Device, stagingBuffer, nullptr);
+    vkFreeMemory(m_Device, stagingMemory, nullptr);
 }
 
 VulkanIndexBuffer::~VulkanIndexBuffer()

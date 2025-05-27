@@ -267,7 +267,8 @@ uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties,
     return 0;
 }
 
-void CreateBuffer(VkDevice device, VkBufferUsageFlags usage, size_t size, VkBuffer* buffer)
+void CreateBuffer(VkDevice device, VkBufferUsageFlags usage, size_t size, VkBuffer* pBuffer,
+    VkMemoryPropertyFlags properties, VkPhysicalDevice physDevice, VkDeviceMemory* pDeviceMemory)
 {
     VkBufferCreateInfo bufferInfo{};
     bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -275,14 +276,10 @@ void CreateBuffer(VkDevice device, VkBufferUsageFlags usage, size_t size, VkBuff
     bufferInfo.usage = usage;
     bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-    A3D_CHECK_VKRESULT(vkCreateBuffer(device, &bufferInfo, nullptr, buffer));
-}
+    A3D_CHECK_VKRESULT(vkCreateBuffer(device, &bufferInfo, nullptr, pBuffer));
 
-void AllocateBufferMemory(VkDevice device, VkBuffer buffer, VkMemoryPropertyFlags properties,
-    VkPhysicalDevice physDevice, VkDeviceMemory* pDeviceMemory)
-{
     VkMemoryRequirements memRequirements;
-    vkGetBufferMemoryRequirements(device, buffer, &memRequirements);
+    vkGetBufferMemoryRequirements(device, *pBuffer, &memRequirements);
 
     VkMemoryAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
@@ -294,6 +291,8 @@ void AllocateBufferMemory(VkDevice device, VkBuffer buffer, VkMemoryPropertyFlag
     );
 
     A3D_CHECK_VKRESULT(vkAllocateMemory(device, &allocInfo, nullptr, pDeviceMemory));
+
+    A3D_CHECK_VKRESULT(vkBindBufferMemory(device, *pBuffer, *pDeviceMemory, 0));
 }
 
 void WriteBufferMemory(VkDevice device, VkDeviceMemory memory, void* data, size_t size)
@@ -302,6 +301,16 @@ void WriteBufferMemory(VkDevice device, VkDeviceMemory memory, void* data, size_
     A3D_CHECK_VKRESULT(vkMapMemory(device, memory, 0, size, 0, &dst));
     memcpy(dst, data, size);
     vkUnmapMemory(device, memory);
+}
+
+void PrepareStagingBuffer(VkDevice device, VkBuffer* pBuffer, VkPhysicalDevice physDevice,
+    VkDeviceMemory* pMemory, void* data, size_t size)
+{
+    CreateBuffer(device, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, size, pBuffer,
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+        physDevice, pMemory);
+
+    WriteBufferMemory(device, *pMemory, data, size);
 }
 
 } // namespace aero3d

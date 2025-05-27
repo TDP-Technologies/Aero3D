@@ -43,11 +43,13 @@ void CreateInstance(VkInstance* pInstance)
 {
     uint32_t extensionCount;
     const char* const* extensions = SDL_Vulkan_GetInstanceExtensions(&extensionCount);
-    if (!extensions) {
+    if (!extensions) 
+    {
         LogErr(ERROR_INFO, "Could not get Vulkan instance extensions: %s", SDL_GetError());
     }
 
-    const char* validationLayers[] = {
+    const char* validationLayers[] = 
+    {
         "VK_LAYER_KHRONOS_validation"
     };
 
@@ -127,7 +129,8 @@ void CreateRenderPass(VkDevice device, VkFormat format, VkRenderPass* pRenderPas
 void CreateFramebuffer(VkDevice device, VkImageView imageView, VkExtent2D extent, 
     VkRenderPass renderPass, VkFramebuffer* pFrameBuffer)
 {
-    VkImageView attachments[] = {
+    VkImageView attachments[] = 
+    {
         imageView
     };
 

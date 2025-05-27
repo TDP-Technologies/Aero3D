@@ -12,29 +12,26 @@ VulkanQueue::~VulkanQueue()
 {
 }
 
-bool VulkanQueue::Init(VkDevice device, uint32_t queueFamilyIndex)
+void VulkanQueue::Init(VkDevice device, uint32_t queueFamilyIndex)
 {
     m_QueueFamilyIndex = queueFamilyIndex;
     vkGetDeviceQueue(device, queueFamilyIndex, 0, &m_Queue);
-
-    return true;
 }
 
 void VulkanQueue::SubmitSync(VkCommandBuffer* pCmdBuff)
 {
-	VkSubmitInfo SubmitInfo = {
-		.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-		.pNext = nullptr,
-		.waitSemaphoreCount = 0,
-		.pWaitSemaphores = VK_NULL_HANDLE,
-		.pWaitDstStageMask = VK_NULL_HANDLE,
-		.commandBufferCount = 1,
-		.pCommandBuffers = pCmdBuff,
-		.signalSemaphoreCount = 0,
-		.pSignalSemaphores = VK_NULL_HANDLE
-	};
+	VkSubmitInfo submitInfo;
+	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	submitInfo.pNext = nullptr;
+	submitInfo.waitSemaphoreCount = 0;
+	submitInfo.pWaitSemaphores = VK_NULL_HANDLE;
+	submitInfo.pWaitDstStageMask = VK_NULL_HANDLE;
+	submitInfo.commandBufferCount = 1;
+	submitInfo.pCommandBuffers = pCmdBuff;
+	submitInfo.signalSemaphoreCount = 0;
+	submitInfo.pSignalSemaphores = VK_NULL_HANDLE;
 
-	A3D_CHECK_VKRESULT(vkQueueSubmit(m_Queue, 1, &SubmitInfo, nullptr));
+	A3D_CHECK_VKRESULT(vkQueueSubmit(m_Queue, 1, &submitInfo, nullptr));
 }
 
 void VulkanQueue::SubmitAsync(VkCommandBuffer* pCmdBuff, VkSemaphore* pWaitSem,
@@ -42,19 +39,18 @@ void VulkanQueue::SubmitAsync(VkCommandBuffer* pCmdBuff, VkSemaphore* pWaitSem,
 {
 	VkPipelineStageFlags waitFlags = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 
-	VkSubmitInfo SubmitInfo = {
-		.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-		.pNext = nullptr,
-		.waitSemaphoreCount = 1,
-		.pWaitSemaphores = pWaitSem,
-		.pWaitDstStageMask = &waitFlags,
-		.commandBufferCount = 1,
-		.pCommandBuffers = pCmdBuff,
-		.signalSemaphoreCount = 1,				
-		.pSignalSemaphores = pSigSem		
-	};
+	VkSubmitInfo submitInfo{};
+	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	submitInfo.pNext = nullptr;
+	submitInfo.waitSemaphoreCount = 1;
+	submitInfo.pWaitSemaphores = pWaitSem;
+	submitInfo.pWaitDstStageMask = &waitFlags;
+	submitInfo.commandBufferCount = 1;
+	submitInfo.pCommandBuffers = pCmdBuff;
+	submitInfo.signalSemaphoreCount = 1;			
+	submitInfo.pSignalSemaphores = pSigSem;
 
-	A3D_CHECK_VKRESULT(vkQueueSubmit(m_Queue, 1, &SubmitInfo, pFence));
+	A3D_CHECK_VKRESULT(vkQueueSubmit(m_Queue, 1, &submitInfo, pFence));
 }
 
 void VulkanQueue::Present(VkSemaphore* pWaitSem, VkSwapchainKHR* pSwapchain, uint32_t imageIndex)

@@ -10,7 +10,7 @@ public:
     VulkanQueue();
     ~VulkanQueue();
 
-    bool Init(VkDevice device, uint32_t queueFamilyIndex);
+    void Init(VkDevice device, uint32_t queueFamilyIndex);
 
     void SubmitSync(VkCommandBuffer* pCmdBuff);
 	void SubmitAsync(VkCommandBuffer* pCmdBuff, VkSemaphore* pWaitSem,

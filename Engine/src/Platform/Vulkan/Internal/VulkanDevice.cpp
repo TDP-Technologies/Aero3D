@@ -16,14 +16,12 @@ VulkanDevice::~VulkanDevice()
 {
 }
 
-bool VulkanDevice::Init(VkInstance instance, VkSurfaceKHR surface)
+void VulkanDevice::Init(VkInstance instance, VkSurfaceKHR surface)
 {
     m_Instance = instance;
 
     SearchForPhysDevices(surface);
     CreateLogicalDevice();
-
-    return true;
 }
 
 void VulkanDevice::Shutdown()
@@ -36,17 +34,13 @@ void VulkanDevice::SearchForPhysDevices(VkSurfaceKHR surface)
     uint32_t physDeviceCount;
     A3D_CHECK_VKRESULT(vkEnumeratePhysicalDevices(m_Instance, &physDeviceCount, nullptr));
 
-    if (!physDeviceCount)
-    {
-        LogErr(ERROR_INFO, "Failed to Enum PhysDevices.");
-    }
-
     std::vector<VkPhysicalDevice> vkDevices(physDeviceCount);
     m_PhysDevices.reserve(physDeviceCount);
 
     A3D_CHECK_VKRESULT(vkEnumeratePhysicalDevices(m_Instance, &physDeviceCount, vkDevices.data()));
 
-    for (auto& vkDevice : vkDevices) {
+    for (auto& vkDevice : vkDevices) 
+    {
         VulkanPhysicalDevice physDev{};
         physDev.Device = vkDevice;
 
@@ -90,13 +84,15 @@ void VulkanDevice::CreateLogicalDevice()
     VulkanPhysicalDevice& physDevice = m_PhysDevices[m_CurrentPhysDevice];
 
     std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
-    std::set<uint32_t> uniqueQueueFamilies = {
+    std::set<uint32_t> uniqueQueueFamilies = 
+    {
         physDevice.QueueFamilyIndices.GraphicsFamily.value(), physDevice.QueueFamilyIndices.PresentFamily.value()
     };
 
     float queuePriority = 1.0f;
 
-    for (uint32_t queueFamily : uniqueQueueFamilies) {
+    for (uint32_t queueFamily : uniqueQueueFamilies) 
+    {
         VkDeviceQueueCreateInfo queueCreateInfo{};
         queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
         queueCreateInfo.queueFamilyIndex = queueFamily;
@@ -113,7 +109,8 @@ void VulkanDevice::CreateLogicalDevice()
     createInfo.pQueueCreateInfos = queueCreateInfos.data();
     createInfo.pEnabledFeatures = &deviceFeatures;
 
-    const std::vector<const char*> deviceExtensions = {
+    const std::vector<const char*> deviceExtensions = 
+    {
         VK_KHR_SWAPCHAIN_EXTENSION_NAME
     };
 
@@ -123,10 +120,6 @@ void VulkanDevice::CreateLogicalDevice()
     createInfo.enabledLayerCount = 0;
 
     A3D_CHECK_VKRESULT(vkCreateDevice(physDevice.Device, &createInfo, nullptr, &m_Device));
-    if (m_Device == nullptr)
-    {
-        LogErr(ERROR_INFO, "Failed to create logical device.");
-    }
 }
 
 } // namespace aero3d

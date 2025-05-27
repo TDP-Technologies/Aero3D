@@ -23,7 +23,7 @@ public:
     VulkanSwapchain();
     ~VulkanSwapchain();
 
-    bool Init(const VulkanPhysicalDevice& physDevice, VkSurfaceKHR surface,
+    void Init(const VulkanPhysicalDevice& physDevice, VkSurfaceKHR surface,
         SDL_Window* window, VkDevice device, int width, int height);
     void Shutdown();
 

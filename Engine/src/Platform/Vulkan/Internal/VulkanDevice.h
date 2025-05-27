@@ -38,7 +38,7 @@ public:
     VulkanDevice();
     ~VulkanDevice();
 
-    bool Init(VkInstance instance, VkSurfaceKHR surface);
+    void Init(VkInstance instance, VkSurfaceKHR surface);
     void Shutdown();
 
     const VulkanPhysicalDevice& GetPhysicalDevice() const { return m_PhysDevices[m_CurrentPhysDevice]; }

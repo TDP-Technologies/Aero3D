@@ -40,7 +40,7 @@ VulkanSwapchain::~VulkanSwapchain()
 {
 }
 
-bool VulkanSwapchain::Init(const VulkanPhysicalDevice& physDevice, VkSurfaceKHR surface,
+void VulkanSwapchain::Init(const VulkanPhysicalDevice& physDevice, VkSurfaceKHR surface,
     SDL_Window* window, VkDevice device, int width, int height)
 {
     m_Device = device;
@@ -49,13 +49,12 @@ bool VulkanSwapchain::Init(const VulkanPhysicalDevice& physDevice, VkSurfaceKHR 
 
     CreateSwapchain(physDevice, width, height);
     CreateImageViews();
-
-    return true;
 }
 
 void VulkanSwapchain::Shutdown()
 {
-    for (auto imageView : m_ImageViews) {
+    for (auto imageView : m_ImageViews)
+    {
         vkDestroyImageView(m_Device, imageView, nullptr);
     }
     vkDestroySwapchainKHR(m_Device, m_Swapchain, nullptr);
@@ -128,7 +127,8 @@ void VulkanSwapchain::CreateImageViews()
 {
     m_ImageViews.resize(m_Images.size());
 
-    for (size_t i = 0; i < m_Images.size(); i++) {
+    for (size_t i = 0; i < m_Images.size(); i++) 
+    {
         CreateImageView(m_Device, m_Images[i], m_ImageFormat, &m_ImageViews[i]);
     }
 }

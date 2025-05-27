@@ -185,6 +185,17 @@ void CreateFence(VkDevice device, VkFence* pFence)
     A3D_CHECK_VKRESULT(vkCreateFence(device, &fenceInfo, nullptr, pFence));
 }
 
+void BeginCommandBuffer(VkCommandBuffer commandBuffer)
+{
+    VkCommandBufferBeginInfo beginInfo{};
+    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    beginInfo.flags = 0;
+    beginInfo.pInheritanceInfo = nullptr;
+
+    vkResetCommandBuffer(commandBuffer, 0);
+    vkBeginCommandBuffer(commandBuffer, &beginInfo);
+}
+
 ///////////////////////////////////////////// SwapChain /////////////////////////////////////////////
 
 VkSurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)

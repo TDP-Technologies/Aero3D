@@ -43,11 +43,11 @@ public:
 
     VkRenderPass GetRenderPass() { return m_RenderPass; }
 
-    VkCommandBuffer GetCommandBuffer() { return m_CommandBuffers[m_CurrentImage]; }
+    VkCommandBuffer GetCommandBuffer() { return m_GraphicsCommandBuffers[m_CurrentImage]; }
 
 private:
     void CreateFramebuffers();
-    void CreateCommandBuffersAndCommandPool();
+    void CreateCommandBuffersAndCommandPools();
     void CreateSyncObjects();
 
 private:
@@ -57,6 +57,7 @@ private:
     VkSurfaceKHR m_Surface = VK_NULL_HANDLE;
 
     VulkanDevice m_Device;
+    VulkanQueue m_TransferQueue;
     VulkanQueue m_GraphicsQueue;
     VulkanQueue m_PresentQueue;
 
@@ -67,8 +68,11 @@ private:
     VkRenderPass m_RenderPass = VK_NULL_HANDLE;
     std::vector<VkFramebuffer> m_SwapchainFramebuffers {};
 
-    VkCommandPool m_CommandPool = VK_NULL_HANDLE;
-    std::vector<VkCommandBuffer> m_CommandBuffers {};
+    VkCommandPool m_GraphicsCommandPool = VK_NULL_HANDLE;
+    std::vector<VkCommandBuffer> m_GraphicsCommandBuffers {};
+
+    VkCommandPool m_CopyCommandPool = VK_NULL_HANDLE;
+    VkCommandBuffer m_CopyCommandBuffer = VK_NULL_HANDLE;
 
     VkSemaphore m_ImageAvailableSemaphore = VK_NULL_HANDLE;
     VkSemaphore m_RenderFinishedSemaphore = VK_NULL_HANDLE;

@@ -16,9 +16,10 @@ struct DeviceQueueFamilyIndices
 {
     std::optional<uint32_t> GraphicsFamily;
     std::optional<uint32_t> PresentFamily;
+    std::optional<uint32_t> TransferFamily;
 
     bool IsComplete() {
-        return GraphicsFamily.has_value() && PresentFamily.has_value();
+        return GraphicsFamily.has_value() && PresentFamily.has_value() && TransferFamily.has_value();
     }
 };
 

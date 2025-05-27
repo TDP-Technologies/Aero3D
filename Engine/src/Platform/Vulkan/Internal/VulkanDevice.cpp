@@ -56,9 +56,16 @@ void VulkanDevice::SearchForPhysDevices(VkSurfaceKHR surface)
 
         for (uint32_t i = 0; i < physDev.QueueFamilyProperties.size(); i++)
         {
-            if (physDev.QueueFamilyProperties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT)
+            const auto& queueFamily = physDev.QueueFamilyProperties[i];
+
+            if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT)
             {
                 physDev.QueueFamilyIndices.GraphicsFamily = i;
+            }
+
+            if (queueFamily.queueFlags & VK_QUEUE_TRANSFER_BIT)
+            {
+                physDev.QueueFamilyIndices.TransferFamily = i;
             }
 
             VkBool32 presentSupport = false;
@@ -86,7 +93,9 @@ void VulkanDevice::CreateLogicalDevice()
     std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
     std::set<uint32_t> uniqueQueueFamilies = 
     {
-        physDevice.QueueFamilyIndices.GraphicsFamily.value(), physDevice.QueueFamilyIndices.PresentFamily.value()
+        physDevice.QueueFamilyIndices.TransferFamily.value(),
+        physDevice.QueueFamilyIndices.GraphicsFamily.value(), 
+        physDevice.QueueFamilyIndices.PresentFamily.value()
     };
 
     float queuePriority = 1.0f;

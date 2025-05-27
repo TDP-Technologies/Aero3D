@@ -37,10 +37,13 @@ bool VulkanCore::Init(SDL_Window* window, int width, int height)
     m_Device.Init(m_Instance, m_Surface);
 
     m_GraphicsQueue.Init(m_Device.GetHandle(),
-     m_Device.GetPhysicalDevice().QueueFamilyIndices.GraphicsFamily.value());
+        m_Device.GetPhysicalDevice().QueueFamilyIndices.TransferFamily.value());
+
+    m_GraphicsQueue.Init(m_Device.GetHandle(),
+        m_Device.GetPhysicalDevice().QueueFamilyIndices.GraphicsFamily.value());
 
     m_PresentQueue.Init(m_Device.GetHandle(), 
-    m_Device.GetPhysicalDevice().QueueFamilyIndices.PresentFamily.value());
+        m_Device.GetPhysicalDevice().QueueFamilyIndices.PresentFamily.value());
 
     m_Swapchain.Init(m_Device.GetPhysicalDevice(), m_Surface, m_Window,
         m_Device.GetHandle(), width, height);
@@ -48,7 +51,7 @@ bool VulkanCore::Init(SDL_Window* window, int width, int height)
     CreateRenderPass(m_Device.GetHandle(), m_Swapchain.GetImageFormat(), &m_RenderPass);
 
     CreateFramebuffers();
-    CreateCommandBuffersAndCommandPool();
+    CreateCommandBuffersAndCommandPools();
     CreateSyncObjects();
 
     return true;
@@ -62,7 +65,8 @@ void VulkanCore::Shutdown()
     vkDestroySemaphore(m_Device.GetHandle(), m_RenderFinishedSemaphore, nullptr);
     vkDestroySemaphore(m_Device.GetHandle(), m_ImageAvailableSemaphore, nullptr);
 
-    vkDestroyCommandPool(m_Device.GetHandle(), m_CommandPool, nullptr);
+    vkDestroyCommandPool(m_Device.GetHandle(), m_GraphicsCommandPool, nullptr);
+    vkDestroyCommandPool(m_Device.GetHandle(), m_CopyCommandPool, nullptr);
 
     for (auto framebuffer : m_SwapchainFramebuffers) 
     {
@@ -99,13 +103,7 @@ void VulkanCore::RecordCommands()
     vkAcquireNextImageKHR(m_Device.GetHandle(), m_Swapchain.GetHandle(),
         UINT64_MAX, m_ImageAvailableSemaphore, VK_NULL_HANDLE, &m_CurrentImage);
 
-    VkCommandBufferBeginInfo beginInfo{};
-    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-    beginInfo.flags = 0;
-    beginInfo.pInheritanceInfo = nullptr;
-
-    vkResetCommandBuffer(m_CommandBuffers[m_CurrentImage], 0);
-    vkBeginCommandBuffer(m_CommandBuffers[m_CurrentImage], &beginInfo);
+    BeginCommandBuffer(m_GraphicsCommandBuffers[m_CurrentImage]);
 
     VkRenderPassBeginInfo renderPassInfo{};
     renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -117,30 +115,30 @@ void VulkanCore::RecordCommands()
     renderPassInfo.clearValueCount = 1;
     renderPassInfo.pClearValues = &m_ClearColor;
 
-    vkCmdBeginRenderPass(m_CommandBuffers[m_CurrentImage], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-    vkCmdSetViewport(m_CommandBuffers[m_CurrentImage], 0, 1, &m_Viewport);
-    vkCmdSetScissor(m_CommandBuffers[m_CurrentImage], 0, 1, &m_Scissor);
+    vkCmdBeginRenderPass(m_GraphicsCommandBuffers[m_CurrentImage], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+    vkCmdSetViewport(m_GraphicsCommandBuffers[m_CurrentImage], 0, 1, &m_Viewport);
+    vkCmdSetScissor(m_GraphicsCommandBuffers[m_CurrentImage], 0, 1, &m_Scissor);
 }
 
 void VulkanCore::EndCommands()
 {
-    vkCmdEndRenderPass(m_CommandBuffers[m_CurrentImage]);
-    vkEndCommandBuffer(m_CommandBuffers[m_CurrentImage]);
+    vkCmdEndRenderPass(m_GraphicsCommandBuffers[m_CurrentImage]);
+    vkEndCommandBuffer(m_GraphicsCommandBuffers[m_CurrentImage]);
 }
 
 void VulkanCore::Draw(size_t count)
 {
-    vkCmdDraw(m_CommandBuffers[m_CurrentImage], count, 1, 0, 0);
+    vkCmdDraw(m_GraphicsCommandBuffers[m_CurrentImage], count, 1, 0, 0);
 }
 
 void VulkanCore::DrawIndexed(size_t count)
 {
-    vkCmdDrawIndexed(m_CommandBuffers[m_CurrentImage], count, 1, 0, 0, 0);
+    vkCmdDrawIndexed(m_GraphicsCommandBuffers[m_CurrentImage], count, 1, 0, 0, 0);
 }
 
 void VulkanCore::SwapBuffers()
 {
-    m_GraphicsQueue.SubmitAsync(&m_CommandBuffers[m_CurrentImage], &m_ImageAvailableSemaphore,
+    m_GraphicsQueue.SubmitAsync(&m_GraphicsCommandBuffers[m_CurrentImage], &m_ImageAvailableSemaphore,
         &m_RenderFinishedSemaphore, m_InFlightFence);
 
     m_PresentQueue.Present(&m_RenderFinishedSemaphore, m_Swapchain.GetHandleAddr(), m_CurrentImage);
@@ -161,7 +159,7 @@ void VulkanCore::Clear()
     range.layerCount = 1;
 
     vkCmdClearColorImage(
-        m_CommandBuffers[m_CurrentImage],
+        m_GraphicsCommandBuffers[m_CurrentImage],
         m_Swapchain.GetImage(m_CurrentImage),
         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
         &m_ClearColor.color,
@@ -188,15 +186,21 @@ void VulkanCore::CreateFramebuffers()
     }
 }
 
-void VulkanCore::CreateCommandBuffersAndCommandPool()
+void VulkanCore::CreateCommandBuffersAndCommandPools()
 {
+    CreateCommandPool(m_Device.GetHandle(), m_Device.GetPhysicalDevice().QueueFamilyIndices.TransferFamily.value(),
+        &m_CopyCommandPool);
+
+    CreateCommandBuffers(m_Device.GetHandle(), m_CopyCommandPool, 
+        1, &m_CopyCommandBuffer);
+
     CreateCommandPool(m_Device.GetHandle(), m_Device.GetPhysicalDevice().QueueFamilyIndices.GraphicsFamily.value(),
-        &m_CommandPool);
+        &m_GraphicsCommandPool);
 
-    m_CommandBuffers.resize(m_SwapchainFramebuffers.size());
+    m_GraphicsCommandBuffers.resize(m_SwapchainFramebuffers.size());
 
-    CreateCommandBuffers(m_Device.GetHandle(), m_CommandPool, 
-        static_cast<uint32_t>(m_CommandBuffers.size()), m_CommandBuffers.data());
+    CreateCommandBuffers(m_Device.GetHandle(), m_GraphicsCommandPool, 
+        static_cast<uint32_t>(m_GraphicsCommandBuffers.size()), m_GraphicsCommandBuffers.data());
 }
 
 void VulkanCore::CreateSyncObjects()

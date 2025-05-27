@@ -37,6 +37,8 @@ void CreateSemaphore(VkDevice device, VkSemaphore* pSemaphore);
 
 void CreateFence(VkDevice device, VkFence* pFence);
 
+void BeginCommandBuffer(VkCommandBuffer commandBuffer);
+
 ///////////////////////////////////////////// SwapChain /////////////////////////////////////////////
 
 VkSurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);

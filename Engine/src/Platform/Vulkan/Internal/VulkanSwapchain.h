@@ -31,6 +31,7 @@ public:
         SDL_Window* window, VkDevice device, int width, int height);
 
     VkSwapchainKHR GetHandle() { return m_Swapchain; }
+    VkSwapchainKHR* GetHandleAddr() { return &m_Swapchain; }
 
     VkFormat GetImageFormat() { return m_ImageFormat; }
     VkExtent2D GetExtent() { return m_Extent; }

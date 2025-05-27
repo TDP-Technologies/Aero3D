@@ -140,36 +140,10 @@ void VulkanCore::DrawIndexed(size_t count)
 
 void VulkanCore::SwapBuffers()
 {
-    VkSubmitInfo submitInfo{};
-    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    m_GraphicsQueue.SubmitAsync(&m_CommandBuffers[m_CurrentImage], &m_ImageAvailableSemaphore,
+        &m_RenderFinishedSemaphore, m_InFlightFence);
 
-    VkSemaphore waitSemaphores[] = { m_ImageAvailableSemaphore };
-    VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-    submitInfo.waitSemaphoreCount = 1;
-    submitInfo.pWaitSemaphores = waitSemaphores;
-    submitInfo.pWaitDstStageMask = waitStages;
-
-    submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = &m_CommandBuffers[m_CurrentImage];
-
-    VkSemaphore signalSemaphores[] = { m_RenderFinishedSemaphore };
-    submitInfo.signalSemaphoreCount = 1;
-    submitInfo.pSignalSemaphores = signalSemaphores;
-
-    m_GraphicsQueue.Submit(&submitInfo, m_InFlightFence);
-
-    VkPresentInfoKHR presentInfo{};
-    presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-
-    presentInfo.waitSemaphoreCount = 1;
-    presentInfo.pWaitSemaphores = signalSemaphores;
-
-    VkSwapchainKHR swapchains[] = { m_Swapchain.GetHandle()};
-    presentInfo.swapchainCount = 1;
-    presentInfo.pSwapchains = swapchains;
-    presentInfo.pImageIndices = &m_CurrentImage;
-
-    vkQueuePresentKHR(m_PresentQueue.GetHandle(), &presentInfo);
+    m_PresentQueue.Present(&m_RenderFinishedSemaphore, m_Swapchain.GetHandleAddr(), m_CurrentImage);
 }
 
 void VulkanCore::SetClearColor(float r, float g, float b, float a)

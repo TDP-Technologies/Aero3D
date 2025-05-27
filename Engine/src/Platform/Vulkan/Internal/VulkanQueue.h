@@ -12,7 +12,11 @@ public:
 
     bool Init(VkDevice device, uint32_t queueFamilyIndex);
 
-    void Submit(const VkSubmitInfo* submitInfo, VkFence fence);
+    void SubmitSync(VkCommandBuffer* pCmdBuff);
+	void SubmitAsync(VkCommandBuffer* pCmdBuff, VkSemaphore* pWaitSem,
+        VkSemaphore* pSigSem, VkFence pFence);
+
+    void Present(VkSemaphore* pWaitSem, VkSwapchainKHR* pSwapchain, uint32_t imageIndex);
     void WaitIdle();
 
     VkQueue GetHandle() const { return m_Queue; }

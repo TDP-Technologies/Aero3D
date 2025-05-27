@@ -47,6 +47,18 @@ VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& avai
 
 void CreateImageView(VkDevice device, VkImage image, VkFormat imageFormat, VkImageView* pImageView);
 
+////////////////////////////////////////////// Buffer /////////////////////////////////////////////////
+
+uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties, 
+    VkPhysicalDevice physicalDevice);
+
+void CreateBuffer(VkDevice device, VkBufferUsageFlags usage, size_t size, VkBuffer* buffer);
+
+void AllocateBufferMemory(VkDevice device, VkBuffer buffer, VkMemoryPropertyFlags properties,
+    VkPhysicalDevice physDevice, VkDeviceMemory* pDeviceMemory);
+
+void WriteBufferMemory(VkDevice device, VkDeviceMemory memory, void* data, size_t size);
+
 } // namespace aero3d
 
 #endif // AERO3D_PLATFORM_VULKAN_INTERNAL_VULKANUTILS_H_

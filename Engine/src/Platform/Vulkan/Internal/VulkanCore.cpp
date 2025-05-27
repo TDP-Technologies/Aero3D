@@ -36,7 +36,7 @@ bool VulkanCore::Init(SDL_Window* window, int width, int height)
 
     m_Device.Init(m_Instance, m_Surface);
 
-    m_GraphicsQueue.Init(m_Device.GetHandle(),
+    m_TransferQueue.Init(m_Device.GetHandle(),
         m_Device.GetPhysicalDevice().QueueFamilyIndices.TransferFamily.value());
 
     m_GraphicsQueue.Init(m_Device.GetHandle(),
@@ -166,6 +166,20 @@ void VulkanCore::Clear()
         1,
         &range
     );
+}
+
+void VulkanCore::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
+{
+    BeginCommandBuffer(m_CopyCommandBuffer);
+
+    VkBufferCopy copyRegion{};
+    copyRegion.size = size;
+    vkCmdCopyBuffer(m_CopyCommandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
+
+    vkEndCommandBuffer(m_CopyCommandBuffer);
+
+    m_TransferQueue.SubmitSync(&m_CopyCommandBuffer);
+    m_TransferQueue.WaitIdle();
 }
 
 void VulkanCore::CreateFramebuffers()

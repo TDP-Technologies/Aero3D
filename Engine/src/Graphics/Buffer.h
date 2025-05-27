@@ -15,13 +15,12 @@ public:
 
     virtual void Bind() = 0;
 
-    virtual void SetData(const void* data, size_t size) = 0;
+    virtual void SetData(void* data, size_t size) = 0;
 
 };
 
 enum class IndexBufferType
 {
-    UNSIGNED_BYTE,
     UNSIGNED_SHORT,
     UNSIGNED_INT
 };

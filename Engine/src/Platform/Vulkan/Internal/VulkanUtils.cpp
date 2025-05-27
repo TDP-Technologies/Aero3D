@@ -8,8 +8,10 @@ namespace aero3d {
 
 ////////////////////////////////////////////// Common ///////////////////////////////////////////////
 
-const char* VkResultToString(VkResult result) {
-    switch (result) {
+const char* VkResultToString(VkResult result)
+{
+    switch (result) 
+    {
         case VK_SUCCESS: return "VK_SUCCESS";
         case VK_NOT_READY: return "VK_NOT_READY";
         case VK_TIMEOUT: return "VK_TIMEOUT";
@@ -243,6 +245,63 @@ void CreateImageView(VkDevice device, VkImage image, VkFormat imageFormat, VkIma
     viewInfo.subresourceRange.layerCount = 1;
 
     A3D_CHECK_VKRESULT(vkCreateImageView(device, &viewInfo, nullptr, pImageView));
+}
+
+////////////////////////////////////////////// Buffer /////////////////////////////////////////////////
+
+uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties, 
+    VkPhysicalDevice physicalDevice)
+{
+    VkPhysicalDeviceMemoryProperties memProperties;
+    vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
+
+    for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) 
+    {
+        if ((typeFilter & (1 << i)) &&
+            (memProperties.memoryTypes[i].propertyFlags & properties) == properties) 
+        {
+            return i;
+        }
+    }
+
+    return 0;
+}
+
+void CreateBuffer(VkDevice device, VkBufferUsageFlags usage, size_t size, VkBuffer* buffer)
+{
+    VkBufferCreateInfo bufferInfo{};
+    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    bufferInfo.size = size;
+    bufferInfo.usage = usage;
+    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+    A3D_CHECK_VKRESULT(vkCreateBuffer(device, &bufferInfo, nullptr, buffer));
+}
+
+void AllocateBufferMemory(VkDevice device, VkBuffer buffer, VkMemoryPropertyFlags properties,
+    VkPhysicalDevice physDevice, VkDeviceMemory* pDeviceMemory)
+{
+    VkMemoryRequirements memRequirements;
+    vkGetBufferMemoryRequirements(device, buffer, &memRequirements);
+
+    VkMemoryAllocateInfo allocInfo{};
+    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocInfo.allocationSize = memRequirements.size;
+    allocInfo.memoryTypeIndex = FindMemoryType(
+        memRequirements.memoryTypeBits,
+        properties,
+        physDevice
+    );
+
+    A3D_CHECK_VKRESULT(vkAllocateMemory(device, &allocInfo, nullptr, pDeviceMemory));
+}
+
+void WriteBufferMemory(VkDevice device, VkDeviceMemory memory, void* data, size_t size)
+{
+    void* dst;
+    A3D_CHECK_VKRESULT(vkMapMemory(device, memory, 0, size, 0, &dst));
+    memcpy(dst, data, size);
+    vkUnmapMemory(device, memory);
 }
 
 } // namespace aero3d

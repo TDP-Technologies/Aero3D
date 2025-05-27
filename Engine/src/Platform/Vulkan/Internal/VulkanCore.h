@@ -35,6 +35,8 @@ public:
     void SetClearColor(float r, float g, float b, float a);
     void Clear();
 
+    void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
+
     VkInstance GetInstance() { return m_Instance; }
     VkSurfaceKHR GetSurface() { return m_Surface; }
 

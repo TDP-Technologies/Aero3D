@@ -11,6 +11,7 @@ public:
     ~VulkanQueue();
 
     void Init(VkDevice device, uint32_t queueFamilyIndex);
+    void Shutdown();
 
     void SubmitSync(VkCommandBuffer* pCmdBuff);
 	void SubmitAsync(VkCommandBuffer* pCmdBuff, VkSemaphore* pWaitSem,
@@ -23,8 +24,12 @@ public:
     uint32_t GetQueueFamilyIndex() const { return m_QueueFamilyIndex; }
 
 private:
+    VkDevice m_Device = VK_NULL_HANDLE;
+
     VkQueue m_Queue = VK_NULL_HANDLE;
     uint32_t m_QueueFamilyIndex = 0;
+
+    VkFence m_Fence = VK_NULL_HANDLE;
 
 };
 

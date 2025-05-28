@@ -15,11 +15,22 @@ VulkanQueue::~VulkanQueue()
 void VulkanQueue::Init(VkDevice device, uint32_t queueFamilyIndex)
 {
     m_QueueFamilyIndex = queueFamilyIndex;
+	m_Device = device;
+
     vkGetDeviceQueue(device, queueFamilyIndex, 0, &m_Queue);
+
+	CreateFence(device, &m_Fence);
+}
+
+void VulkanQueue::Shutdown()
+{
+	vkDestroyFence(m_Device, m_Fence, nullptr);
 }
 
 void VulkanQueue::SubmitSync(VkCommandBuffer* pCmdBuff)
 {
+	vkResetFences(m_Device, 1, &m_Fence);
+
 	VkSubmitInfo submitInfo;
 	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 	submitInfo.pNext = nullptr;
@@ -31,7 +42,9 @@ void VulkanQueue::SubmitSync(VkCommandBuffer* pCmdBuff)
 	submitInfo.signalSemaphoreCount = 0;
 	submitInfo.pSignalSemaphores = VK_NULL_HANDLE;
 
-	A3D_CHECK_VKRESULT(vkQueueSubmit(m_Queue, 1, &submitInfo, nullptr));
+	A3D_CHECK_VKRESULT(vkQueueSubmit(m_Queue, 1, &submitInfo, m_Fence));
+
+	vkWaitForFences(m_Device, 1, &m_Fence, VK_TRUE, UINT64_MAX);
 }
 
 void VulkanQueue::SubmitAsync(VkCommandBuffer* pCmdBuff, VkSemaphore* pWaitSem,

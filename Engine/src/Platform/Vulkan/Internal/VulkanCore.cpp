@@ -75,6 +75,10 @@ void VulkanCore::Shutdown()
 
     vkDestroyRenderPass(m_Device.GetHandle(), m_RenderPass, nullptr);
 
+    m_PresentQueue.Shutdown();
+    m_GraphicsQueue.Shutdown();
+    m_TransferQueue.Shutdown();
+
     m_Swapchain.Shutdown();
     m_Device.Shutdown();
 

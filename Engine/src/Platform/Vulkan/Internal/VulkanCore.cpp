@@ -31,8 +31,8 @@ bool VulkanCore::Init(SDL_Window* window, int width, int height)
         return false;
     }
 
-    CreateInstance(&m_Instance);
-    CreateSurface(m_Instance, m_Window, &m_Surface);
+    CreateInstance(m_Instance);
+    CreateSurface(m_Instance, m_Window, m_Surface);
 
     m_Device.Init(m_Instance, m_Surface);
 
@@ -48,7 +48,7 @@ bool VulkanCore::Init(SDL_Window* window, int width, int height)
     m_Swapchain.Init(m_Device.GetPhysicalDevice(), m_Surface, m_Window,
         m_Device.GetHandle(), width, height);
 
-    CreateRenderPass(m_Device.GetHandle(), m_Swapchain.GetImageFormat(), &m_RenderPass);
+    CreateRenderPass(m_Device.GetHandle(), m_Swapchain.GetImageFormat(), m_RenderPass);
 
     CreateFramebuffers();
     CreateCommandBuffersAndCommandPools();
@@ -200,20 +200,20 @@ void VulkanCore::CreateFramebuffers()
     for (size_t i = 0; i < m_Swapchain.GetNumImageViews(); i++)
     {
         CreateFramebuffer(m_Device.GetHandle(), m_Swapchain.GetImageView(i), 
-            swapchainExtent, m_RenderPass, &m_SwapchainFramebuffers[i]);
+            swapchainExtent, m_RenderPass, m_SwapchainFramebuffers[i]);
     }
 }
 
 void VulkanCore::CreateCommandBuffersAndCommandPools()
 {
     CreateCommandPool(m_Device.GetHandle(), m_Device.GetPhysicalDevice().QueueFamilyIndices.TransferFamily.value(),
-        &m_CopyCommandPool);
+        m_CopyCommandPool);
 
     CreateCommandBuffers(m_Device.GetHandle(), m_CopyCommandPool, 
         1, &m_CopyCommandBuffer);
 
     CreateCommandPool(m_Device.GetHandle(), m_Device.GetPhysicalDevice().QueueFamilyIndices.GraphicsFamily.value(),
-        &m_GraphicsCommandPool);
+        m_GraphicsCommandPool);
 
     m_GraphicsCommandBuffers.resize(m_SwapchainFramebuffers.size());
 
@@ -223,10 +223,9 @@ void VulkanCore::CreateCommandBuffersAndCommandPools()
 
 void VulkanCore::CreateSyncObjects()
 {
-
-    CreateSemaphore(m_Device.GetHandle(), &m_ImageAvailableSemaphore);
-    CreateSemaphore(m_Device.GetHandle(), &m_RenderFinishedSemaphore);
-    CreateFence(m_Device.GetHandle(), &m_InFlightFence);
+    CreateSemaphore(m_Device.GetHandle(), m_ImageAvailableSemaphore);
+    CreateSemaphore(m_Device.GetHandle(), m_RenderFinishedSemaphore);
+    CreateFence(m_Device.GetHandle(), m_InFlightFence);
 }
 
 } // namespace aero3d

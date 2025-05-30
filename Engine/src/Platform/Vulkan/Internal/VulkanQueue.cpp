@@ -19,7 +19,7 @@ void VulkanQueue::Init(VkDevice device, uint32_t queueFamilyIndex)
 
     vkGetDeviceQueue(device, queueFamilyIndex, 0, &m_Queue);
 
-	CreateFence(device, &m_Fence);
+	CreateFence(device, m_Fence);
 }
 
 void VulkanQueue::Shutdown()

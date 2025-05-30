@@ -33,8 +33,8 @@ void VulkanBuffer::Init(VkDeviceSize instanceSize, uint32_t instanceCount,
 
     m_AlignmentSize = GetAlignment(instanceSize, minOffsetAlignment);
     m_BufferSize = m_AlignmentSize * instanceCount;
-    CreateBuffer(m_Device, usageFlags, m_BufferSize, &m_Buffer, memoryPropertyFlags,
-    g_VulkanCore->GetPhysDeviceHandle(), &m_Memory);
+    CreateBuffer(m_Device, usageFlags, m_BufferSize, m_Buffer, memoryPropertyFlags,
+    g_VulkanCore->GetPhysDeviceHandle(), m_Memory);
 }
 
 void VulkanBuffer::Shutdown()

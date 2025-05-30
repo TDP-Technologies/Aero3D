@@ -129,7 +129,7 @@ void VulkanSwapchain::CreateImageViews()
 
     for (size_t i = 0; i < m_Images.size(); i++) 
     {
-        CreateImageView(m_Device, m_Images[i], m_ImageFormat, &m_ImageViews[i]);
+        CreateImageView(m_Device, m_Images[i], m_ImageFormat, m_ImageViews[i]);
     }
 }
 

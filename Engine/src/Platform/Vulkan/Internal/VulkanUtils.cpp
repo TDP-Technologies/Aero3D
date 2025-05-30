@@ -41,7 +41,7 @@ const char* VkResultToString(VkResult result)
 }
 
 ////////////////////////////////////////////// Core /////////////////////////////////////////////////
-void CreateInstance(VkInstance* pInstance)
+void CreateInstance(VkInstance& instance)
 {
     uint32_t extensionCount;
     const char* const* extensions = SDL_Vulkan_GetInstanceExtensions(&extensionCount);
@@ -71,18 +71,18 @@ void CreateInstance(VkInstance* pInstance)
     createInfo.enabledLayerCount = 1;
     createInfo.ppEnabledLayerNames = validationLayers;
 
-    A3D_CHECK_VKRESULT(vkCreateInstance(&createInfo, nullptr, pInstance));
+    A3D_CHECK_VKRESULT(vkCreateInstance(&createInfo, nullptr, &instance));
 }
 
-void CreateSurface(VkInstance instance, SDL_Window* window, VkSurfaceKHR* pSurface)
+void CreateSurface(VkInstance instance, SDL_Window* window, VkSurfaceKHR& surface)
 {
-    if (!SDL_Vulkan_CreateSurface(window, instance, nullptr, pSurface)) 
+    if (!SDL_Vulkan_CreateSurface(window, instance, nullptr, &surface)) 
     {
         LogErr(ERROR_INFO, "Failed to create Vulkan surface: %s", SDL_GetError());
     }
 }
 
-void CreateRenderPass(VkDevice device, VkFormat format, VkRenderPass* pRenderPass)
+void CreateRenderPass(VkDevice device, VkFormat format, VkRenderPass& renderPass)
 {
     VkAttachmentDescription colorAttachment{};
     colorAttachment.format = format;
@@ -125,11 +125,11 @@ void CreateRenderPass(VkDevice device, VkFormat format, VkRenderPass* pRenderPas
     renderPassInfo.dependencyCount = 1;
     renderPassInfo.pDependencies = &dependency;
 
-    A3D_CHECK_VKRESULT(vkCreateRenderPass(device, &renderPassInfo, nullptr, pRenderPass));
+    A3D_CHECK_VKRESULT(vkCreateRenderPass(device, &renderPassInfo, nullptr, &renderPass));
 }
 
 void CreateFramebuffer(VkDevice device, VkImageView imageView, VkExtent2D extent, 
-    VkRenderPass renderPass, VkFramebuffer* pFrameBuffer)
+    VkRenderPass renderPass, VkFramebuffer& frameBuffer)
 {
     VkImageView attachments[] = 
     {
@@ -145,17 +145,17 @@ void CreateFramebuffer(VkDevice device, VkImageView imageView, VkExtent2D extent
     framebufferInfo.height = extent.height;
     framebufferInfo.layers = 1;
 
-    A3D_CHECK_VKRESULT(vkCreateFramebuffer(device, &framebufferInfo, nullptr, pFrameBuffer));
+    A3D_CHECK_VKRESULT(vkCreateFramebuffer(device, &framebufferInfo, nullptr, &frameBuffer));
 }
 
-void CreateCommandPool(VkDevice device, uint32_t queueIndex, VkCommandPool* pCommandPool)
+void CreateCommandPool(VkDevice device, uint32_t queueIndex, VkCommandPool& commandPool)
 {
     VkCommandPoolCreateInfo poolInfo{};
     poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
     poolInfo.queueFamilyIndex = queueIndex;
     poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 
-    A3D_CHECK_VKRESULT(vkCreateCommandPool(device, &poolInfo, nullptr, pCommandPool));
+    A3D_CHECK_VKRESULT(vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool));
 }
 
 void CreateCommandBuffers(VkDevice device, VkCommandPool commandPool,
@@ -170,21 +170,21 @@ void CreateCommandBuffers(VkDevice device, VkCommandPool commandPool,
     A3D_CHECK_VKRESULT(vkAllocateCommandBuffers(device, &allocInfo, pCommandBuffers));
 }
 
-void CreateSemaphore(VkDevice device, VkSemaphore* pSemaphore)
+void CreateSemaphore(VkDevice device, VkSemaphore& semaphore)
 {
     VkSemaphoreCreateInfo semaphoreInfo{};
     semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
-    A3D_CHECK_VKRESULT(vkCreateSemaphore(device, &semaphoreInfo, nullptr, pSemaphore));
+    A3D_CHECK_VKRESULT(vkCreateSemaphore(device, &semaphoreInfo, nullptr, &semaphore));
 }
 
-void CreateFence(VkDevice device, VkFence* pFence)
+void CreateFence(VkDevice device, VkFence& fence)
 {
     VkFenceCreateInfo fenceInfo{};
     fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
     fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-    A3D_CHECK_VKRESULT(vkCreateFence(device, &fenceInfo, nullptr, pFence));
+    A3D_CHECK_VKRESULT(vkCreateFence(device, &fenceInfo, nullptr, &fence));
 }
 
 void BeginCommandBuffer(VkCommandBuffer commandBuffer)
@@ -225,7 +225,7 @@ VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& avai
     return VK_PRESENT_MODE_FIFO_KHR;
 }
 
-void CreateImageView(VkDevice device, VkImage image, VkFormat imageFormat, VkImageView* pImageView)
+void CreateImageView(VkDevice device, VkImage image, VkFormat imageFormat, VkImageView& imageView)
 {
     VkImageViewCreateInfo viewInfo{};
     viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -244,7 +244,7 @@ void CreateImageView(VkDevice device, VkImage image, VkFormat imageFormat, VkIma
     viewInfo.subresourceRange.baseArrayLayer = 0;
     viewInfo.subresourceRange.layerCount = 1;
 
-    A3D_CHECK_VKRESULT(vkCreateImageView(device, &viewInfo, nullptr, pImageView));
+    A3D_CHECK_VKRESULT(vkCreateImageView(device, &viewInfo, nullptr, &imageView));
 }
 
 ////////////////////////////////////////////// Buffer /////////////////////////////////////////////////
@@ -267,8 +267,8 @@ uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties,
     return 0;
 }
 
-void CreateBuffer(VkDevice device, VkBufferUsageFlags usage, size_t size, VkBuffer* pBuffer,
-    VkMemoryPropertyFlags properties, VkPhysicalDevice physDevice, VkDeviceMemory* pDeviceMemory)
+void CreateBuffer(VkDevice device, VkBufferUsageFlags usage, size_t size, VkBuffer& buffer,
+    VkMemoryPropertyFlags properties, VkPhysicalDevice physDevice, VkDeviceMemory& deviceMemory)
 {
     VkBufferCreateInfo bufferInfo{};
     bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -276,10 +276,10 @@ void CreateBuffer(VkDevice device, VkBufferUsageFlags usage, size_t size, VkBuff
     bufferInfo.usage = usage;
     bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-    A3D_CHECK_VKRESULT(vkCreateBuffer(device, &bufferInfo, nullptr, pBuffer));
+    A3D_CHECK_VKRESULT(vkCreateBuffer(device, &bufferInfo, nullptr, &buffer));
 
     VkMemoryRequirements memRequirements;
-    vkGetBufferMemoryRequirements(device, *pBuffer, &memRequirements);
+    vkGetBufferMemoryRequirements(device, buffer, &memRequirements);
 
     VkMemoryAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
@@ -290,9 +290,9 @@ void CreateBuffer(VkDevice device, VkBufferUsageFlags usage, size_t size, VkBuff
         physDevice
     );
 
-    A3D_CHECK_VKRESULT(vkAllocateMemory(device, &allocInfo, nullptr, pDeviceMemory));
+    A3D_CHECK_VKRESULT(vkAllocateMemory(device, &allocInfo, nullptr, &deviceMemory));
 
-    A3D_CHECK_VKRESULT(vkBindBufferMemory(device, *pBuffer, *pDeviceMemory, 0));
+    A3D_CHECK_VKRESULT(vkBindBufferMemory(device, buffer, deviceMemory, 0));
 }
 
 void WriteBufferMemory(VkDevice device, VkDeviceMemory memory, void* data, size_t size)
@@ -303,14 +303,14 @@ void WriteBufferMemory(VkDevice device, VkDeviceMemory memory, void* data, size_
     vkUnmapMemory(device, memory);
 }
 
-void PrepareStagingBuffer(VkDevice device, VkBuffer* pBuffer, VkPhysicalDevice physDevice,
-    VkDeviceMemory* pMemory, void* data, size_t size)
+void PrepareStagingBuffer(VkDevice device, VkBuffer& buffer, VkPhysicalDevice physDevice,
+    VkDeviceMemory& memory, void* data, size_t size)
 {
-    CreateBuffer(device, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, size, pBuffer,
+    CreateBuffer(device, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, size, buffer,
         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-        physDevice, pMemory);
+        physDevice, memory);
 
-    WriteBufferMemory(device, *pMemory, data, size);
+    WriteBufferMemory(device, memory, data, size);
 }
 
 } // namespace aero3d

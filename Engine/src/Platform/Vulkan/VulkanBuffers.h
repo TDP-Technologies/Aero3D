@@ -1,9 +1,11 @@
-#ifndef AERO3D_PLATFORM_VULKAN_VULKANBUFFER_H_
-#define AERO3D_PLATFORM_VULKAN_VULKANBUFFER_H_
+#ifndef AERO3D_PLATFORM_VULKAN_VULKANBUFFERS_H_
+#define AERO3D_PLATFORM_VULKAN_VULKANBUFFERS_H_
 
 #include <vulkan/vulkan.h>
 
-#include "Graphics/Buffer.h"
+#include "Graphics/Buffers.h"
+
+#include "Platform/Vulkan/Internal/VulkanBuffer.h"
 
 namespace aero3d {
 
@@ -18,8 +20,7 @@ public:
 private:
     VkDevice m_Device = VK_NULL_HANDLE;
 
-    VkBuffer m_Buffer = VK_NULL_HANDLE;
-    VkDeviceMemory m_Memory = VK_NULL_HANDLE;
+    VulkanBuffer m_Buffer {};
 
 };
 
@@ -34,11 +35,10 @@ public:
 private:
     VkDevice m_Device = VK_NULL_HANDLE;
 
-    VkBuffer m_Buffer = VK_NULL_HANDLE;
-    VkDeviceMemory m_Memory = VK_NULL_HANDLE;
+    VulkanBuffer m_Buffer {};
 
 };
 
 } // namespace aero3d
 
-#endif // AERO3D_PLATFORM_VULKAN_VULKANBUFFER_H_
+#endif // AERO3D_PLATFORM_VULKAN_VULKANBUFFERS_H_

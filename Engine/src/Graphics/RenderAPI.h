@@ -4,7 +4,7 @@
 #include <memory>
 
 #include "Utils/Common.h"
-#include "Graphics/Buffer.h"
+#include "Graphics/Buffers.h"
 #include "Graphics/GraphicsPipeline.h"
 #include "Graphics/Texture.h"
 

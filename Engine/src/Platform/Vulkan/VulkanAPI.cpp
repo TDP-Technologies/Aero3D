@@ -2,7 +2,7 @@
 
 #include "Platform/Vulkan/Internal/VulkanCore.h"
 #include "Platform/Vulkan/VulkanGraphicsPipeline.h"
-#include "Platform/Vulkan/VulkanBuffer.h"
+#include "Platform/Vulkan/VulkanBuffers.h"
 
 namespace aero3d {
 

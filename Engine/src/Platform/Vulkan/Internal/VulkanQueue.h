@@ -7,8 +7,8 @@ namespace aero3d {
 
 class VulkanQueue {
 public:
-    VulkanQueue();
-    ~VulkanQueue();
+    VulkanQueue() = default;
+    ~VulkanQueue() = default;
 
     void Init(VkDevice device, uint32_t queueFamilyIndex);
     void Shutdown();

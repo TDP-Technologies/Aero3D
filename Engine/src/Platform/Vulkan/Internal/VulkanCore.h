@@ -16,8 +16,8 @@ namespace aero3d {
 class VulkanCore
 {
 public:
-    VulkanCore();
-    ~VulkanCore();
+    VulkanCore() = default;
+    ~VulkanCore() = default;
 
     bool Init(SDL_Window* window, int width, int height);
     void Shutdown();

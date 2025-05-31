@@ -13,14 +13,6 @@ static VkDeviceSize GetAlignment(VkDeviceSize instanceSize, VkDeviceSize minOffs
     }
     return instanceSize;
 }
- 
-VulkanBuffer::VulkanBuffer()
-{
-}
- 
-VulkanBuffer::~VulkanBuffer() 
-{
-}
 
 void VulkanBuffer::Init(VkDeviceSize instanceSize, uint32_t instanceCount,
     VkBufferUsageFlags usageFlags, VkMemoryPropertyFlags memoryPropertyFlags,VkDeviceSize minOffsetAlignment)

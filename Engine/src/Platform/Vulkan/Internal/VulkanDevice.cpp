@@ -8,14 +8,6 @@
 
 namespace aero3d {
 
-VulkanDevice::VulkanDevice()
-{
-}
-
-VulkanDevice::~VulkanDevice()
-{
-}
-
 void VulkanDevice::Init(VkInstance instance, VkSurfaceKHR surface)
 {
     m_Instance = instance;

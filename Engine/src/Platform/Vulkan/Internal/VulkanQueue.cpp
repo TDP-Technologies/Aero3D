@@ -4,14 +4,6 @@
 
 namespace aero3d {
 
-VulkanQueue::VulkanQueue()
-{
-}
-
-VulkanQueue::~VulkanQueue()
-{
-}
-
 void VulkanQueue::Init(VkDevice device, uint32_t queueFamilyIndex)
 {
     m_QueueFamilyIndex = queueFamilyIndex;

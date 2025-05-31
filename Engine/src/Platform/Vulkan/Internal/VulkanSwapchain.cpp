@@ -32,14 +32,6 @@ static SwapChainSupportDetails QuerySwapChainSupport(VkPhysicalDevice device, Vk
     return details;
 }
 
-VulkanSwapchain::VulkanSwapchain()
-{
-}
-
-VulkanSwapchain::~VulkanSwapchain()
-{
-}
-
 void VulkanSwapchain::Init(const VulkanPhysicalDevice& physDevice, VkSurfaceKHR surface,
     SDL_Window* window, VkDevice device, int width, int height)
 {

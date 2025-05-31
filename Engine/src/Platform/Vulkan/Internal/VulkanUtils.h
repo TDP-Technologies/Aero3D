@@ -55,11 +55,6 @@ uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties,
 void CreateBuffer(VkDevice device, VkBufferUsageFlags usage, size_t size, VkBuffer& buffer,
     VkMemoryPropertyFlags properties, VkPhysicalDevice physDevice, VkDeviceMemory& deviceMemory);
 
-void WriteBufferMemory(VkDevice device, VkDeviceMemory memory, void* data, size_t size);
-
-void PrepareStagingBuffer(VkDevice device, VkBuffer& buffer, VkPhysicalDevice physDevice,
-    VkDeviceMemory& memory, void* data, size_t size);
-
 } // namespace aero3d
 
 #endif // AERO3D_PLATFORM_VULKAN_INTERNAL_VULKANUTILS_H_

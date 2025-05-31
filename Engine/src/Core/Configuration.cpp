@@ -38,11 +38,6 @@ static std::string serializeKeyValueMap(const std::map<std::string, std::string>
     return stream.str();
 }
 
-Configuration::Configuration()
-    : m_ConfigFile(nullptr)
-{
-}
-
 Configuration::~Configuration()
 {
     std::string str = serializeKeyValueMap(m_ConfigMap);

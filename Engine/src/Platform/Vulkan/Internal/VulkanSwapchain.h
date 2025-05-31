@@ -20,8 +20,8 @@ struct SwapChainSupportDetails
 class VulkanSwapchain
 {
 public:
-    VulkanSwapchain();
-    ~VulkanSwapchain();
+    VulkanSwapchain() = default;
+    ~VulkanSwapchain() = default;
 
     void Init(const VulkanPhysicalDevice& physDevice, VkSurfaceKHR surface,
         SDL_Window* window, VkDevice device, int width, int height);

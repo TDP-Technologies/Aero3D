@@ -5,10 +5,11 @@
 
 namespace aero3d {
 
-class VulkanBuffer {
+class VulkanBuffer 
+{
 public:
-    VulkanBuffer();
-    ~VulkanBuffer();
+    VulkanBuffer() = default;
+    ~VulkanBuffer() = default;
 
     VulkanBuffer(const VulkanBuffer&) = delete;
     VulkanBuffer& operator=(const VulkanBuffer&) = delete;

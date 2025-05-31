@@ -13,14 +13,6 @@ namespace aero3d {
 
 Scope<VulkanCore> g_VulkanCore = std::make_unique<VulkanCore>();
 
-VulkanCore::VulkanCore()
-{
-}
-
-VulkanCore::~VulkanCore()
-{
-}
-
 bool VulkanCore::Init(SDL_Window* window, int width, int height)
 {
     m_Window = window;

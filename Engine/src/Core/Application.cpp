@@ -8,14 +8,6 @@
 
 namespace aero3d {
 
-Application::Application()
-{
-}
-
-Application::~Application()
-{
-}
-
 bool Application::Init()
 {
     LogMsg("Application Initialize.");

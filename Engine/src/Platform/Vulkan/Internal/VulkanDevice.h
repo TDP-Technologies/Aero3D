@@ -36,8 +36,8 @@ struct VulkanPhysicalDevice
 class VulkanDevice
 {
 public:
-    VulkanDevice();
-    ~VulkanDevice();
+    VulkanDevice() = default;
+    ~VulkanDevice() = default;
 
     void Init(VkInstance instance, VkSurfaceKHR surface);
     void Shutdown();

@@ -10,8 +10,8 @@ namespace aero3d {
 class VulkanContext : public GraphicsContext
 {
 public:
-    VulkanContext();
-    ~VulkanContext();
+    VulkanContext() = default;
+    ~VulkanContext() = default;
 
     virtual bool Init(SDL_Window* window, int width, int height) override;
     virtual void Shutdown() override;

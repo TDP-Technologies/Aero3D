@@ -295,22 +295,4 @@ void CreateBuffer(VkDevice device, VkBufferUsageFlags usage, size_t size, VkBuff
     A3D_CHECK_VKRESULT(vkBindBufferMemory(device, buffer, deviceMemory, 0));
 }
 
-void WriteBufferMemory(VkDevice device, VkDeviceMemory memory, void* data, size_t size)
-{
-    void* dst;
-    A3D_CHECK_VKRESULT(vkMapMemory(device, memory, 0, size, 0, &dst));
-    memcpy(dst, data, size);
-    vkUnmapMemory(device, memory);
-}
-
-void PrepareStagingBuffer(VkDevice device, VkBuffer& buffer, VkPhysicalDevice physDevice,
-    VkDeviceMemory& memory, void* data, size_t size)
-{
-    CreateBuffer(device, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, size, buffer,
-        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-        physDevice, memory);
-
-    WriteBufferMemory(device, memory, data, size);
-}
-
 } // namespace aero3d

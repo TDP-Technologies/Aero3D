@@ -6,14 +6,6 @@
 
 namespace aero3d {
 
-VulkanContext::VulkanContext()
-{
-}
-
-VulkanContext::~VulkanContext()
-{
-}
-
 bool VulkanContext::Init(SDL_Window* window, int width, int height)
 {
     LogMsg("Graphics Context Initialize.");

@@ -14,7 +14,7 @@ namespace aero3d {
 class Configuration
 {
 public:
-    Configuration();
+    Configuration() = default;
     ~Configuration();
 
     void Open(std::string path);
@@ -22,8 +22,8 @@ public:
     std::string GetValue(std::string key);
 
 private:
-    std::map<std::string, std::string> m_ConfigMap;
-    Ref<VFile> m_ConfigFile;
+    std::map<std::string, std::string> m_ConfigMap {};
+    Ref<VFile> m_ConfigFile = nullptr;
 
 };
 

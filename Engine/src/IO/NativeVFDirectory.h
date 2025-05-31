@@ -9,7 +9,7 @@ class NativeVFDirectory : public VFDirectory
 {
 public:
     NativeVFDirectory(std::string virtualPath, std::string mountPoint);
-    ~NativeVFDirectory();
+    ~NativeVFDirectory() = default;
 
     virtual Ref<VFile> OpenFile(std::string& path) override;
 

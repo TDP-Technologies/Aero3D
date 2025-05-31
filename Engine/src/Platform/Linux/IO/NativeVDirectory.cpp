@@ -22,10 +22,6 @@ NativeVFDirectory::NativeVFDirectory(std::string virtualPath, std::string mountP
     m_MountPoint = mountPoint;
 }
 
-NativeVFDirectory::~NativeVFDirectory()
-{
-}
-
 Ref<VFile> NativeVFDirectory::OpenFile(std::string& path)
 {
     std::string fullPath = A3D_RESOLVE_NATIVE_PATH(path);

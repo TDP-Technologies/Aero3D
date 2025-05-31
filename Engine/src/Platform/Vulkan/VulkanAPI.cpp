@@ -6,14 +6,6 @@
 
 namespace aero3d {
 
-VulkanAPI::VulkanAPI()
-{
-}
-
-VulkanAPI::~VulkanAPI()
-{
-}
-
 bool VulkanAPI::Init()
 {
     return true;

@@ -8,8 +8,8 @@ namespace aero3d {
 class Application
 {
 public:
-    Application();
-    ~Application();
+    Application() = default;
+    ~Application() = default;
 
     bool Init();
     void Run();

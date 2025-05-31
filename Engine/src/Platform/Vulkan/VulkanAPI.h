@@ -8,8 +8,8 @@ namespace aero3d {
 class VulkanAPI : public RenderAPI
 {
 public:
-    VulkanAPI();
-    ~VulkanAPI();
+    VulkanAPI() = default;
+    ~VulkanAPI() = default;
 
     virtual bool Init() override;
     virtual void Shutdown() override;

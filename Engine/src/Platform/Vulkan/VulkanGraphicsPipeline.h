@@ -25,7 +25,6 @@ private:
 
     void CreateShaderModules(std::string& vertexShaderPath,
         std::string& pixelShaderPath);
-    void CreatePipelineLayout();
     void CreatePipeline(VertexLayout& vertexLayout);
 
 private:
@@ -33,7 +32,6 @@ private:
 
     VkShaderModule m_VertexShader = VK_NULL_HANDLE;
     VkShaderModule m_PixelShader = VK_NULL_HANDLE;
-    VkPipelineLayout m_Layout = VK_NULL_HANDLE;
     VkPipeline m_Pipeline = VK_NULL_HANDLE;
 
 };

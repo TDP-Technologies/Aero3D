@@ -141,7 +141,7 @@ VulkanDescriptorWriter &VulkanDescriptorWriter::WriteImage(uint32_t binding, VkD
 
 void VulkanDescriptorWriter::Build(VkDescriptorSet &set) 
 {
-    m_Pool.Allocate(m_SetLayout.Get(), set);
+    m_Pool.Allocate(m_SetLayout.GetHandle(), set);
     Overwrite(set);
 }
 

@@ -10,6 +10,7 @@
 #include "Utils/Common.h"
 #include "Platform/Vulkan/Internal/VulkanDevice.h"
 #include "Platform/Vulkan/Internal/VulkanSwapchain.h"
+#include "Platform/Vulkan/Internal/VulkanDescriptors.h"
 
 namespace aero3d {
 
@@ -50,10 +51,16 @@ public:
 
     VkCommandBuffer GetCommandBuffer() { return m_GraphicsCommandBuffers[m_CurrentImage]; }
 
+    std::vector<VkDescriptorSet>& GetDescriptorSets() { return m_DescriptorSets; }
+
+    VkPipelineLayout GetPipelineLayout() { return m_PipelineLayout; }
+
 private:
     void CreateFramebuffers();
     void CreateCommandBuffersAndCommandPools();
     void CreateSyncObjects();
+    void CreateDescriptors();
+    void CreatePipelineLayout();
 
 private:
     SDL_Window* m_Window = nullptr;
@@ -67,6 +74,10 @@ private:
     VulkanQueue m_PresentQueue;
 
     VulkanSwapchain m_Swapchain;
+
+    VulkanDescriptorSetLayout m_DescriptorSetLayout;
+    VulkanDescriptorPool m_DescriptorPool;
+    std::vector<VkDescriptorSet> m_DescriptorSets {};
 
     uint32_t m_CurrentImage = 0;
 
@@ -82,6 +93,8 @@ private:
     VkSemaphore m_ImageAvailableSemaphore = VK_NULL_HANDLE;
     VkSemaphore m_RenderFinishedSemaphore = VK_NULL_HANDLE;
     VkFence m_InFlightFence = VK_NULL_HANDLE;
+
+    VkPipelineLayout m_PipelineLayout = VK_NULL_HANDLE;
 
     VkClearValue m_ClearColor { {0.0f, 1.0f, 0.0f, 1.0f} };
     VkViewport m_Viewport { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f };

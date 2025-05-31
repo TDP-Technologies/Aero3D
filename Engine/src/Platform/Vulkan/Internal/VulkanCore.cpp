@@ -45,6 +45,8 @@ bool VulkanCore::Init(SDL_Window* window, int width, int height)
     CreateFramebuffers();
     CreateCommandBuffersAndCommandPools();
     CreateSyncObjects();
+    CreateDescriptors();
+    CreatePipelineLayout();
 
     return true;
 }
@@ -53,6 +55,11 @@ void VulkanCore::Shutdown()
 {
     vkDeviceWaitIdle(m_Device.GetHandle());
 
+    vkDestroyPipelineLayout(m_Device.GetHandle(), m_PipelineLayout, nullptr);
+
+    m_DescriptorSetLayout.Shutdown();
+    m_DescriptorPool.Shutdown();
+    
     vkDestroyFence(m_Device.GetHandle(), m_InFlightFence, nullptr);
     vkDestroySemaphore(m_Device.GetHandle(), m_RenderFinishedSemaphore, nullptr);
     vkDestroySemaphore(m_Device.GetHandle(), m_ImageAvailableSemaphore, nullptr);
@@ -114,6 +121,9 @@ void VulkanCore::RecordCommands()
     vkCmdBeginRenderPass(m_GraphicsCommandBuffers[m_CurrentImage], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
     vkCmdSetViewport(m_GraphicsCommandBuffers[m_CurrentImage], 0, 1, &m_Viewport);
     vkCmdSetScissor(m_GraphicsCommandBuffers[m_CurrentImage], 0, 1, &m_Scissor);
+
+    vkCmdBindDescriptorSets(m_GraphicsCommandBuffers[m_CurrentImage], VK_PIPELINE_BIND_POINT_GRAPHICS, 
+        m_PipelineLayout, 0, 1, &m_DescriptorSets[m_CurrentImage], 0, nullptr);
 }
 
 void VulkanCore::EndCommands()
@@ -218,6 +228,38 @@ void VulkanCore::CreateSyncObjects()
     CreateSemaphore(m_Device.GetHandle(), m_ImageAvailableSemaphore);
     CreateSemaphore(m_Device.GetHandle(), m_RenderFinishedSemaphore);
     CreateFence(m_Device.GetHandle(), m_InFlightFence);
+}
+
+void VulkanCore::CreatePipelineLayout()
+{
+    VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
+    pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+    pipelineLayoutInfo.setLayoutCount = 1;
+    VkDescriptorSetLayout layouts[] = { m_DescriptorSetLayout.GetHandle() };
+    pipelineLayoutInfo.pSetLayouts = layouts;
+
+    A3D_CHECK_VKRESULT(vkCreatePipelineLayout(m_Device.GetHandle(), &pipelineLayoutInfo, nullptr, &m_PipelineLayout));
+}
+
+void VulkanCore::CreateDescriptors()
+{
+    uint32_t framesInFlight = m_Swapchain.GetNumImageViews();
+
+    m_DescriptorSetLayout.AddBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 
+        VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT);
+    m_DescriptorSetLayout.Init();
+
+    m_DescriptorPool.AddPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, framesInFlight);
+    m_DescriptorPool.SetMaxSets(framesInFlight);
+    m_DescriptorPool.Init();
+
+    m_DescriptorSets.resize(framesInFlight);
+
+    VulkanDescriptorWriter writer(m_DescriptorSetLayout, m_DescriptorPool);
+    for (auto& descriptorSet : m_DescriptorSets)
+    {
+        writer.Build(descriptorSet); 
+    }
 }
 
 } // namespace aero3d

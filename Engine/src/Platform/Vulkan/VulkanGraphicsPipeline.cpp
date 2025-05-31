@@ -39,7 +39,6 @@ VulkanGraphicsPipeline::VulkanGraphicsPipeline(VertexLayout& vertexLayout,
     m_Device = g_VulkanCore->GetDeviceHandle();
 
     CreateShaderModules(vertexShaderPath, pixelShaderPath);
-    CreatePipelineLayout();
     CreatePipeline(vertexLayout);
 }
 
@@ -47,7 +46,6 @@ VulkanGraphicsPipeline::~VulkanGraphicsPipeline()
 {
     vkDeviceWaitIdle(m_Device);
     vkDestroyPipeline(m_Device, m_Pipeline, nullptr);
-    vkDestroyPipelineLayout(m_Device, m_Layout, nullptr);
     vkDestroyShaderModule(m_Device, m_VertexShader, nullptr);
     vkDestroyShaderModule(m_Device, m_PixelShader, nullptr);
 }
@@ -93,16 +91,6 @@ void VulkanGraphicsPipeline::CreateShaderModules(std::string& vertexShaderPath,
     createInfo.pCode = spirvPixel.data();
 
     A3D_CHECK_VKRESULT(vkCreateShaderModule(m_Device, &createInfo, nullptr, &m_PixelShader));
-}
-
-void VulkanGraphicsPipeline::CreatePipelineLayout()
-{
-    VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
-    pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-    pipelineLayoutInfo.setLayoutCount = 0;
-    pipelineLayoutInfo.pushConstantRangeCount = 0;
-
-    A3D_CHECK_VKRESULT(vkCreatePipelineLayout(m_Device, &pipelineLayoutInfo, nullptr, &m_Layout));
 }
 
 void VulkanGraphicsPipeline::CreatePipeline(VertexLayout& vertexLayout)
@@ -203,7 +191,7 @@ void VulkanGraphicsPipeline::CreatePipeline(VertexLayout& vertexLayout)
     pipelineInfo.pRasterizationState = &rasterizer;
     pipelineInfo.pMultisampleState = &multisampling;
     pipelineInfo.pColorBlendState = &colorBlending;
-    pipelineInfo.layout = m_Layout;
+    pipelineInfo.layout = g_VulkanCore->GetPipelineLayout();
     pipelineInfo.renderPass = g_VulkanCore->GetRenderPass();
     pipelineInfo.subpass = 0;
     pipelineInfo.pDynamicState = &dynamicState;

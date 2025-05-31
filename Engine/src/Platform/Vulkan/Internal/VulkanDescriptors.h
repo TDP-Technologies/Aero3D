@@ -21,7 +21,7 @@ public:
     void Init();
     void Shutdown();
 
-    VkDescriptorSetLayout Get() const { return m_DescriptorSetLayout; }
+    VkDescriptorSetLayout GetHandle() const { return m_DescriptorSetLayout; }
 
 private:
     VkDevice m_Device = VK_NULL_HANDLE;

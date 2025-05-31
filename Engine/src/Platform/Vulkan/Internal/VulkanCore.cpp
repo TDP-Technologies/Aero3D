@@ -255,10 +255,11 @@ void VulkanCore::CreateDescriptors()
 
     m_DescriptorSets.resize(framesInFlight);
 
-    VulkanDescriptorWriter writer(m_DescriptorSetLayout, m_DescriptorPool);
+    m_DescriptorWriter.Init(&m_DescriptorSetLayout, &m_DescriptorPool);
+    
     for (auto& descriptorSet : m_DescriptorSets)
     {
-        writer.Build(descriptorSet); 
+        m_DescriptorWriter.Build(descriptorSet); 
     }
 }
 

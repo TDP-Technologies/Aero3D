@@ -64,9 +64,9 @@ Ref<IndexBuffer> VulkanAPI::CreateIndexBuffer(void* data, size_t size, size_t co
     return std::make_shared<VulkanIndexBuffer>(data, size, count);
 }
 
-Ref<ConstantBuffer> VulkanAPI::CreateConstantBuffer(void* data, size_t size)
+Ref<ConstantBuffer> VulkanAPI::CreateConstantBuffer(size_t size)
 {
-    return nullptr;
+    return std::make_shared<VulkanConstantBuffer>(size);
 }
 
 Ref<GraphicsPipeline> VulkanAPI::CreateGraphicsPipeline(VertexLayout& vertexLayout, std::string& vertexPath, std::string& pixelPath)

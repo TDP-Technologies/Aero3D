@@ -40,20 +40,17 @@ public:
 
     VkInstance GetInstance() { return m_Instance; }
     VkSurfaceKHR GetSurface() { return m_Surface; }
-
     VkDevice GetDeviceHandle() { return m_Device.GetHandle(); }
     VkPhysicalDevice GetPhysDeviceHandle() { return m_Device.GetPhysicalDevice().Device; }
-
     const VulkanDevice* GetDevice() const { return &m_Device; }
     const VulkanSwapchain* GetSwapchain() const { return &m_Swapchain; }
-
     VkRenderPass GetRenderPass() { return m_RenderPass; }
-
     VkCommandBuffer GetCommandBuffer() { return m_GraphicsCommandBuffers[m_CurrentImage]; }
-
     std::vector<VkDescriptorSet>& GetDescriptorSets() { return m_DescriptorSets; }
-
+    VulkanDescriptorWriter* GetDescriptorWritter() { return &m_DescriptorWriter; }
     VkPipelineLayout GetPipelineLayout() { return m_PipelineLayout; }
+    uint32_t GetNumFrames() { return m_Swapchain.GetNumImageViews(); }
+    uint32_t GetCurrentFrame() { return m_CurrentImage; }
 
 private:
     void CreateFramebuffers();
@@ -78,6 +75,7 @@ private:
     VulkanDescriptorSetLayout m_DescriptorSetLayout;
     VulkanDescriptorPool m_DescriptorPool;
     std::vector<VkDescriptorSet> m_DescriptorSets {};
+    VulkanDescriptorWriter m_DescriptorWriter;
 
     uint32_t m_CurrentImage = 0;
 

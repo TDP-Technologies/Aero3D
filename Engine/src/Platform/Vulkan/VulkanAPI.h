@@ -27,7 +27,7 @@ public:
 
     virtual Ref<VertexBuffer> CreateVertexBuffer(void* data, size_t size) override;
     virtual Ref<IndexBuffer> CreateIndexBuffer(void* data, size_t size, size_t count) override;
-    virtual Ref<ConstantBuffer> CreateConstantBuffer(void* data, size_t size) override;
+    virtual Ref<ConstantBuffer> CreateConstantBuffer(size_t size) override;
 
     virtual Ref<GraphicsPipeline> CreateGraphicsPipeline(VertexLayout& vertexLayout,
         std::string& vertexPath, std::string& pixelPath) override;

@@ -39,7 +39,7 @@ public:
 
     virtual Ref<VertexBuffer> CreateVertexBuffer(void* data, size_t size) = 0;
     virtual Ref<IndexBuffer> CreateIndexBuffer(void* data, size_t size, size_t count) = 0;
-    virtual Ref<ConstantBuffer> CreateConstantBuffer(void* data, size_t size) = 0;
+    virtual Ref<ConstantBuffer> CreateConstantBuffer(size_t size) = 0;
 
     virtual Ref<GraphicsPipeline> CreateGraphicsPipeline(VertexLayout& vertexLayout,
         std::string& vertexPath, std::string& pixelPath) = 0;

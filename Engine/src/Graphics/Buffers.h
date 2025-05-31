@@ -48,7 +48,7 @@ public:
 
     virtual void Bind(size_t slot) = 0;
 
-    virtual void SetData(void* data, size_t slot) = 0;
+    virtual void WriteData(void* data) = 0;
 
 };
 

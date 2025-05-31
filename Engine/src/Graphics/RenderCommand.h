@@ -30,7 +30,7 @@ public:
 
     static Ref<VertexBuffer> CreateVertexBuffer(void* data, size_t size);
     static Ref<IndexBuffer> CreateIndexBuffer(void* data, size_t size, size_t count);
-    static Ref<ConstantBuffer> CreateConstantBuffer(void* data, size_t size);
+    static Ref<ConstantBuffer> CreateConstantBuffer(size_t size);
 
     static Ref<GraphicsPipeline> CreateGraphicsPipeline(VertexLayout& vertexLayout,
         std::string vertexPath, std::string pixelPath);

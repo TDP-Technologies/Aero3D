@@ -104,14 +104,15 @@ void VulkanDescriptorPool::Reset()
     vkResetDescriptorPool(m_Device, m_DescriptorPool, 0);
 }
 
-VulkanDescriptorWriter::VulkanDescriptorWriter(VulkanDescriptorSetLayout &layout, VulkanDescriptorPool &pool)
-    : m_SetLayout(layout), m_Pool(pool) 
+void VulkanDescriptorWriter::Init(VulkanDescriptorSetLayout* layout, VulkanDescriptorPool* pool)
 {
+    m_SetLayout = layout;
+    m_Pool = pool;
 }
 
 VulkanDescriptorWriter &VulkanDescriptorWriter::WriteBuffer(uint32_t binding, VkDescriptorBufferInfo *bufferInfo) 
 {
-    auto &desc = m_SetLayout.m_Bindings[binding];
+    auto &desc = m_SetLayout->m_Bindings[binding];
 
     VkWriteDescriptorSet write{};
     write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -126,7 +127,7 @@ VulkanDescriptorWriter &VulkanDescriptorWriter::WriteBuffer(uint32_t binding, Vk
 
 VulkanDescriptorWriter &VulkanDescriptorWriter::WriteImage(uint32_t binding, VkDescriptorImageInfo *imageInfo)
 {
-    auto &desc = m_SetLayout.m_Bindings[binding];
+    auto &desc = m_SetLayout->m_Bindings[binding];
 
     VkWriteDescriptorSet write{};
     write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -141,7 +142,7 @@ VulkanDescriptorWriter &VulkanDescriptorWriter::WriteImage(uint32_t binding, VkD
 
 void VulkanDescriptorWriter::Build(VkDescriptorSet &set) 
 {
-    m_Pool.Allocate(m_SetLayout.GetHandle(), set);
+    m_Pool->Allocate(m_SetLayout->GetHandle(), set);
     Overwrite(set);
 }
 
@@ -152,7 +153,7 @@ void VulkanDescriptorWriter::Overwrite(VkDescriptorSet &set)
         write.dstSet = set;
     }
 
-    vkUpdateDescriptorSets(m_Pool.m_Device, static_cast<uint32_t>(m_Writes.size()), m_Writes.data(), 0, nullptr);
+    vkUpdateDescriptorSets(m_Pool->m_Device, static_cast<uint32_t>(m_Writes.size()), m_Writes.data(), 0, nullptr);
 }
 
 } // namespace aero3d

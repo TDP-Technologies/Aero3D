@@ -67,9 +67,9 @@ Ref<IndexBuffer> RenderCommand::CreateIndexBuffer(void* data, size_t size, size_
     return s_API->CreateIndexBuffer(data, size, count);
 }
 
-Ref<ConstantBuffer> RenderCommand::CreateConstantBuffer(void* data, size_t size)
+Ref<ConstantBuffer> RenderCommand::CreateConstantBuffer(size_t size)
 {
-    return s_API->CreateConstantBuffer(data, size);
+    return s_API->CreateConstantBuffer(size);
 }
 
 Ref<GraphicsPipeline> RenderCommand::CreateGraphicsPipeline(VertexLayout& vertexLayout,

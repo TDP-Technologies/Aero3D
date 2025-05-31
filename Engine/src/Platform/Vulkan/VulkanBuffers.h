@@ -39,6 +39,23 @@ private:
 
 };
 
+class VulkanConstantBuffer : public ConstantBuffer
+{
+public:
+    VulkanConstantBuffer(size_t size);
+    ~VulkanConstantBuffer();
+
+    virtual void Bind(size_t slot) override;
+
+    virtual void WriteData(void* data) override;
+
+private:
+    VkDevice m_Device = VK_NULL_HANDLE;
+
+    VulkanBuffer m_Buffer {};
+
+};
+
 } // namespace aero3d
 
 #endif // AERO3D_PLATFORM_VULKAN_VULKANBUFFERS_H_

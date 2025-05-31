@@ -1,5 +1,7 @@
 #include "Application.h"
 
+#include <random>
+
 #include "Utils/Log.h"
 #include "Core/Window.h"
 #include "IO/VFS.h"
@@ -51,6 +53,14 @@ void Application::Run()
 
     Ref<VertexBuffer> vb = RenderCommand::CreateVertexBuffer(vertices, 15 * 4);
     Ref<IndexBuffer> ib = RenderCommand::CreateIndexBuffer(indices, 12, 3);
+    Ref<ConstantBuffer> cb = RenderCommand::CreateConstantBuffer(16);
+    cb->Bind(0);
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<float> dist(0.0f, 1.0f);
+
+    float constants[4] = { 0.4f, 0.5f, 0.1f, 1.0f };
 
     while (m_IsRunning)
     {
@@ -61,6 +71,13 @@ void Application::Run()
             RenderCommand::RecordCommands();
 
             pipeline->Bind();
+
+            constants[0] = dist(gen);
+            constants[1] = dist(gen);
+            constants[2] = dist(gen);
+
+            cb->WriteData(&constants);
+
             RenderCommand::DrawIndexed(vb, ib);
 
             RenderCommand::EndCommands();

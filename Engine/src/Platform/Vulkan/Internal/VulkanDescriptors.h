@@ -48,6 +48,8 @@ public:
     void Free(std::vector<VkDescriptorSet> &sets);
     void Reset();
 
+    VkDescriptorPool GetHandle() { return m_DescriptorPool; }
+
 private:
     VkDevice m_Device = VK_NULL_HANDLE;
     VkDescriptorPool m_DescriptorPool = VK_NULL_HANDLE;
@@ -61,7 +63,10 @@ friend class VulkanDescriptorWriter;
 class VulkanDescriptorWriter 
 {
 public:
-    VulkanDescriptorWriter(VulkanDescriptorSetLayout &layout, VulkanDescriptorPool &pool);
+    VulkanDescriptorWriter() = default;
+    ~VulkanDescriptorWriter() = default;
+
+    void Init(VulkanDescriptorSetLayout* layout, VulkanDescriptorPool* pool);
 
     VulkanDescriptorWriter &WriteBuffer(uint32_t binding, VkDescriptorBufferInfo *bufferInfo);
     VulkanDescriptorWriter &WriteImage(uint32_t binding, VkDescriptorImageInfo *imageInfo);
@@ -70,8 +75,8 @@ public:
     void Overwrite(VkDescriptorSet &set);
 
 private:
-    VulkanDescriptorSetLayout &m_SetLayout;
-    VulkanDescriptorPool &m_Pool;
+    VulkanDescriptorSetLayout* m_SetLayout = nullptr;
+    VulkanDescriptorPool* m_Pool = nullptr;
     std::vector<VkWriteDescriptorSet> m_Writes {};
 
 };

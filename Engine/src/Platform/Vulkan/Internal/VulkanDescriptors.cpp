@@ -24,21 +24,12 @@ void VulkanDescriptorSetLayout::Init()
     for (auto &[key, value] : m_Bindings)
         bindingsVec.push_back(value);
 
-    VkDescriptorSetLayoutCreateInfo info{};
-    info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-    info.bindingCount = static_cast<uint32_t>(bindingsVec.size());
-    info.pBindings = bindingsVec.data();
-
-    A3D_CHECK_VKRESULT(vkCreateDescriptorSetLayout(m_Device, &info, nullptr, &m_DescriptorSetLayout));
+    CreateDescriptorSetLayout(m_Device, m_DescriptorSetLayout, bindingsVec.data(), bindingsVec.size());
 }
 
 void VulkanDescriptorSetLayout::Shutdown()
 {
-    if (m_DescriptorSetLayout != VK_NULL_HANDLE)
-    {
-        vkDestroyDescriptorSetLayout(m_Device, m_DescriptorSetLayout, nullptr);
-        m_DescriptorSetLayout = VK_NULL_HANDLE;
-    }
+    vkDestroyDescriptorSetLayout(m_Device, m_DescriptorSetLayout, nullptr);
 }
 
 void VulkanDescriptorPool::AddPoolSize(VkDescriptorType type, uint32_t count) 
@@ -60,34 +51,18 @@ void VulkanDescriptorPool::Init()
 {
     m_Device = g_VulkanCore->GetDeviceHandle();
 
-    VkDescriptorPoolCreateInfo poolInfo{};
-    poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-    poolInfo.poolSizeCount = static_cast<uint32_t>(m_PoolSizes.size());
-    poolInfo.pPoolSizes = m_PoolSizes.data();
-    poolInfo.maxSets = m_MaxSets;
-    poolInfo.flags = m_Flags;
-
-    A3D_CHECK_VKRESULT(vkCreateDescriptorPool(m_Device, &poolInfo, nullptr, &m_DescriptorPool));
+    CreateDescriptorPool(m_Device, m_DescriptorPool, m_PoolSizes.data(), m_PoolSizes.size(),
+        m_MaxSets, m_Flags);
 }
 
 void VulkanDescriptorPool::Shutdown() 
 {
-    if (m_DescriptorPool != VK_NULL_HANDLE) 
-    {
-        vkDestroyDescriptorPool(m_Device, m_DescriptorPool, nullptr);
-        m_DescriptorPool = VK_NULL_HANDLE;
-    }
+    vkDestroyDescriptorPool(m_Device, m_DescriptorPool, nullptr);
 }
 
 void VulkanDescriptorPool::Allocate(VkDescriptorSetLayout layout, VkDescriptorSet &set) 
 {
-    VkDescriptorSetAllocateInfo allocInfo{};
-    allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-    allocInfo.descriptorPool = m_DescriptorPool;
-    allocInfo.descriptorSetCount = 1;
-    allocInfo.pSetLayouts = &layout;
-
-    A3D_CHECK_VKRESULT(vkAllocateDescriptorSets(m_Device, &allocInfo, &set));
+    AllocateDescriptorSet(m_Device, m_DescriptorPool, layout, set);
 }
 
 void VulkanDescriptorPool::Free(std::vector<VkDescriptorSet> &sets) 

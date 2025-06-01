@@ -86,7 +86,8 @@ VulkanConstantBuffer::~VulkanConstantBuffer()
 void VulkanConstantBuffer::Bind(size_t slot)
 {
     std::vector<VkDescriptorSet> descriptorSets = g_VulkanCore->GetDescriptorSets();
-    VulkanDescriptorWriter* writter = g_VulkanCore->GetDescriptorWritter();
+    VulkanDescriptorWriter writter;
+    writter.Init(g_VulkanCore->GetDescriptorSetLayout(), g_VulkanCore->GetDescriptorPool());
     for (int i = 0; i < descriptorSets.size(); i++)
     {
         VkDescriptorBufferInfo bufferInfo{};
@@ -94,7 +95,7 @@ void VulkanConstantBuffer::Bind(size_t slot)
         bufferInfo.offset = g_VulkanCore->GetCurrentFrame() * m_Buffer.GetAlignmentSize();
         bufferInfo.range  = m_Buffer.GetInstanceSize();
 
-        writter->WriteBuffer(slot, &bufferInfo)
+        writter.WriteBuffer(slot, &bufferInfo)
                 .Overwrite(descriptorSets[i]);
     }
 }

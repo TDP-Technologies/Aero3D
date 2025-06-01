@@ -67,18 +67,18 @@ void VulkanSwapchain::CreateSwapchain(const VulkanPhysicalDevice& physDevice, in
     VkPresentModeKHR presentMode = ChooseSwapPresentMode(swapChainSupport.PresentModes);
     VkExtent2D extent = { static_cast<uint32_t>(width), static_cast<uint32_t>(height) };
 
-    uint32_t imageCount = swapChainSupport.Capabilities.minImageCount + 1;
+    m_NumFrames = swapChainSupport.Capabilities.minImageCount + 1;
     if (swapChainSupport.Capabilities.maxImageCount > 0 &&
-        imageCount > swapChainSupport.Capabilities.maxImageCount)
+        m_NumFrames > swapChainSupport.Capabilities.maxImageCount)
     {
-        imageCount = swapChainSupport.Capabilities.maxImageCount;
+        m_NumFrames = swapChainSupport.Capabilities.maxImageCount;
     }
 
     VkSwapchainCreateInfoKHR createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
     createInfo.surface = m_Surface;
 
-    createInfo.minImageCount = imageCount;
+    createInfo.minImageCount = m_NumFrames;
     createInfo.imageFormat = surfaceFormat.format;
     createInfo.imageColorSpace = surfaceFormat.colorSpace;
     createInfo.imageExtent = extent;
@@ -107,9 +107,9 @@ void VulkanSwapchain::CreateSwapchain(const VulkanPhysicalDevice& physDevice, in
 
     A3D_CHECK_VKRESULT(vkCreateSwapchainKHR(m_Device, &createInfo, nullptr, &m_Swapchain));
 
-    vkGetSwapchainImagesKHR(m_Device, m_Swapchain, &imageCount, nullptr);
-    m_Images.resize(imageCount);
-    vkGetSwapchainImagesKHR(m_Device, m_Swapchain, &imageCount, m_Images.data());
+    vkGetSwapchainImagesKHR(m_Device, m_Swapchain, &m_NumFrames, nullptr);
+    m_Images.resize(m_NumFrames);
+    vkGetSwapchainImagesKHR(m_Device, m_Swapchain, &m_NumFrames, m_Images.data());
 
     m_ImageFormat = surfaceFormat.format;
     m_Extent = extent;
@@ -117,7 +117,7 @@ void VulkanSwapchain::CreateSwapchain(const VulkanPhysicalDevice& physDevice, in
 
 void VulkanSwapchain::CreateImageViews()
 {
-    m_ImageViews.resize(m_Images.size());
+    m_ImageViews.resize(m_NumFrames);
 
     for (size_t i = 0; i < m_Images.size(); i++) 
     {

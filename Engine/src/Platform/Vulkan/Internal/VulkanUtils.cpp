@@ -295,4 +295,42 @@ void CreateBuffer(VkDevice device, VkBufferUsageFlags usage, size_t size, VkBuff
     A3D_CHECK_VKRESULT(vkBindBufferMemory(device, buffer, deviceMemory, 0));
 }
 
+////////////////////////////////////////////// Descriptor /////////////////////////////////////////////////
+
+void CreateDescriptorSetLayout(VkDevice device, VkDescriptorSetLayout& layout, 
+    VkDescriptorSetLayoutBinding* pBindings, uint32_t count)
+{
+    VkDescriptorSetLayoutCreateInfo info{};
+    info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+    info.bindingCount = count;
+    info.pBindings = pBindings;
+
+    A3D_CHECK_VKRESULT(vkCreateDescriptorSetLayout(device, &info, nullptr, &layout));
+}
+
+void CreateDescriptorPool(VkDevice device, VkDescriptorPool& pool, VkDescriptorPoolSize* pSizes,
+    uint32_t count, uint32_t maxSets, VkDescriptorPoolCreateFlags flags)
+{
+    VkDescriptorPoolCreateInfo poolInfo{};
+    poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    poolInfo.poolSizeCount = count;
+    poolInfo.pPoolSizes = pSizes;
+    poolInfo.maxSets = maxSets;
+    poolInfo.flags = flags;
+
+    A3D_CHECK_VKRESULT(vkCreateDescriptorPool(device, &poolInfo, nullptr, &pool));
+}
+
+void AllocateDescriptorSet(VkDevice device, VkDescriptorPool pool, VkDescriptorSetLayout& layout,
+    VkDescriptorSet& set)
+{
+    VkDescriptorSetAllocateInfo allocInfo{};
+    allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+    allocInfo.descriptorPool = pool;
+    allocInfo.descriptorSetCount = 1;
+    allocInfo.pSetLayouts = &layout;
+
+    A3D_CHECK_VKRESULT(vkAllocateDescriptorSets(device, &allocInfo, &set));
+}
+
 } // namespace aero3d

@@ -47,9 +47,10 @@ public:
     VkRenderPass GetRenderPass() { return m_RenderPass; }
     VkCommandBuffer GetCommandBuffer() { return m_GraphicsCommandBuffers[m_CurrentImage]; }
     std::vector<VkDescriptorSet>& GetDescriptorSets() { return m_DescriptorSets; }
-    VulkanDescriptorWriter* GetDescriptorWritter() { return &m_DescriptorWriter; }
+    VulkanDescriptorSetLayout* GetDescriptorSetLayout() { return &m_DescriptorSetLayout; }
+    VulkanDescriptorPool* GetDescriptorPool() { return &m_DescriptorPool; }
     VkPipelineLayout GetPipelineLayout() { return m_PipelineLayout; }
-    uint32_t GetNumFrames() { return m_Swapchain.GetNumImageViews(); }
+    uint32_t GetNumFrames() { return m_Swapchain.GetNumFrames(); }
     uint32_t GetCurrentFrame() { return m_CurrentImage; }
 
 private:
@@ -75,8 +76,6 @@ private:
     VulkanDescriptorSetLayout m_DescriptorSetLayout;
     VulkanDescriptorPool m_DescriptorPool;
     std::vector<VkDescriptorSet> m_DescriptorSets {};
-    VulkanDescriptorWriter m_DescriptorWriter;
-
     uint32_t m_CurrentImage = 0;
 
     VkRenderPass m_RenderPass = VK_NULL_HANDLE;

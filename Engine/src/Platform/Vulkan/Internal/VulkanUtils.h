@@ -55,6 +55,17 @@ uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties,
 void CreateBuffer(VkDevice device, VkBufferUsageFlags usage, size_t size, VkBuffer& buffer,
     VkMemoryPropertyFlags properties, VkPhysicalDevice physDevice, VkDeviceMemory& deviceMemory);
 
+////////////////////////////////////////////// Descriptor /////////////////////////////////////////////////
+
+void CreateDescriptorSetLayout(VkDevice device, VkDescriptorSetLayout& layout,
+    VkDescriptorSetLayoutBinding* pBindings, uint32_t count);
+
+void CreateDescriptorPool(VkDevice device, VkDescriptorPool& pool, VkDescriptorPoolSize* pSizes,
+    uint32_t count, uint32_t maxSets, VkDescriptorPoolCreateFlags flags);
+
+void AllocateDescriptorSet(VkDevice device, VkDescriptorPool pool, VkDescriptorSetLayout& layout,
+    VkDescriptorSet& set);
+
 } // namespace aero3d
 
 #endif // AERO3D_PLATFORM_VULKAN_INTERNAL_VULKANUTILS_H_

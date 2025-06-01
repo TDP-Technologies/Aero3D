@@ -67,7 +67,7 @@ void VulkanCore::Shutdown()
     vkDestroyCommandPool(m_Device.GetHandle(), m_GraphicsCommandPool, nullptr);
     vkDestroyCommandPool(m_Device.GetHandle(), m_CopyCommandPool, nullptr);
 
-    for (auto framebuffer : m_SwapchainFramebuffers) 
+    for (auto& framebuffer : m_SwapchainFramebuffers) 
     {
         vkDestroyFramebuffer(m_Device.GetHandle(), framebuffer, nullptr);
     }
@@ -190,7 +190,7 @@ void VulkanCore::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize
 
 void VulkanCore::CreateFramebuffers()
 {
-    m_SwapchainFramebuffers.resize(m_Swapchain.GetNumImageViews());
+    m_SwapchainFramebuffers.resize(m_Swapchain.GetNumFrames());
 
     VkExtent2D swapchainExtent = m_Swapchain.GetExtent();
         
@@ -199,7 +199,7 @@ void VulkanCore::CreateFramebuffers()
     m_Scissor.extent.width = swapchainExtent.width;
     m_Scissor.extent.height = swapchainExtent.height;
 
-    for (size_t i = 0; i < m_Swapchain.GetNumImageViews(); i++)
+    for (size_t i = 0; i < m_SwapchainFramebuffers.size(); i++)
     {
         CreateFramebuffer(m_Device.GetHandle(), m_Swapchain.GetImageView(i), 
             swapchainExtent, m_RenderPass, m_SwapchainFramebuffers[i]);
@@ -217,7 +217,7 @@ void VulkanCore::CreateCommandBuffersAndCommandPools()
     CreateCommandPool(m_Device.GetHandle(), m_Device.GetPhysicalDevice().QueueFamilyIndices.GraphicsFamily.value(),
         m_GraphicsCommandPool);
 
-    m_GraphicsCommandBuffers.resize(m_SwapchainFramebuffers.size());
+    m_GraphicsCommandBuffers.resize(m_Swapchain.GetNumFrames());
 
     CreateCommandBuffers(m_Device.GetHandle(), m_GraphicsCommandPool, 
         static_cast<uint32_t>(m_GraphicsCommandBuffers.size()), m_GraphicsCommandBuffers.data());
@@ -243,7 +243,7 @@ void VulkanCore::CreatePipelineLayout()
 
 void VulkanCore::CreateDescriptors()
 {
-    uint32_t framesInFlight = m_Swapchain.GetNumImageViews();
+    uint32_t framesInFlight = m_Swapchain.GetNumFrames();
 
     m_DescriptorSetLayout.AddBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 
         VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT);
@@ -255,11 +255,12 @@ void VulkanCore::CreateDescriptors()
 
     m_DescriptorSets.resize(framesInFlight);
 
-    m_DescriptorWriter.Init(&m_DescriptorSetLayout, &m_DescriptorPool);
+    VulkanDescriptorWriter writter;
+    writter.Init(&m_DescriptorSetLayout, &m_DescriptorPool);
     
     for (auto& descriptorSet : m_DescriptorSets)
     {
-        m_DescriptorWriter.Build(descriptorSet); 
+        writter.Build(descriptorSet); 
     }
 }
 

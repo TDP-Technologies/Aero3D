@@ -45,13 +45,13 @@ public:
     const VulkanDevice* GetDevice() const { return &m_Device; }
     const VulkanSwapchain* GetSwapchain() const { return &m_Swapchain; }
     VkRenderPass GetRenderPass() { return m_RenderPass; }
-    VkCommandBuffer GetCommandBuffer() { return m_GraphicsCommandBuffers[m_CurrentImage]; }
+    VkCommandBuffer GetCommandBuffer() { return m_GraphicsCommandBuffers[m_CurrentFrame]; }
     std::vector<VkDescriptorSet>& GetDescriptorSets() { return m_DescriptorSets; }
     VulkanDescriptorSetLayout* GetDescriptorSetLayout() { return &m_DescriptorSetLayout; }
     VulkanDescriptorPool* GetDescriptorPool() { return &m_DescriptorPool; }
     VkPipelineLayout GetPipelineLayout() { return m_PipelineLayout; }
-    uint32_t GetNumFrames() { return m_Swapchain.GetNumFrames(); }
-    uint32_t GetCurrentFrame() { return m_CurrentImage; }
+    uint32_t GetNumFrames() { return m_Swapchain.GetNumImages(); }
+    uint32_t GetCurrentFrame() { return m_CurrentFrame; }
 
 private:
     void CreateFramebuffers();
@@ -76,6 +76,8 @@ private:
     VulkanDescriptorSetLayout m_DescriptorSetLayout;
     VulkanDescriptorPool m_DescriptorPool;
     std::vector<VkDescriptorSet> m_DescriptorSets {};
+
+    uint32_t m_CurrentFrame = 0;
     uint32_t m_CurrentImage = 0;
 
     VkRenderPass m_RenderPass = VK_NULL_HANDLE;
@@ -87,9 +89,9 @@ private:
     VkCommandPool m_CopyCommandPool = VK_NULL_HANDLE;
     VkCommandBuffer m_CopyCommandBuffer = VK_NULL_HANDLE;
 
-    VkSemaphore m_ImageAvailableSemaphore = VK_NULL_HANDLE;
-    VkSemaphore m_RenderFinishedSemaphore = VK_NULL_HANDLE;
-    VkFence m_InFlightFence = VK_NULL_HANDLE;
+    std::vector<VkSemaphore> m_ImageAvailableSemaphores {};
+    std::vector<VkSemaphore> m_RenderFinishedSemaphores {};
+    std::vector<VkFence> m_InFlightFences {};
 
     VkPipelineLayout m_PipelineLayout = VK_NULL_HANDLE;
 

@@ -60,9 +60,12 @@ void VulkanCore::Shutdown()
     m_DescriptorSetLayout.Shutdown();
     m_DescriptorPool.Shutdown();
     
-    vkDestroyFence(m_Device.GetHandle(), m_InFlightFence, nullptr);
-    vkDestroySemaphore(m_Device.GetHandle(), m_RenderFinishedSemaphore, nullptr);
-    vkDestroySemaphore(m_Device.GetHandle(), m_ImageAvailableSemaphore, nullptr);
+    for (int i = 0; i < m_Swapchain.GetNumImages(); i++)
+    {
+        vkDestroyFence(m_Device.GetHandle(), m_InFlightFences[i], nullptr);
+        vkDestroySemaphore(m_Device.GetHandle(), m_RenderFinishedSemaphores[i], nullptr);
+        vkDestroySemaphore(m_Device.GetHandle(), m_ImageAvailableSemaphores[i], nullptr);
+    }
 
     vkDestroyCommandPool(m_Device.GetHandle(), m_GraphicsCommandPool, nullptr);
     vkDestroyCommandPool(m_Device.GetHandle(), m_CopyCommandPool, nullptr);
@@ -100,13 +103,13 @@ void VulkanCore::ResizeBuffers(int width, int height)
 
 void VulkanCore::RecordCommands()
 {
-    vkWaitForFences(m_Device.GetHandle(), 1, &m_InFlightFence, VK_TRUE, UINT64_MAX);
-    vkResetFences(m_Device.GetHandle(), 1, &m_InFlightFence);
+    vkWaitForFences(m_Device.GetHandle(), 1, &m_InFlightFences[m_CurrentFrame], VK_TRUE, UINT64_MAX);
+    vkResetFences(m_Device.GetHandle(), 1, &m_InFlightFences[m_CurrentFrame]);
 
     vkAcquireNextImageKHR(m_Device.GetHandle(), m_Swapchain.GetHandle(),
-        UINT64_MAX, m_ImageAvailableSemaphore, VK_NULL_HANDLE, &m_CurrentImage);
+        UINT64_MAX, m_ImageAvailableSemaphores[m_CurrentFrame], VK_NULL_HANDLE, &m_CurrentImage);
 
-    BeginCommandBuffer(m_GraphicsCommandBuffers[m_CurrentImage]);
+    BeginCommandBuffer(m_GraphicsCommandBuffers[m_CurrentFrame]);
 
     VkRenderPassBeginInfo renderPassInfo{};
     renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -118,36 +121,38 @@ void VulkanCore::RecordCommands()
     renderPassInfo.clearValueCount = 1;
     renderPassInfo.pClearValues = &m_ClearColor;
 
-    vkCmdBeginRenderPass(m_GraphicsCommandBuffers[m_CurrentImage], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-    vkCmdSetViewport(m_GraphicsCommandBuffers[m_CurrentImage], 0, 1, &m_Viewport);
-    vkCmdSetScissor(m_GraphicsCommandBuffers[m_CurrentImage], 0, 1, &m_Scissor);
+    vkCmdBeginRenderPass(m_GraphicsCommandBuffers[m_CurrentFrame], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+    vkCmdSetViewport(m_GraphicsCommandBuffers[m_CurrentFrame], 0, 1, &m_Viewport);
+    vkCmdSetScissor(m_GraphicsCommandBuffers[m_CurrentFrame], 0, 1, &m_Scissor);
 
-    vkCmdBindDescriptorSets(m_GraphicsCommandBuffers[m_CurrentImage], VK_PIPELINE_BIND_POINT_GRAPHICS, 
-        m_PipelineLayout, 0, 1, &m_DescriptorSets[m_CurrentImage], 0, nullptr);
+    vkCmdBindDescriptorSets(m_GraphicsCommandBuffers[m_CurrentFrame], VK_PIPELINE_BIND_POINT_GRAPHICS, 
+        m_PipelineLayout, 0, 1, &m_DescriptorSets[m_CurrentFrame], 0, nullptr);
 }
 
 void VulkanCore::EndCommands()
 {
-    vkCmdEndRenderPass(m_GraphicsCommandBuffers[m_CurrentImage]);
-    vkEndCommandBuffer(m_GraphicsCommandBuffers[m_CurrentImage]);
+    vkCmdEndRenderPass(m_GraphicsCommandBuffers[m_CurrentFrame]);
+    vkEndCommandBuffer(m_GraphicsCommandBuffers[m_CurrentFrame]);
 }
 
 void VulkanCore::Draw(size_t count)
 {
-    vkCmdDraw(m_GraphicsCommandBuffers[m_CurrentImage], count, 1, 0, 0);
+    vkCmdDraw(m_GraphicsCommandBuffers[m_CurrentFrame], count, 1, 0, 0);
 }
 
 void VulkanCore::DrawIndexed(size_t count)
 {
-    vkCmdDrawIndexed(m_GraphicsCommandBuffers[m_CurrentImage], count, 1, 0, 0, 0);
+    vkCmdDrawIndexed(m_GraphicsCommandBuffers[m_CurrentFrame], count, 1, 0, 0, 0);
 }
 
 void VulkanCore::SwapBuffers()
 {
-    m_GraphicsQueue.SubmitAsync(&m_GraphicsCommandBuffers[m_CurrentImage], &m_ImageAvailableSemaphore,
-        &m_RenderFinishedSemaphore, m_InFlightFence);
+    m_GraphicsQueue.SubmitAsync(&m_GraphicsCommandBuffers[m_CurrentFrame], &m_ImageAvailableSemaphores[m_CurrentFrame],
+        &m_RenderFinishedSemaphores[m_CurrentFrame], m_InFlightFences[m_CurrentFrame]);
 
-    m_PresentQueue.Present(&m_RenderFinishedSemaphore, m_Swapchain.GetHandleAddr(), m_CurrentImage);
+    m_PresentQueue.Present(&m_RenderFinishedSemaphores[m_CurrentFrame], m_Swapchain.GetHandleAddr(), m_CurrentImage);
+
+    m_CurrentFrame = (m_CurrentFrame + 1) % m_Swapchain.GetNumImages();
 }
 
 void VulkanCore::SetClearColor(float r, float g, float b, float a)
@@ -190,7 +195,7 @@ void VulkanCore::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize
 
 void VulkanCore::CreateFramebuffers()
 {
-    m_SwapchainFramebuffers.resize(m_Swapchain.GetNumFrames());
+    m_SwapchainFramebuffers.resize(m_Swapchain.GetNumImages());
 
     VkExtent2D swapchainExtent = m_Swapchain.GetExtent();
         
@@ -217,7 +222,7 @@ void VulkanCore::CreateCommandBuffersAndCommandPools()
     CreateCommandPool(m_Device.GetHandle(), m_Device.GetPhysicalDevice().QueueFamilyIndices.GraphicsFamily.value(),
         m_GraphicsCommandPool);
 
-    m_GraphicsCommandBuffers.resize(m_Swapchain.GetNumFrames());
+    m_GraphicsCommandBuffers.resize(m_Swapchain.GetNumImages());
 
     CreateCommandBuffers(m_Device.GetHandle(), m_GraphicsCommandPool, 
         static_cast<uint32_t>(m_GraphicsCommandBuffers.size()), m_GraphicsCommandBuffers.data());
@@ -225,9 +230,18 @@ void VulkanCore::CreateCommandBuffersAndCommandPools()
 
 void VulkanCore::CreateSyncObjects()
 {
-    CreateSemaphore(m_Device.GetHandle(), m_ImageAvailableSemaphore);
-    CreateSemaphore(m_Device.GetHandle(), m_RenderFinishedSemaphore);
-    CreateFence(m_Device.GetHandle(), m_InFlightFence);
+    uint32_t numImages = m_Swapchain.GetNumImages();
+
+    m_ImageAvailableSemaphores.resize(numImages);
+    m_RenderFinishedSemaphores.resize(numImages);
+    m_InFlightFences.resize(numImages);
+
+    for (int i = 0; i < m_Swapchain.GetNumImages(); i++)
+    {
+        CreateSemaphore(m_Device.GetHandle(), m_ImageAvailableSemaphores[i]);
+        CreateSemaphore(m_Device.GetHandle(), m_RenderFinishedSemaphores[i]);
+        CreateFence(m_Device.GetHandle(), m_InFlightFences[i]);
+    }
 }
 
 void VulkanCore::CreatePipelineLayout()
@@ -243,17 +257,17 @@ void VulkanCore::CreatePipelineLayout()
 
 void VulkanCore::CreateDescriptors()
 {
-    uint32_t framesInFlight = m_Swapchain.GetNumFrames();
+    uint32_t numImages = m_Swapchain.GetNumImages();
 
     m_DescriptorSetLayout.AddBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 
         VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT);
     m_DescriptorSetLayout.Init();
 
-    m_DescriptorPool.AddPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, framesInFlight);
-    m_DescriptorPool.SetMaxSets(framesInFlight);
+    m_DescriptorPool.AddPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, numImages);
+    m_DescriptorPool.SetMaxSets(numImages);
     m_DescriptorPool.Init();
 
-    m_DescriptorSets.resize(framesInFlight);
+    m_DescriptorSets.resize(numImages);
 
     VulkanDescriptorWriter writter;
     writter.Init(&m_DescriptorSetLayout, &m_DescriptorPool);

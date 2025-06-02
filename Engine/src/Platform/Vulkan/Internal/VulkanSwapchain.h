@@ -34,7 +34,7 @@ public:
     VkSwapchainKHR* GetHandleAddr() { return &m_Swapchain; }
     VkFormat GetImageFormat() { return m_ImageFormat; }
     VkExtent2D GetExtent() { return m_Extent; }
-    uint32_t GetNumFrames() { return m_NumFrames; }
+    uint32_t GetNumImages() { return m_NumImages; }
     std::vector<VkImage>& GetImages() { return m_Images; }
     std::vector<VkImageView>& GetImageViews() { return m_ImageViews; }
     VkImage GetImage(uint32_t index) { return m_Images[index]; }
@@ -54,7 +54,7 @@ private:
     VkFormat m_ImageFormat = VK_FORMAT_UNDEFINED;
     VkExtent2D m_Extent {};
 
-    uint32_t m_NumFrames = 0;
+    uint32_t m_NumImages = 0;
     std::vector<VkImage> m_Images {};
     std::vector<VkImageView> m_ImageViews {};
 

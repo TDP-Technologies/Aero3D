@@ -41,23 +41,14 @@ protected:
 
 };
 
-class ConstantBuffer
+struct ConstantBuffer
 {
-public:
-    virtual ~ConstantBuffer() = default;
-
-    virtual void Bind(size_t slot) = 0;
-
-    virtual void WriteData(void* data) = 0;
-
+    size_t Size = 0;
+    size_t Offset = 0;
 };
 
-class Texture
+struct Texture
 {
-public:
-    virtual ~Texture() = default;
-
-    virtual void Bind(unsigned int slot) = 0;
 
 };
 

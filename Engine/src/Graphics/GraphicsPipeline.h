@@ -1,6 +1,10 @@
 #ifndef AERO3D_GRAPHICS_GRAPHICSPIPELINE_H_
 #define AERO3D_GRAPHICS_GRAPHICSPIPELINE_H_
 
+#include <stdint.h>
+
+#include <vector>
+
 namespace aero3d {
 
 enum class ElementType

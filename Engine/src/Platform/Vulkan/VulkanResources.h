@@ -1,9 +1,9 @@
-#ifndef AERO3D_PLATFORM_VULKAN_VULKANBUFFERS_H_
-#define AERO3D_PLATFORM_VULKAN_VULKANBUFFERS_H_
+#ifndef AERO3D_PLATFORM_VULKAN_VULKANRESOURCES_H_
+#define AERO3D_PLATFORM_VULKAN_VULKANRESOURCES_H_
 
 #include <vulkan/vulkan.h>
 
-#include "Graphics/Buffers.h"
+#include "Graphics/Resources.h"
 
 #include "Platform/Vulkan/Internal/VulkanBuffer.h"
 
@@ -58,4 +58,4 @@ private:
 
 } // namespace aero3d
 
-#endif // AERO3D_PLATFORM_VULKAN_VULKANBUFFERS_H_
+#endif // AERO3D_PLATFORM_VULKAN_VULKANRESOURCES_H_

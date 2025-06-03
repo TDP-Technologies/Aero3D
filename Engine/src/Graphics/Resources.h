@@ -1,5 +1,5 @@
-#ifndef AERO3D_GRAPHICS_BUFFER_H_
-#define AERO3D_GRAPHICS_BUFFER_H_
+#ifndef AERO3D_GRAPHICS_RESOURCES_H_
+#define AERO3D_GRAPHICS_RESOURCES_H_
 
 #include <string>
 #include <vector>
@@ -52,6 +52,15 @@ public:
 
 };
 
+class Texture
+{
+public:
+    virtual ~Texture() = default;
+
+    virtual void Bind(unsigned int slot) = 0;
+
+};
+
 } // namespace aero3d
 
-#endif // AERO3D_GRAPHICS_BUFFER_H_
+#endif // AERO3D_GRAPHICS_RESOURCES_H_

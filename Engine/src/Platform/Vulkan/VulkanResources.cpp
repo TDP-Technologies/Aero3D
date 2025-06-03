@@ -1,4 +1,4 @@
-#include "Platform/Vulkan/VulkanBuffers.h"
+#include "Platform/Vulkan/VulkanResources.h"
 
 #include "Platform/Vulkan/Internal/VulkanUtils.h"
 #include "Platform/Vulkan/Internal/VulkanCore.h"

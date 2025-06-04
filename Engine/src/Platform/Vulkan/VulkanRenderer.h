@@ -11,7 +11,7 @@ public:
     VulkanRenderer() = default;
     ~VulkanRenderer() = default;
 
-    virtual void Init() override;
+    virtual void Init(SDL_Window* window, int height, int width) override;
     virtual void Shutdown() override;
 
     virtual void SubmitCommand(RenderCommand command) override;

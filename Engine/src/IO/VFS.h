@@ -13,7 +13,7 @@ namespace aero3d {
 
 class VFS {
 public:
-    static bool Init();
+    static void Init();
     static void Shutdown();
 
     static void Mount(std::string virtualPath, std::string mounPoint, 

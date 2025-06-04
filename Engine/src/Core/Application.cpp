@@ -1,11 +1,10 @@
 #include "Application.h"
 
-#include <random>
-
 #include "Utils/Log.h"
 #include "Core/Window.h"
 #include "IO/VFS.h"
 #include "Event/EventBus.h"
+#include "Graphics/RenderSystem.h"
 
 namespace aero3d {
 
@@ -13,10 +12,10 @@ bool Application::Init()
 {
     LogMsg("Application Initialize.");
 
-    A3D_CHECK_INIT(VFS::Init());
-    A3D_CHECK_INIT(EventBus::Init());
-    A3D_CHECK_INIT(Window::Init("Aero3D", 800,
-        600, "Vulkan"));
+    VFS::Init();
+    EventBus::Init();
+    Window::Init("Aero3D", 800, 600);
+    RenderSystem::Init(Window::GetSDLWindow(), 800, 600);
 
     SubscribeOnEvents();
 
@@ -44,6 +43,7 @@ void Application::Shutdown()
 {
     LogMsg("Application Shutdown.");
 
+    RenderSystem::Shutdown();
     Window::Shutdown();
     EventBus::Shutdown();
     VFS::Shutdown();
@@ -51,7 +51,8 @@ void Application::Shutdown()
 
 void Application::SubscribeOnEvents()
 {
-    EventBus::Subscribe(typeid(WindowResizeEvent), [&](Event& event) {
+    EventBus::Subscribe(typeid(WindowResizeEvent), [&](Event& event) 
+    {
         WindowResizeEvent& windowResizeEvent = static_cast<WindowResizeEvent&>(event);
 
     });

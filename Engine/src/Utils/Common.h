@@ -13,9 +13,6 @@
 
 #endif
 
-#define A3D_CHECK_INIT(cond) if (!cond) return false
-#define A3D_SHUTDOWN(obj) if (obj) obj->Shutdown()
-
 template<typename T>
 using Ref = std::shared_ptr<T>;
 

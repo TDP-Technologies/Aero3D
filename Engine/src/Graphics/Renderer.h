@@ -1,6 +1,8 @@
 #ifndef AERO3D_GRAPHICS_RENDERER_H_
 #define AERO3D_GRAPHICS_RENDERER_H_
 
+#include <SDL3/SDL.h>
+
 namespace aero3d {
 
 struct RenderCommand
@@ -13,7 +15,7 @@ class Renderer
 public:
     virtual ~Renderer() = default;
 
-    virtual void Init() = 0;
+    virtual void Init(SDL_Window* window, int height, int width) = 0;
     virtual void Shutdown() = 0;
 
     virtual void SubmitCommand(RenderCommand command) = 0;

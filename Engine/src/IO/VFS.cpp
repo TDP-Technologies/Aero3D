@@ -12,11 +12,9 @@ namespace aero3d {
 std::vector<Scope<VFDirectory>> VFS::s_Dirs = {};
 Scope<VFDirectory> VFS::s_DefaultDir = std::make_unique<NativeVFDirectory>("", "");
 
-bool VFS::Init()
+void VFS::Init()
 {
     LogMsg("VFS Initialize.");
-
-    return true;
 }
 
 void VFS::Shutdown()

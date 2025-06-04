@@ -12,7 +12,7 @@ namespace aero3d {
 class Window
 {
 public:
-    static bool Init(const char* title, int width, int height, const char* api);
+    static void Init(const char* title, int width, int height);
     static void Shutdown();
 
     static void PollEvents(bool& running, bool& minimized);

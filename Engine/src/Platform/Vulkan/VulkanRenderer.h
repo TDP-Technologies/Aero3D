@@ -11,7 +11,7 @@ public:
     VulkanRenderer() = default;
     ~VulkanRenderer() = default;
 
-    virtual bool Init() override;
+    virtual void Init() override;
     virtual void Shutdown() override;
 
     virtual void SubmitCommand(RenderCommand command) override;

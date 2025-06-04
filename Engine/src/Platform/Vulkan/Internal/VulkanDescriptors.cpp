@@ -1,6 +1,6 @@
 #include "Platform/Vulkan/Internal/VulkanDescriptors.h"
 
-#include "Platform/Vulkan/Internal/VulkanCore.h"
+#include "Platform/Vulkan/Internal/VulkanWrappers.h"
 #include "Platform/Vulkan/Internal/VulkanUtils.h"
 
 namespace aero3d {

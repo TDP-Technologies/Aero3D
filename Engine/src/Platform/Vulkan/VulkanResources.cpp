@@ -1,7 +1,7 @@
 #include "Platform/Vulkan/VulkanResources.h"
 
 #include "Platform/Vulkan/Internal/VulkanUtils.h"
-#include "Platform/Vulkan/Internal/VulkanCore.h"
+#include "Platform/Vulkan/Internal/VulkanWrappers.h"
 
 namespace aero3d {
 

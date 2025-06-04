@@ -13,7 +13,7 @@ class Renderer
 public:
     virtual ~Renderer() = default;
 
-    virtual bool Init() = 0;
+    virtual void Init() = 0;
     virtual void Shutdown() = 0;
 
     virtual void SubmitCommand(RenderCommand command) = 0;

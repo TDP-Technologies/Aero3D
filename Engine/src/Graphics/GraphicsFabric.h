@@ -1,0 +1,10 @@
+#ifndef AERO3D_GRAPHICS_GRAPHICSFABRIC_H_
+#define AERO3D_GRAPHICS_GRAPHICSFABRIC_H_
+
+namespace aero3d {
+
+    
+
+} // namespace aero3d
+
+#endif // AERO3D_GRAPHICS_GRAPHICSFABRIC_H_

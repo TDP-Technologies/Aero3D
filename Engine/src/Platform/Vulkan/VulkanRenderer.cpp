@@ -2,9 +2,9 @@
 
 namespace aero3d {
 
-bool VulkanRenderer::Init()
+void VulkanRenderer::Init()
 {
-    return true;
+
 }
 
 void VulkanRenderer::Shutdown()

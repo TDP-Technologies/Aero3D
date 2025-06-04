@@ -3,7 +3,6 @@
 
 #include <vector>
 #include <list>
-#include <mutex>
 #include <stdexcept>
 #include <algorithm>
 

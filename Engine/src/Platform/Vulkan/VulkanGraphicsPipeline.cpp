@@ -2,7 +2,7 @@
 
 #include <vector>
 
-#include "Platform/Vulkan/Internal/VulkanCore.h"
+#include "Platform/Vulkan/Internal/VulkanWrappers.h"
 #include "Platform/Vulkan/Internal/VulkanUtils.h"
 #include "Utils/Log.h"
 #include "IO/VFS.h"

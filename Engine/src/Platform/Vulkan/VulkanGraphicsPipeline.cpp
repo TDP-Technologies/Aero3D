@@ -2,7 +2,7 @@
 
 #include <vector>
 
-#include "Platform/Vulkan/Internal/VulkanWrappers.h"
+#include "Platform/Vulkan/Internal/VulkanContext.h"
 #include "Platform/Vulkan/Internal/VulkanUtils.h"
 #include "Utils/Log.h"
 #include "IO/VFS.h"
@@ -36,7 +36,7 @@ static VkFormat ElementTypeToVkFormat(ElementType type)
 VulkanGraphicsPipeline::VulkanGraphicsPipeline(VertexLayout& vertexLayout, 
     std::string& vertexShaderPath, std::string& pixelShaderPath)
 {
-    m_Device = g_VulkanCore->GetDeviceHandle();
+    m_Device = VulkanContext::Device;
 
     CreateShaderModules(vertexShaderPath, pixelShaderPath);
     CreatePipeline(vertexLayout);
@@ -52,7 +52,7 @@ VulkanGraphicsPipeline::~VulkanGraphicsPipeline()
 
 void VulkanGraphicsPipeline::Bind()
 {
-    vkCmdBindPipeline(g_VulkanCore->GetCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_Pipeline);
+    vkCmdBindPipeline(nullptr, VK_PIPELINE_BIND_POINT_GRAPHICS, m_Pipeline);
 }
 
 std::vector<uint32_t> VulkanGraphicsPipeline::CompileGLSL(const std::string& source,
@@ -191,8 +191,8 @@ void VulkanGraphicsPipeline::CreatePipeline(VertexLayout& vertexLayout)
     pipelineInfo.pRasterizationState = &rasterizer;
     pipelineInfo.pMultisampleState = &multisampling;
     pipelineInfo.pColorBlendState = &colorBlending;
-    pipelineInfo.layout = g_VulkanCore->GetPipelineLayout();
-    pipelineInfo.renderPass = g_VulkanCore->GetRenderPass();
+    pipelineInfo.layout = VulkanContext::PipelineLayout;
+    pipelineInfo.renderPass = nullptr;
     pipelineInfo.subpass = 0;
     pipelineInfo.pDynamicState = &dynamicState;
 

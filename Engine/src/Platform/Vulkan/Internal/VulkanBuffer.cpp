@@ -1,7 +1,7 @@
 #include "Platform/Vulkan/Internal/VulkanBuffer.h"
 
 #include "Platform/Vulkan/Internal/VulkanUtils.h"
-#include "Platform/Vulkan/Internal/VulkanWrappers.h"
+#include "Platform/Vulkan/Internal/VulkanContext.h"
 
 namespace aero3d {
 
@@ -17,7 +17,7 @@ static VkDeviceSize GetAlignment(VkDeviceSize instanceSize, VkDeviceSize minOffs
 void VulkanBuffer::Init(VkDeviceSize instanceSize, uint32_t instanceCount,
     VkBufferUsageFlags usageFlags, VkMemoryPropertyFlags memoryPropertyFlags,VkDeviceSize minOffsetAlignment)
 {
-    m_Device = g_VulkanCore->GetDeviceHandle();
+    m_Device = VulkanContext::Device;
     m_InstanceSize = instanceSize;
     m_InstanceCount = instanceCount;
     m_UsageFlags = usageFlags;
@@ -26,7 +26,7 @@ void VulkanBuffer::Init(VkDeviceSize instanceSize, uint32_t instanceCount,
     m_AlignmentSize = GetAlignment(instanceSize, minOffsetAlignment);
     m_BufferSize = m_AlignmentSize * instanceCount;
     CreateBuffer(m_Device, usageFlags, m_BufferSize, m_Buffer, memoryPropertyFlags,
-    g_VulkanCore->GetPhysDeviceHandle(), m_Memory);
+    VulkanContext::PhysDevice, m_Memory);
 }
 
 void VulkanBuffer::Shutdown()

@@ -15,8 +15,11 @@ class Renderer
 public:
     virtual ~Renderer() = default;
 
-    virtual void Init(SDL_Window* window, int height, int width) = 0;
+    virtual void Init(SDL_Window* window, int width, int height) = 0;
     virtual void Shutdown() = 0;
+
+    virtual void BeginFrame() = 0;
+    virtual void EndFrame() = 0;
 
     virtual void SubmitCommand(RenderCommand command) = 0;
     virtual void ResizeBuffers() = 0;

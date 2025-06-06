@@ -1,6 +1,6 @@
 #include "Platform/Vulkan/Internal/VulkanDescriptors.h"
 
-#include "Platform/Vulkan/Internal/VulkanWrappers.h"
+#include "Platform/Vulkan/Internal/VulkanContext.h"
 #include "Platform/Vulkan/Internal/VulkanUtils.h"
 
 namespace aero3d {
@@ -18,7 +18,7 @@ void VulkanDescriptorSetLayout::AddBinding(uint32_t binding, VkDescriptorType ty
 
 void VulkanDescriptorSetLayout::Init()
 {
-    m_Device = g_VulkanCore->GetDeviceHandle();
+    m_Device = VulkanContext::Device;
 
     std::vector<VkDescriptorSetLayoutBinding> bindingsVec;
     for (auto &[key, value] : m_Bindings)
@@ -49,7 +49,7 @@ void VulkanDescriptorPool::SetFlags(VkDescriptorPoolCreateFlags flags)
 
 void VulkanDescriptorPool::Init() 
 {
-    m_Device = g_VulkanCore->GetDeviceHandle();
+    m_Device = VulkanContext::Device;
 
     CreateDescriptorPool(m_Device, m_DescriptorPool, m_PoolSizes.data(), m_PoolSizes.size(),
         m_MaxSets, m_Flags);

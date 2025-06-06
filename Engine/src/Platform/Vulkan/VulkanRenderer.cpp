@@ -4,14 +4,24 @@
 
 namespace aero3d {
 
-void VulkanRenderer::Init(SDL_Window* window, int height, int width)
+void VulkanRenderer::Init(SDL_Window* window, int width, int height)
 {
-    g_VulkanContext.Init(window);
+    g_VulkanContext.Init(window, width, height);
 }
 
 void VulkanRenderer::Shutdown()
 {
     g_VulkanContext.Shutdown();
+}
+
+void VulkanRenderer::BeginFrame()
+{
+
+}
+
+void VulkanRenderer::EndFrame()
+{
+
 }
 
 void VulkanRenderer::SubmitCommand(RenderCommand command)

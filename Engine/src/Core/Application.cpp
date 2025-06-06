@@ -28,13 +28,17 @@ bool Application::Init()
 
 void Application::Run()
 {
+    Ref<Renderer> renderer = RenderSystem::GetRenderer();
+
     while (m_IsRunning)
     {
         Window::PollEvents(m_IsRunning, m_Minimized);
 
         if (!m_Minimized)
         {
+            renderer->BeginFrame();
 
+            renderer->EndFrame();
         }
     }
 }

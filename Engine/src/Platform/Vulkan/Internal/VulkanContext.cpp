@@ -9,7 +9,17 @@
 
 namespace aero3d {
 
-void VulkanContext::Init(SDL_Window* window)
+SDL_Window* VulkanContext::Window = nullptr;
+VkInstance VulkanContext::Instance = VK_NULL_HANDLE;
+VkSurfaceKHR VulkanContext::Surface = VK_NULL_HANDLE;
+VkDevice VulkanContext::Device = VK_NULL_HANDLE;
+VkPhysicalDevice VulkanContext::PhysDevice = VK_NULL_HANDLE;
+VulkanSwapchain VulkanContext::Swapchain {};
+VulkanDescriptorSetLayout VulkanContext::DescriptorSetLayout {};
+VkPipelineLayout VulkanContext::PipelineLayout = VK_NULL_HANDLE;
+VulkanPhysicalDeviceInfo VulkanContext::PhysDeviceInfo {};
+
+void VulkanContext::Init(SDL_Window* window, int width, int height)
 {
     Window = window;
 
@@ -22,11 +32,17 @@ void VulkanContext::Init(SDL_Window* window)
     CreateSurface();
     CreatePhysDevice();
     CreateDevice();
+    InitWrappers(width, height);
+    ConfigurePipeline();
 }
 
 void VulkanContext::Shutdown()
 {
     vkDeviceWaitIdle(Device);
+
+    vkDestroyPipelineLayout(Device, PipelineLayout, nullptr);
+    DescriptorSetLayout.Shutdown();
+    Swapchain.Shutdown();
 
     vkDestroyDevice(Device, nullptr);
     vkDestroySurfaceKHR(Instance, Surface, nullptr);
@@ -171,6 +187,29 @@ void VulkanContext::CreateDevice()
     createInfo.enabledLayerCount = 0;
 
     A3D_CHECK_VKRESULT(vkCreateDevice(PhysDevice, &createInfo, nullptr, &Device));
+}
+
+void VulkanContext::InitWrappers(int width, int height)
+{
+    Swapchain.Init(PhysDeviceInfo, Surface, Window,
+        Device, width, height);
+}
+
+void VulkanContext::ConfigurePipeline()
+{
+    uint32_t numImages = Swapchain.GetNumImages();
+
+    DescriptorSetLayout.AddBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 
+        VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT);
+    DescriptorSetLayout.Init();
+
+    VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
+    pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+    pipelineLayoutInfo.setLayoutCount = 1;
+    VkDescriptorSetLayout layouts[] = { DescriptorSetLayout.GetHandle() };
+    pipelineLayoutInfo.pSetLayouts = layouts;
+
+    A3D_CHECK_VKRESULT(vkCreatePipelineLayout(Device, &pipelineLayoutInfo, nullptr, &PipelineLayout));
 }
 
 VulkanContext g_VulkanContext = {};

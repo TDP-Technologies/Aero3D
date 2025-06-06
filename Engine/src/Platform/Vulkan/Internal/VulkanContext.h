@@ -7,48 +7,39 @@
 #include <vulkan/vulkan.h>
 #include <SDL3/SDL.h>
 
+#include "Platform/Vulkan/Internal/VulkanDescriptors.h"
+#include "Platform/Vulkan/Internal/VulkanWrappers.h"
+
 namespace aero3d {
-
-struct DeviceQueueFamilyIndices
-{
-    std::optional<uint32_t> GraphicsFamily;
-    std::optional<uint32_t> PresentFamily;
-    std::optional<uint32_t> TransferFamily;
-
-    bool IsComplete() {
-        return GraphicsFamily.has_value() && PresentFamily.has_value() && TransferFamily.has_value();
-    }
-};
-
-struct VulkanPhysicalDeviceInfo
-{
-    VkPhysicalDevice Device;
-    VkPhysicalDeviceProperties Properties;
-    VkPhysicalDeviceFeatures Features;
-    VkPhysicalDeviceMemoryProperties MemoryProperties;
-    std::vector<VkQueueFamilyProperties> QueueFamilyProperties;
-    DeviceQueueFamilyIndices QueueFamilyIndices;
-};
 
 class VulkanContext
 {
 public:
-    SDL_Window* Window = nullptr;
-    VkInstance Instance = VK_NULL_HANDLE;
-    VkSurfaceKHR Surface = VK_NULL_HANDLE;
-    VkDevice Device = VK_NULL_HANDLE;
-    VkPhysicalDevice PhysDevice = VK_NULL_HANDLE;
-    VulkanPhysicalDeviceInfo PhysDeviceInfo {};
+    static SDL_Window* Window;
+    static VkInstance Instance;
+    static VkSurfaceKHR Surface;
+    static VkDevice Device;
+    static VkPhysicalDevice PhysDevice;
+
+    static VulkanSwapchain Swapchain;
+
+    static VulkanDescriptorSetLayout DescriptorSetLayout;
+    static VkPipelineLayout PipelineLayout;
+
+    static VulkanPhysicalDeviceInfo PhysDeviceInfo;
 
 public:
-    void Init(SDL_Window* window);
-    void Shutdown();
+    static void Init(SDL_Window* window, int width, int height);
+    static void Shutdown();
 
 private:
-    void CreateInstance();
-    void CreateSurface();
-    void CreatePhysDevice();
-    void CreateDevice();
+    static void CreateInstance();
+    static void CreateSurface();
+    static void CreatePhysDevice();
+    static void CreateDevice();
+
+    static void InitWrappers(int width, int height);
+    static void ConfigurePipeline();
 
 };
 

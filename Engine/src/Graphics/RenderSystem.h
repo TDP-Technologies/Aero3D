@@ -4,7 +4,6 @@
 #include <SDL3/SDL.h>
 
 #include "Utils/Common.h"
-#include "Graphics/Renderer.h"
 
 namespace aero3d {
 
@@ -14,10 +13,7 @@ public:
     static void Init(SDL_Window* window, int height, int width);
     static void Shutdown();
 
-    static Ref<Renderer> GetRenderer() { return s_Renderer; };
-
 private:
-    static Ref<Renderer> s_Renderer;
 
 };
 

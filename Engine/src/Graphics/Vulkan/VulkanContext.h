@@ -43,6 +43,7 @@ public:
     VkSurfaceKHR GetSurface() { return m_Surface; }
     VkPhysicalDevice GetPhysDevice() { return m_PhysDevice; }
     VkDevice GetDevice() { return m_Device; }
+    VkCommandPool GetCommandPool() { return m_CommandPool; }
     VkSemaphore GetRenderFinishedSemaphore() { return m_RenderFinishedSemaphore; }
     VkSemaphore GetImageAvailableSemaphore() { return m_ImageAvailableSemaphore; }
 
@@ -55,6 +56,7 @@ private:
     void CreateSurface();
     void CreatePhysDevice();
     void CreateDevice();
+    void CreateCommandPool();
     void CreateSemaphores();
 
 private:
@@ -63,6 +65,7 @@ private:
     VkSurfaceKHR m_Surface = VK_NULL_HANDLE;
     VkPhysicalDevice m_PhysDevice = VK_NULL_HANDLE;
     VkDevice m_Device = VK_NULL_HANDLE;
+    VkCommandPool m_CommandPool = VK_NULL_HANDLE;
     VkSemaphore m_RenderFinishedSemaphore = VK_NULL_HANDLE;
     VkSemaphore m_ImageAvailableSemaphore = VK_NULL_HANDLE;
     uint32_t m_CurrentImageIndex = 0;

@@ -62,6 +62,8 @@ VulkanViewport::VulkanViewport(Ref<VulkanContext> context, int width, int height
 
 VulkanViewport::~VulkanViewport()
 {
+    vkDeviceWaitIdle(m_Context->GetDevice());
+
     for (auto& imageView : m_ImageViews)
     {
         vkDestroyImageView(m_Context->GetDevice(), imageView, nullptr);
@@ -80,9 +82,9 @@ void VulkanViewport::SwapBuffers()
     presentInfo.pWaitSemaphores = &semaphore;
     presentInfo.swapchainCount = 1;
     presentInfo.pSwapchains = &m_Swapchain;
-    presentInfo.pImageIndices = 0;
+    presentInfo.pImageIndices = m_Context->GetCurrentImageAddress();
 
-    //vkQueuePresentKHR(m_PresentQueue, &presentInfo);
+    vkQueuePresentKHR(m_PresentQueue, &presentInfo);
 }
 
 void VulkanViewport::Resize()

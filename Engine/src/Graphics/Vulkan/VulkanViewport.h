@@ -31,6 +31,7 @@ public:
     VkFormat GetFormat() { return m_ImageFormat; }
     VkExtent2D GetExtent() { return m_Extent; }
     uint32_t GetNumImages() { return m_NumImages; }
+    VkImageView GetImageView(uint32_t index) { return m_ImageViews[index]; }
 
 private:
     void CreateSwapchain(int width, int height);

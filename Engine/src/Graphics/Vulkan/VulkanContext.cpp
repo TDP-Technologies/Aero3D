@@ -21,13 +21,17 @@ VulkanContext::VulkanContext(SDL_Window* window)
     CreateSurface();
     CreatePhysDevice();
     CreateDevice();
+    CreateCommandPool();
     CreateSemaphores();
 }
 
 VulkanContext::~VulkanContext()
 {
+    vkDeviceWaitIdle(m_Device);
+
     vkDestroySemaphore(m_Device, m_ImageAvailableSemaphore, nullptr);
     vkDestroySemaphore(m_Device, m_RenderFinishedSemaphore, nullptr);
+    vkDestroyCommandPool(m_Device, m_CommandPool, nullptr);
     vkDestroyDevice(m_Device, nullptr);
     vkDestroySurfaceKHR(m_Instance, m_Surface, nullptr);
     vkDestroyInstance(m_Instance, nullptr);
@@ -171,6 +175,16 @@ void VulkanContext::CreateDevice()
     createInfo.enabledLayerCount = 0;
 
     vkCreateDevice(m_PhysDevice, &createInfo, nullptr, &m_Device);
+}
+
+void VulkanContext::CreateCommandPool()
+{
+    VkCommandPoolCreateInfo poolInfo{};
+    poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    poolInfo.queueFamilyIndex = m_PhysDeviceInfo.QueueFamilyIndices.GraphicsFamily.value();
+    poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+
+    vkCreateCommandPool(m_Device, &poolInfo, nullptr, &m_CommandPool);
 }
 
 void VulkanContext::CreateSemaphores()

@@ -3,7 +3,18 @@
 
 namespace aero3d {
 
-    
+class CommandBuffer
+{
+public:
+    virtual ~CommandBuffer() = default;
+
+    virtual void Record() = 0;
+    virtual void End() = 0;
+
+    virtual void Clear() = 0;
+
+};
+
 } // namespace aero3d
 
 #endif // AERO3D_GRAPHICS_COMMANDBUFFER_H_

@@ -3,6 +3,8 @@
 #include "Utils/Log.h"
 #include "Graphics/Vulkan/VulkanContext.h"
 #include "Graphics/Vulkan/VulkanViewport.h"
+#include "Graphics/Vulkan/VulkanCommandBuffer.h"
+#include "Graphics/Vulkan/VulkanQueue.h"
 
 namespace aero3d {
 
@@ -26,6 +28,17 @@ Ref<Context> RenderSystem::CreateContext(SDL_Window* window)
 Ref<Viewport> RenderSystem::CreateViewport(Ref<Context> context, int width, int height)
 {
     return std::make_shared<VulkanViewport>(std::static_pointer_cast<VulkanContext>(context), width, height);
+}
+
+Ref<CommandBuffer> RenderSystem::CreateCommandBuffer(Ref<Context> context, Ref<Viewport> viewport)
+{
+    return std::make_shared<VulkanCommandBuffer>(std::static_pointer_cast<VulkanContext>(context), 
+        std::static_pointer_cast<VulkanViewport>(viewport));
+}
+
+Ref<Queue> RenderSystem::CreateQueue(Ref<Context> context)
+{
+    return std::make_shared<VulkanQueue>(std::static_pointer_cast<VulkanContext>(context));
 }
 
 } // namespace aero3d

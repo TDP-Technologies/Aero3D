@@ -67,13 +67,23 @@ VulkanViewport::~VulkanViewport()
     {
         vkDestroyImageView(m_Context->GetDevice(), imageView, nullptr);
     }
-    vkDestroyFence(m_Context->GetDevice(), m_Fence, nullptr);
     vkDestroySwapchainKHR(m_Context->GetDevice(), m_Swapchain, nullptr);
 }
 
 void VulkanViewport::SwapBuffers()
 {
+    VkPresentInfoKHR presentInfo{};
+    presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 
+    VkSemaphore semaphore = m_Context->GetRenderFinishedSemaphore();
+
+    presentInfo.waitSemaphoreCount = 1;
+    presentInfo.pWaitSemaphores = &semaphore;
+    presentInfo.swapchainCount = 1;
+    presentInfo.pSwapchains = &m_Swapchain;
+    presentInfo.pImageIndices = 0;
+
+    //vkQueuePresentKHR(m_PresentQueue, &presentInfo);
 }
 
 void VulkanViewport::Resize()
@@ -141,12 +151,6 @@ void VulkanViewport::CreateQueue()
 {
     vkGetDeviceQueue(m_Context->GetDevice(), 
         m_Context->GetPhysDeviceInfo().QueueFamilyIndices.PresentFamily.value(), 0, &m_PresentQueue);
-
-    VkFenceCreateInfo fenceInfo{};
-    fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-    fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
-
-    vkCreateFence(m_Context->GetDevice(), &fenceInfo, nullptr, &m_Fence);
 }
 
 void VulkanViewport::CreateImageViews()

@@ -43,7 +43,11 @@ public:
     VkSurfaceKHR GetSurface() { return m_Surface; }
     VkPhysicalDevice GetPhysDevice() { return m_PhysDevice; }
     VkDevice GetDevice() { return m_Device; }
+    VkSemaphore GetRenderFinishedSemaphore() { return m_RenderFinishedSemaphore; }
+    VkSemaphore GetImageAvailableSemaphore() { return m_ImageAvailableSemaphore; }
 
+    uint32_t GetCurrentImageIndex() { return m_CurrentImageIndex; }
+    uint32_t* GetCurrentImageAddress() { return &m_CurrentImageIndex; }
     VulkanPhysicalDeviceInfo GetPhysDeviceInfo() { return m_PhysDeviceInfo; }
 
 private:
@@ -51,6 +55,7 @@ private:
     void CreateSurface();
     void CreatePhysDevice();
     void CreateDevice();
+    void CreateSemaphores();
 
 private:
     SDL_Window* m_Window = nullptr;
@@ -58,6 +63,9 @@ private:
     VkSurfaceKHR m_Surface = VK_NULL_HANDLE;
     VkPhysicalDevice m_PhysDevice = VK_NULL_HANDLE;
     VkDevice m_Device = VK_NULL_HANDLE;
+    VkSemaphore m_RenderFinishedSemaphore = VK_NULL_HANDLE;
+    VkSemaphore m_ImageAvailableSemaphore = VK_NULL_HANDLE;
+    uint32_t m_CurrentImageIndex = 0;
 
     VulkanPhysicalDeviceInfo m_PhysDeviceInfo {};
 

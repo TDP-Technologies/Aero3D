@@ -42,7 +42,6 @@ private:
     Ref<VulkanContext> m_Context = nullptr;
     VkSwapchainKHR m_Swapchain = VK_NULL_HANDLE;
     VkQueue m_PresentQueue = VK_NULL_HANDLE;
-    VkFence m_Fence = VK_NULL_HANDLE;
 
     VkFormat m_ImageFormat = VK_FORMAT_UNDEFINED;
     VkExtent2D m_Extent {};

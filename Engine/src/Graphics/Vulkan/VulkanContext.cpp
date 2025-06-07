@@ -21,10 +21,13 @@ VulkanContext::VulkanContext(SDL_Window* window)
     CreateSurface();
     CreatePhysDevice();
     CreateDevice();
+    CreateSemaphores();
 }
 
 VulkanContext::~VulkanContext()
 {
+    vkDestroySemaphore(m_Device, m_ImageAvailableSemaphore, nullptr);
+    vkDestroySemaphore(m_Device, m_RenderFinishedSemaphore, nullptr);
     vkDestroyDevice(m_Device, nullptr);
     vkDestroySurfaceKHR(m_Instance, m_Surface, nullptr);
     vkDestroyInstance(m_Instance, nullptr);
@@ -168,6 +171,15 @@ void VulkanContext::CreateDevice()
     createInfo.enabledLayerCount = 0;
 
     vkCreateDevice(m_PhysDevice, &createInfo, nullptr, &m_Device);
+}
+
+void VulkanContext::CreateSemaphores()
+{
+    VkSemaphoreCreateInfo semaphoreInfo{};
+    semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+    vkCreateSemaphore(m_Device, &semaphoreInfo, nullptr, &m_RenderFinishedSemaphore);
+    vkCreateSemaphore(m_Device, &semaphoreInfo, nullptr, &m_ImageAvailableSemaphore);
 }
 
 } // namespace aero3d

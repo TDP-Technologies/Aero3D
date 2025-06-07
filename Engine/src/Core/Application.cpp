@@ -37,7 +37,7 @@ void Application::Run()
 
         if (!m_Minimized)
         {
-            
+            viewport->SwapBuffers();
         }
     }
 }

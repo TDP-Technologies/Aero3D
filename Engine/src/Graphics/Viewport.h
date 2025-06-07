@@ -3,7 +3,15 @@
 
 namespace aero3d {
 
-    
+class Viewport
+{
+public:
+    virtual ~Viewport() = default;
+
+    virtual void SwapBuffers() = 0;
+    virtual void Resize() = 0;
+
+};
     
 } // namespace aero3d
 

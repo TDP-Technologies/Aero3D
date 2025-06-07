@@ -5,6 +5,7 @@
 
 #include "Utils/Common.h"
 #include "Graphics/Context.h"
+#include "Graphics/Viewport.h"
 
 namespace aero3d {
 
@@ -15,6 +16,7 @@ public:
     static void Shutdown();
 
     static Ref<Context> CreateContext(SDL_Window* window);
+    static Ref<Viewport> CreateViewport(Ref<Context> context, int width, int height);
 
 private:
 

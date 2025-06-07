@@ -29,6 +29,7 @@ bool Application::Init()
 void Application::Run()
 {
     Ref<Context> context = RenderSystem::CreateContext(Window::GetSDLWindow());
+    Ref<Viewport> viewport = RenderSystem::CreateViewport(context, 800, 600);
 
     while (m_IsRunning)
     {

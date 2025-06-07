@@ -36,7 +36,6 @@ private:
     void CreateSwapchain(int width, int height);
     void CreateQueue();
     void CreateImageViews();
-    void CreateFrames();
 
 private:
     Ref<VulkanContext> m_Context = nullptr;

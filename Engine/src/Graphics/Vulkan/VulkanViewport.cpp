@@ -58,7 +58,6 @@ VulkanViewport::VulkanViewport(Ref<VulkanContext> context, int width, int height
     CreateSwapchain(width, height);
     CreateQueue();
     CreateImageViews();
-    CreateFrames();
 }
 
 VulkanViewport::~VulkanViewport()
@@ -178,11 +177,6 @@ void VulkanViewport::CreateImageViews()
 
         vkCreateImageView(m_Context->GetDevice(), &viewInfo, nullptr, &m_ImageViews[i]);
     }
-}
-
-void VulkanViewport::CreateFrames()
-{
-
 }
 
 } // namespace aero3d

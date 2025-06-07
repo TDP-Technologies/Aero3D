@@ -4,14 +4,17 @@
 #include <SDL3/SDL.h>
 
 #include "Utils/Common.h"
+#include "Graphics/Context.h"
 
 namespace aero3d {
 
 class RenderSystem
 {
 public:
-    static void Init(SDL_Window* window, int height, int width);
+    static void Init();
     static void Shutdown();
+
+    static Ref<Context> CreateContext(SDL_Window* window);
 
 private:
 

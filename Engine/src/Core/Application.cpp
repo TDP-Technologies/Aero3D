@@ -15,7 +15,7 @@ bool Application::Init()
     VFS::Init();
     EventBus::Init();
     Window::Init("Aero3D", 800, 600);
-    RenderSystem::Init(Window::GetSDLWindow(), 800, 600);
+    RenderSystem::Init();
 
     SubscribeOnEvents();
 
@@ -28,15 +28,15 @@ bool Application::Init()
 
 void Application::Run()
 {
+    Ref<Context> context = RenderSystem::CreateContext(Window::GetSDLWindow());
+
     while (m_IsRunning)
     {
         Window::PollEvents(m_IsRunning, m_Minimized);
 
         if (!m_Minimized)
         {
-            renderer->BeginFrame();
-
-            renderer->EndFrame();
+            
         }
     }
 }

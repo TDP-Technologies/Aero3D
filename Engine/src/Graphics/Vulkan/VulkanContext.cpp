@@ -12,11 +12,7 @@ namespace aero3d {
 VulkanContext::VulkanContext(SDL_Window* window)
     : m_Window(window)
 {
-    if (!SDL_Vulkan_LoadLibrary(nullptr)) 
-    {
-        LogErr(ERROR_INFO, "Failed to load Vulkan library: %s", SDL_GetError());
-    }
-
+    volkInitialize();
     CreateInstance();
     CreateSurface();
     CreatePhysDevice();
@@ -68,6 +64,7 @@ void VulkanContext::CreateInstance()
     createInfo.ppEnabledLayerNames = validationLayers;
 
     vkCreateInstance(&createInfo, nullptr, &m_Instance);
+    volkLoadInstance(m_Instance);
 }
 
 void VulkanContext::CreateSurface()
@@ -158,7 +155,12 @@ void VulkanContext::CreateDevice()
 
     VkPhysicalDeviceFeatures deviceFeatures{};
 
+    VkPhysicalDeviceDynamicRenderingFeatures dynamicRendering = {};
+    dynamicRendering.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES;
+    dynamicRendering.dynamicRendering = VK_TRUE;
+
     VkDeviceCreateInfo createInfo{};
+    createInfo.pNext = &dynamicRendering;
     createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
     createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
     createInfo.pQueueCreateInfos = queueCreateInfos.data();
@@ -166,7 +168,8 @@ void VulkanContext::CreateDevice()
 
     const std::vector<const char*> deviceExtensions = 
     {
-        VK_KHR_SWAPCHAIN_EXTENSION_NAME
+        VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+        VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME
     };
 
     createInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
@@ -175,6 +178,7 @@ void VulkanContext::CreateDevice()
     createInfo.enabledLayerCount = 0;
 
     vkCreateDevice(m_PhysDevice, &createInfo, nullptr, &m_Device);
+    volkLoadDevice(m_Device);
 }
 
 void VulkanContext::CreateCommandPool()

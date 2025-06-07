@@ -7,3 +7,6 @@
 [submodule "vendor/shaderc"]
 	path = vendor/shaderc
 	url = https://github.com/google/shaderc.git
+[submodule "vendor/volk"]
+	path = vendor/volk
+	url = https://github.com/zeux/volk.git

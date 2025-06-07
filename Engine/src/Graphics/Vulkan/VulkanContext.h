@@ -5,7 +5,7 @@
 #include <vector>
 
 #include <SDL3/SDL.h>
-#include <vulkan/vulkan.h>
+#include <volk.h>
 
 #include "Graphics/Context.h"
 

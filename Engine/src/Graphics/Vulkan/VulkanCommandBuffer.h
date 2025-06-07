@@ -17,22 +17,16 @@ public:
     virtual void Record() override;
     virtual void End() override;
 
-    virtual void Clear() override;
-
     VkCommandBuffer GetCommandBuffer() { return m_CommandBuffer; }
 
 private:
     void CreateCommandBuffer();
-    void CreateRenderPass();
 
 private:
     Ref<VulkanContext> m_Context = nullptr;
     Ref<VulkanViewport> m_Viewport = nullptr;
 
     VkCommandBuffer m_CommandBuffer = VK_NULL_HANDLE;
-
-    VkRenderPass m_RenderPass = VK_NULL_HANDLE;
-    std::vector<VkFramebuffer> m_Framebuffers {};
 
 };
 

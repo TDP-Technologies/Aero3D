@@ -20,6 +20,7 @@ set(DEPENDENCIES_DIR "${CMAKE_SOURCE_DIR}/vendor")
 # Dependencies
 add_subdirectory(${DEPENDENCIES_DIR}/SDL)
 add_subdirectory(${DEPENDENCIES_DIR}/shaderc)
+add_subdirectory(${DEPENDENCIES_DIR}/volk)
 
 # Projects
 add_subdirectory(Engine)

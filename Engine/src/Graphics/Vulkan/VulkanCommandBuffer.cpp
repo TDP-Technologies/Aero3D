@@ -6,18 +6,11 @@ VulkanCommandBuffer::VulkanCommandBuffer(Ref<VulkanContext> context, Ref<VulkanV
     : m_Context(context), m_Viewport(viewport)
 {
     CreateCommandBuffer();
-    CreateRenderPass();
 }
 
 VulkanCommandBuffer::~VulkanCommandBuffer()
 {
-    vkDeviceWaitIdle(m_Context->GetDevice());
-
-    vkDestroyRenderPass(m_Context->GetDevice(), m_RenderPass, nullptr);
-    for (auto& frameBuffer : m_Framebuffers)
-    {
-        vkDestroyFramebuffer(m_Context->GetDevice(), frameBuffer, nullptr);
-    }
+    //vkDeviceWaitIdle(m_Context->GetDevice());
 }
 
 void VulkanCommandBuffer::Record()
@@ -33,30 +26,78 @@ void VulkanCommandBuffer::Record()
     vkResetCommandBuffer(m_CommandBuffer, 0);
     vkBeginCommandBuffer(m_CommandBuffer, &beginInfo);
 
-    VkRenderPassBeginInfo renderPassInfo{};
-    renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-    renderPassInfo.renderPass = m_RenderPass;
-    renderPassInfo.framebuffer = m_Framebuffers[m_Context->GetCurrentImageIndex()];
-    renderPassInfo.renderArea.offset = { 0, 0 };
-    renderPassInfo.renderArea.extent = m_Viewport->GetExtent();
+    VkImageMemoryBarrier barrier{};
+    barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    barrier.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.image = m_Viewport->GetImage(m_Context->GetCurrentImageIndex());
+    barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    barrier.subresourceRange.baseMipLevel = 0;
+    barrier.subresourceRange.levelCount = 1;
+    barrier.subresourceRange.baseArrayLayer = 0;
+    barrier.subresourceRange.layerCount = 1;
+    barrier.srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+    barrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 
-    VkClearValue clearColor { {0.0f, 1.0f, 0.0f, 1.0f} };
+    vkCmdPipelineBarrier(
+        m_CommandBuffer,
+        VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+        VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+        0,
+        0, nullptr,
+        0, nullptr,
+        1, &barrier);
 
-    renderPassInfo.clearValueCount = 1;
-    renderPassInfo.pClearValues = &clearColor;
+    VkRenderingAttachmentInfo colorAttachment = {};
+    colorAttachment.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
+    colorAttachment.imageView = m_Viewport->GetImageView(m_Context->GetCurrentImageIndex());
+    colorAttachment.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    colorAttachment.clearValue.color = {0.2f, 0.8f, 0.1f, 1.0f};
 
-    vkCmdBeginRenderPass(m_CommandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+    VkRenderingInfo renderingInfo = {};
+    renderingInfo.sType = VK_STRUCTURE_TYPE_RENDERING_INFO;
+    renderingInfo.renderArea = {{0, 0}, m_Viewport->GetExtent()};
+    renderingInfo.layerCount = 1;
+    renderingInfo.colorAttachmentCount = 1;
+    renderingInfo.pColorAttachments = &colorAttachment;
+
+    vkCmdBeginRenderingKHR(m_CommandBuffer, &renderingInfo);
 }
 
 void VulkanCommandBuffer::End()
 {
-    vkCmdEndRenderPass(m_CommandBuffer);
+    vkCmdEndRenderingKHR(m_CommandBuffer);
+
+    VkImageMemoryBarrier barrier{};
+    barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    barrier.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    barrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+    barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.image = m_Viewport->GetImage(m_Context->GetCurrentImageIndex());
+    barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    barrier.subresourceRange.baseMipLevel = 0;
+    barrier.subresourceRange.levelCount = 1;
+    barrier.subresourceRange.baseArrayLayer = 0;
+    barrier.subresourceRange.layerCount = 1;
+    barrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+    barrier.dstAccessMask = 0;
+
+    vkCmdPipelineBarrier(
+        m_CommandBuffer,
+        VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+        VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+        0,
+        0, nullptr,
+        0, nullptr,
+        1, &barrier
+    );
+
     vkEndCommandBuffer(m_CommandBuffer);
-}
-
-void VulkanCommandBuffer::Clear()
-{
-
 }
 
 void VulkanCommandBuffer::CreateCommandBuffer()
@@ -68,72 +109,6 @@ void VulkanCommandBuffer::CreateCommandBuffer()
     allocInfo.commandBufferCount = 1;
 
     vkAllocateCommandBuffers(m_Context->GetDevice(), &allocInfo, &m_CommandBuffer);
-}
-
-void VulkanCommandBuffer::CreateRenderPass()
-{
-    VkAttachmentDescription colorAttachment{};
-    colorAttachment.format = m_Viewport->GetFormat();
-    colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-
-    colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-    colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-
-    colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-    colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-
-    colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-
-    VkAttachmentReference colorAttachmentRef{};
-    colorAttachmentRef.attachment = 0;
-    colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-    VkSubpassDescription subpass{};
-    subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-    subpass.colorAttachmentCount = 1;
-    subpass.pColorAttachments = &colorAttachmentRef;
-
-    VkSubpassDependency dependency{};
-    dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-    dependency.dstSubpass = 0;
-
-    dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-    dependency.srcAccessMask = 0;
-
-    dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-    dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-
-    VkRenderPassCreateInfo renderPassInfo{};
-    renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-    renderPassInfo.attachmentCount = 1;
-    renderPassInfo.pAttachments = &colorAttachment;
-    renderPassInfo.subpassCount = 1;
-    renderPassInfo.pSubpasses = &subpass;
-    renderPassInfo.dependencyCount = 1;
-    renderPassInfo.pDependencies = &dependency;
-
-    vkCreateRenderPass(m_Context->GetDevice(), &renderPassInfo, nullptr, &m_RenderPass);
-
-    m_Framebuffers.resize(m_Viewport->GetNumImages());
-    for (int i = 0; i < m_Viewport->GetNumImages(); i++)
-    {
-        VkImageView attachments[] = 
-        {
-            m_Viewport->GetImageView(i)
-        };
-
-        VkFramebufferCreateInfo framebufferInfo{};
-        framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-        framebufferInfo.renderPass = m_RenderPass;
-        framebufferInfo.attachmentCount = 1;
-        framebufferInfo.pAttachments = attachments;
-        framebufferInfo.width = m_Viewport->GetExtent().width;
-        framebufferInfo.height = m_Viewport->GetExtent().height;
-        framebufferInfo.layers = 1;
-
-        vkCreateFramebuffer(m_Context->GetDevice(), &framebufferInfo, nullptr, &m_Framebuffers[i]);
-    }
 }
 
 } // namespace aero3d

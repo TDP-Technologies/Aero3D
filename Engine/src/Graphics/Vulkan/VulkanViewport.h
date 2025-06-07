@@ -3,7 +3,7 @@
 
 #include <vector>
 
-#include <vulkan/vulkan.h>
+#include <volk.h>
 
 #include "Utils/Common.h"
 #include "Graphics/Viewport.h"
@@ -31,6 +31,7 @@ public:
     VkFormat GetFormat() { return m_ImageFormat; }
     VkExtent2D GetExtent() { return m_Extent; }
     uint32_t GetNumImages() { return m_NumImages; }
+    VkImage GetImage(uint32_t index) { return m_Images[index]; }
     VkImageView GetImageView(uint32_t index) { return m_ImageViews[index]; }
 
 private:

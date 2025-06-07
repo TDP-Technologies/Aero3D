@@ -11,8 +11,6 @@ public:
     virtual void Record() = 0;
     virtual void End() = 0;
 
-    virtual void Clear() = 0;
-
 };
 
 } // namespace aero3d

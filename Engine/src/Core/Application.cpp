@@ -31,7 +31,6 @@ void Application::Run()
     Ref<Context> context = RenderSystem::CreateContext(Window::GetSDLWindow());
     Ref<Viewport> viewport = RenderSystem::CreateViewport(context, 800, 600);
     Ref<CommandBuffer> commandBuffer = RenderSystem::CreateCommandBuffer(context, viewport);
-    Ref<Queue> queue = RenderSystem::CreateQueue(context);
 
     while (m_IsRunning)
     {
@@ -42,7 +41,7 @@ void Application::Run()
             commandBuffer->Record();
             commandBuffer->End();
 
-            queue->Execute(commandBuffer);
+            commandBuffer->Execute();
 
             viewport->SwapBuffers();
         }

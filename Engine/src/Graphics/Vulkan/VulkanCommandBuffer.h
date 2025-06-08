@@ -17,16 +17,21 @@ public:
     virtual void Record() override;
     virtual void End() override;
 
+    virtual void Execute() override;
+
     VkCommandBuffer GetCommandBuffer() { return m_CommandBuffer; }
 
 private:
     void CreateCommandBuffer();
+    void CreateQueue();
 
 private:
     Ref<VulkanContext> m_Context = nullptr;
     Ref<VulkanViewport> m_Viewport = nullptr;
 
     VkCommandBuffer m_CommandBuffer = VK_NULL_HANDLE;
+    VkQueue m_GraphicsQueue = VK_NULL_HANDLE;
+    VkFence m_Fence = VK_NULL_HANDLE;
 
 };
 

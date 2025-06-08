@@ -40,11 +40,11 @@ static shaderc_shader_kind ShaderTypeToShaderCKind(Pipeline::ShaderType type)
     }
 }
 
-VulkanPipeline::VulkanPipeline(Ref<VulkanContext> context, Pipeline::Description desc)
+VulkanPipeline::VulkanPipeline(Ref<VulkanContext> context, Ref<VulkanViewport> viewport, Pipeline::Description desc)
     : m_Context(context)
 {
     CreatePipelineLayout();
-    CreatePipeline(desc);
+    CreatePipeline(viewport, desc);
 }
 
 VulkanPipeline::~VulkanPipeline()
@@ -97,7 +97,7 @@ void VulkanPipeline::CreatePipelineLayout()
     vkCreatePipelineLayout(m_Context->GetDevice(), &pipelineLayoutInfo, nullptr, &m_Layout);
 }
 
-void VulkanPipeline::CreatePipeline(Pipeline::Description& desc)
+void VulkanPipeline::CreatePipeline(Ref<VulkanViewport> viewport, Pipeline::Description& desc)
 {
     VkShaderModule vertexShader = CreateShaderModule(desc.VertexShader);
     VkShaderModule pixelShader = CreateShaderModule(desc.PixelShader);
@@ -192,7 +192,7 @@ void VulkanPipeline::CreatePipeline(Pipeline::Description& desc)
         vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
     }
 
-    VkFormat colorFormat = VK_FORMAT_B8G8R8A8_SRGB;
+    VkFormat colorFormat = viewport->GetFormat();
 
     VkPipelineRenderingCreateInfo renderingInfo{};
     renderingInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO;

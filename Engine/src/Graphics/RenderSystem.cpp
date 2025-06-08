@@ -36,9 +36,10 @@ Ref<CommandBuffer> RenderSystem::CreateCommandBuffer(Ref<Context> context, Ref<V
         std::static_pointer_cast<VulkanViewport>(viewport));
 }
 
-Ref<Pipeline> RenderSystem::CreatePipeline(Ref<Context> context, Pipeline::Description desc)
+Ref<Pipeline> RenderSystem::CreatePipeline(Ref<Context> context, Ref<Viewport> viewport, Pipeline::Description desc)
 {
-    return std::make_shared<VulkanPipeline>(std::static_pointer_cast<VulkanContext>(context), desc);
+    return std::make_shared<VulkanPipeline>(std::static_pointer_cast<VulkanContext>(context),
+        std::static_pointer_cast<VulkanViewport>(viewport), desc);
 }
 
 } // namespace aero3d

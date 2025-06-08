@@ -47,7 +47,7 @@ void Application::Run()
         { Pipeline::ShaderType::PIXEL, "res/shaders/pixel.glsl" }
     };
 
-    Ref<Pipeline> pipeline = RenderSystem::CreatePipeline(context, pipelineDescription);
+    Ref<Pipeline> pipeline = RenderSystem::CreatePipeline(context, viewport, pipelineDescription);
 
     while (m_IsRunning)
     {

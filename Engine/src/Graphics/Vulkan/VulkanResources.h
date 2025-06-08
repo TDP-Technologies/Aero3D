@@ -7,13 +7,14 @@
 #include "Utils/Common.h"
 #include "Graphics/Resources.h"
 #include "Graphics/Vulkan/VulkanContext.h"
+#include "Graphics/Vulkan/VulkanViewport.h"
 
 namespace aero3d {
 
 class VulkanPipeline : public Pipeline
 {
 public:
-    VulkanPipeline(Ref<VulkanContext> context, Pipeline::Description desc);
+    VulkanPipeline(Ref<VulkanContext> context, Ref<VulkanViewport> viewport, Pipeline::Description desc);
     ~VulkanPipeline();
 
     VkPipeline GetPipeline() { return m_Pipeline; }
@@ -23,7 +24,7 @@ private:
 
     VkShaderModule CreateShaderModule(Pipeline::Shader& shader);
     void CreatePipelineLayout();
-    void CreatePipeline(Pipeline::Description& vertexLayout);
+    void CreatePipeline(Ref<VulkanViewport> viewport, Pipeline::Description& vertexLayout);
 
 private:
     Ref<VulkanContext> m_Context = nullptr;

@@ -4,6 +4,7 @@
 #include "Graphics/Vulkan/VulkanContext.h"
 #include "Graphics/Vulkan/VulkanViewport.h"
 #include "Graphics/Vulkan/VulkanCommandBuffer.h"
+#include "Graphics/Vulkan/VulkanResources.h"
 
 namespace aero3d {
 
@@ -33,6 +34,11 @@ Ref<CommandBuffer> RenderSystem::CreateCommandBuffer(Ref<Context> context, Ref<V
 {
     return std::make_shared<VulkanCommandBuffer>(std::static_pointer_cast<VulkanContext>(context), 
         std::static_pointer_cast<VulkanViewport>(viewport));
+}
+
+Ref<Pipeline> RenderSystem::CreatePipeline(Ref<Context> context, Pipeline::Description desc)
+{
+    return std::make_shared<VulkanPipeline>(std::static_pointer_cast<VulkanContext>(context), desc);
 }
 
 } // namespace aero3d

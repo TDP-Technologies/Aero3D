@@ -1,5 +1,7 @@
 #include "Graphics/Vulkan/VulkanCommandBuffer.h"
 
+#include "Graphics/Vulkan/VulkanResources.h"
+
 namespace aero3d {
 
 VulkanCommandBuffer::VulkanCommandBuffer(Ref<VulkanContext> context, Ref<VulkanViewport> viewport)
@@ -68,10 +70,28 @@ void VulkanCommandBuffer::Record()
     renderingInfo.pColorAttachments = &colorAttachment;
 
     vkCmdBeginRenderingKHR(m_CommandBuffer, &renderingInfo);
+
+    VkViewport viewport{};
+    viewport.x = 0.0f;
+    viewport.y = 0.0f;
+    viewport.width  = m_Viewport->GetExtent().width;
+    viewport.height = m_Viewport->GetExtent().height;
+    viewport.minDepth = 0.0f;
+    viewport.maxDepth = 1.0f;
+
+    vkCmdSetViewport(m_CommandBuffer, 0, 1, &viewport);
+
+    VkRect2D scissor{};
+    scissor.offset = {0, 0};
+    scissor.extent = {m_Viewport->GetExtent().width, m_Viewport->GetExtent().height};
+
+    vkCmdSetScissor(m_CommandBuffer, 0, 1, &scissor);
 }
 
 void VulkanCommandBuffer::End()
 {
+    vkCmdDraw(m_CommandBuffer, 3, 1, 0, 0);
+
     vkCmdEndRenderingKHR(m_CommandBuffer);
 
     VkImageMemoryBarrier barrier{};
@@ -124,6 +144,12 @@ void VulkanCommandBuffer::Execute()
 
     vkWaitForFences(m_Context->GetDevice(), 1, &m_Fence, VK_TRUE, UINT64_MAX);
     vkResetFences(m_Context->GetDevice(), 1, &m_Fence);
+}
+
+void VulkanCommandBuffer::BindPipeline(Ref<Pipeline> pipeline)
+{
+    vkCmdBindPipeline(m_CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+        std::static_pointer_cast<VulkanPipeline>(pipeline)->GetPipeline());
 }
 
 void VulkanCommandBuffer::CreateCommandBuffer()

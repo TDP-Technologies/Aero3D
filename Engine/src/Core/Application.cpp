@@ -36,6 +36,19 @@ void Application::Run()
         viewport->Resize(windowResizeEvent.GetWidth(), windowResizeEvent.GetHeight());
     });
 
+    Pipeline::InputAttributeDescription pipelineAttributeDesc = Pipeline::InputAttributeDescription({
+        //Pipeline::Attribute("inPos", Pipeline::AttributeType::FLOAT2),
+        //Pipeline::Attribute("inColor", Pipeline::AttributeType::FLOAT3)
+    });
+
+    Pipeline::Description pipelineDescription { 
+        pipelineAttributeDesc, 
+        { Pipeline::ShaderType::VERTEX, "res/shaders/vertex.glsl" },
+        { Pipeline::ShaderType::PIXEL, "res/shaders/pixel.glsl" }
+    };
+
+    Ref<Pipeline> pipeline = RenderSystem::CreatePipeline(context, pipelineDescription);
+
     while (m_IsRunning)
     {
         Window::PollEvents(m_IsRunning, m_Minimized);
@@ -43,6 +56,9 @@ void Application::Run()
         if (!m_Minimized)
         {
             commandBuffer->Record();
+
+            commandBuffer->BindPipeline(pipeline);
+
             commandBuffer->End();
 
             commandBuffer->Execute();

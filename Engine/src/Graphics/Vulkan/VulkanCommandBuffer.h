@@ -17,6 +17,8 @@ public:
     virtual void Record() override;
     virtual void End() override;
 
+    virtual void BindPipeline(Ref<Pipeline> pipeline) override;
+
     virtual void Execute() override;
 
     VkCommandBuffer GetCommandBuffer() { return m_CommandBuffer; }

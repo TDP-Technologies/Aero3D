@@ -16,9 +16,6 @@ public:
     void Shutdown();
 
 private:
-    void SubscribeOnEvents();
-
-private:
     bool m_IsRunning = false;
     bool m_Minimized = false;
 

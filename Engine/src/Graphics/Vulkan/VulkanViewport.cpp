@@ -55,20 +55,12 @@ static VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR
 VulkanViewport::VulkanViewport(Ref<VulkanContext> context, int width, int height)
     : m_Context(context)
 {
-    CreateSwapchain(width, height);
-    CreateQueue();
-    CreateImageViews();
+    Create(width, height);
 }
 
 VulkanViewport::~VulkanViewport()
 {
-    vkDeviceWaitIdle(m_Context->GetDevice());
-
-    for (auto& imageView : m_ImageViews)
-    {
-        vkDestroyImageView(m_Context->GetDevice(), imageView, nullptr);
-    }
-    vkDestroySwapchainKHR(m_Context->GetDevice(), m_Swapchain, nullptr);
+    Destroy();
 }
 
 void VulkanViewport::SwapBuffers()
@@ -87,9 +79,10 @@ void VulkanViewport::SwapBuffers()
     vkQueuePresentKHR(m_PresentQueue, &presentInfo);
 }
 
-void VulkanViewport::Resize()
+void VulkanViewport::Resize(int width, int height)
 {
-
+    Destroy();
+    Create(width, height);
 }
 
 void VulkanViewport::CreateSwapchain(int width, int height)
@@ -179,6 +172,24 @@ void VulkanViewport::CreateImageViews()
 
         vkCreateImageView(m_Context->GetDevice(), &viewInfo, nullptr, &m_ImageViews[i]);
     }
+}
+
+void VulkanViewport::Create(int width, int height)
+{
+    CreateSwapchain(width, height);
+    CreateQueue();
+    CreateImageViews();
+}
+
+void VulkanViewport::Destroy()
+{
+    vkDeviceWaitIdle(m_Context->GetDevice());
+
+    for (auto& imageView : m_ImageViews)
+    {
+        vkDestroyImageView(m_Context->GetDevice(), imageView, nullptr);
+    }
+    vkDestroySwapchainKHR(m_Context->GetDevice(), m_Swapchain, nullptr);
 }
 
 } // namespace aero3d

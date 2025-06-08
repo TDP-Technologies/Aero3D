@@ -25,7 +25,7 @@ public:
     ~VulkanViewport();
 
     virtual void SwapBuffers() override;
-    virtual void Resize() override;
+    virtual void Resize(int width, int height) override;
 
     VkSwapchainKHR GetSwapchain() { return m_Swapchain; }
     VkFormat GetFormat() { return m_ImageFormat; }
@@ -38,6 +38,9 @@ private:
     void CreateSwapchain(int width, int height);
     void CreateQueue();
     void CreateImageViews();
+
+    void Create(int width, int heigth);
+    void Destroy();
 
 private:
     Ref<VulkanContext> m_Context = nullptr;

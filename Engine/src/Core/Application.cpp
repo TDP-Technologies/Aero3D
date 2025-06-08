@@ -17,8 +17,6 @@ bool Application::Init()
     Window::Init("Aero3D", 800, 600);
     RenderSystem::Init();
 
-    SubscribeOnEvents();
-
     VFS::Mount("", "Sandbox/");
 
     m_IsRunning = true;
@@ -31,6 +29,12 @@ void Application::Run()
     Ref<Context> context = RenderSystem::CreateContext(Window::GetSDLWindow());
     Ref<Viewport> viewport = RenderSystem::CreateViewport(context, 800, 600);
     Ref<CommandBuffer> commandBuffer = RenderSystem::CreateCommandBuffer(context, viewport);
+
+    EventBus::Subscribe(typeid(WindowResizeEvent), [&](Event& event) 
+    {
+        WindowResizeEvent& windowResizeEvent = static_cast<WindowResizeEvent&>(event);
+        viewport->Resize(windowResizeEvent.GetWidth(), windowResizeEvent.GetHeight());
+    });
 
     while (m_IsRunning)
     {
@@ -56,15 +60,6 @@ void Application::Shutdown()
     Window::Shutdown();
     EventBus::Shutdown();
     VFS::Shutdown();
-}
-
-void Application::SubscribeOnEvents()
-{
-    EventBus::Subscribe(typeid(WindowResizeEvent), [&](Event& event) 
-    {
-        WindowResizeEvent& windowResizeEvent = static_cast<WindowResizeEvent&>(event);
-
-    });
 }
 
 } // namespace aero3d

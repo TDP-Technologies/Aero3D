@@ -133,7 +133,7 @@ void VulkanCommandBuffer::Draw(Ref<Buffer> vb)
 void VulkanCommandBuffer::DrawIndexed(Ref<Buffer> vb, Ref<Buffer> ib)
 {
     Ref<VulkanBuffer> vulkanVB = std::static_pointer_cast<VulkanBuffer>(vb);
-    Ref<VulkanBuffer> vulkanIB = std::static_pointer_cast<VulkanBuffer>(vb);
+    Ref<VulkanBuffer> vulkanIB = std::static_pointer_cast<VulkanBuffer>(ib);
 
     VkBuffer vkVbBuffer = vulkanVB->GetBuffer();
     VkBuffer vkIbBuffer = vulkanIB->GetBuffer();

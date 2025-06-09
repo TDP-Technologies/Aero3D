@@ -55,9 +55,17 @@ void Application::Run()
         -0.5f,  0.5f,   0.0f, 0.0f, 1.0f
     };
 
-    Buffer::Description bufferDesc = { Buffer::BufferType::VERTEX, 
+    unsigned short indices[] = {
+        0, 1, 2
+    };
+
+    Buffer::Description vBufferDesc = { Buffer::BufferType::VERTEX, 
         Buffer::IndexType::UNDEFINED, 3, sizeof(vertices), vertices };
-    Ref<Buffer> buffer = commandBuffer->CreateBuffer(bufferDesc);
+    Ref<Buffer> vb = commandBuffer->CreateBuffer(vBufferDesc);
+
+    Buffer::Description iBufferDesc = { Buffer::BufferType::INDEX, 
+        Buffer::IndexType::UNSIGNED_SHORT, 3, sizeof(indices), indices };
+    Ref<Buffer> ib = commandBuffer->CreateBuffer(iBufferDesc);
 
     while (m_IsRunning)
     {
@@ -69,7 +77,7 @@ void Application::Run()
 
             commandBuffer->BindPipeline(pipeline);
 
-            commandBuffer->Draw(buffer);
+            commandBuffer->DrawIndexed(vb, ib);
 
             commandBuffer->End();
 

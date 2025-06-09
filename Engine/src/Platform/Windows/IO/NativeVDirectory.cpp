@@ -18,10 +18,6 @@ NativeVFDirectory::NativeVFDirectory(std::string virtualPath, std::string mountP
     m_MountPoint = mountPoint;
 }
 
-NativeVFDirectory::~NativeVFDirectory()
-{
-}
-
 Ref<VFile> NativeVFDirectory::OpenFile(std::string& path)
 {
     HANDLE fileHandle = CreateFileA(

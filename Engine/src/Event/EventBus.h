@@ -16,7 +16,7 @@ public:
     using EventHandler = std::function<void(Event&)>;
 
 public:
-    static bool Init();
+    static void Init();
     static void Shutdown();
 
     static void Subscribe(std::type_index type, EventHandler handler);

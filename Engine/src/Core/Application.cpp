@@ -56,7 +56,7 @@ void Application::Run()
     };
 
     Buffer::Description bufferDesc = { Buffer::BufferType::VERTEX, 
-        Buffer::IndexType::UNDEFINED, sizeof(vertices), vertices };
+        Buffer::IndexType::UNDEFINED, 3, sizeof(vertices), vertices };
     Ref<Buffer> buffer = commandBuffer->CreateBuffer(bufferDesc);
 
     while (m_IsRunning)
@@ -68,7 +68,8 @@ void Application::Run()
             commandBuffer->Record();
 
             commandBuffer->BindPipeline(pipeline);
-            commandBuffer->BindBuffer(buffer);
+
+            commandBuffer->Draw(buffer);
 
             commandBuffer->End();
 

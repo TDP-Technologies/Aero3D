@@ -17,7 +17,9 @@ public:
     virtual void Record() override;
     virtual void End() override;
 
-    virtual void BindBuffer(Ref<Buffer> buffer) override;
+    virtual void Draw(Ref<Buffer> vb) override;
+    virtual void DrawIndexed(Ref<Buffer> vb, Ref<Buffer> ib) override;
+
     virtual void BindPipeline(Ref<Pipeline> pipeline) override;
 
     virtual void Execute() override;

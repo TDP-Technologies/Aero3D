@@ -43,6 +43,7 @@ public:
     VkIndexType GetIndexType() { return m_IndexType; }
     VkBuffer GetBuffer() { return m_Buffer; }
     VkDeviceMemory GetMemory() { return m_Memory; }
+    uint32_t GetElementsCount() { return m_ElementsCount; }
 
 private:
     Ref<VulkanContext> m_Context;
@@ -50,6 +51,7 @@ private:
     VkIndexType m_IndexType = VK_INDEX_TYPE_NONE_NV;
     VkBuffer m_Buffer = VK_NULL_HANDLE;
     VkDeviceMemory m_Memory = VK_NULL_HANDLE;
+    uint32_t m_ElementsCount = 0;
 
 };
 

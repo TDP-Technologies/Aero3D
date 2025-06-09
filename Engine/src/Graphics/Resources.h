@@ -132,6 +132,7 @@ public:
     {
         BufferType Usage;
         IndexType IndexSize;
+        uint32_t ElementsCount;
         uint32_t Size;
         void* Data;
     };

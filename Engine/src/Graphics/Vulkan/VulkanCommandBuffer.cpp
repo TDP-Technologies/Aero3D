@@ -90,8 +90,6 @@ void VulkanCommandBuffer::Record()
 
 void VulkanCommandBuffer::End()
 {
-    vkCmdDraw(m_GraphicsCB, 3, 1, 0, 0);
-
     vkCmdEndRenderingKHR(m_GraphicsCB);
 
     VkImageMemoryBarrier barrier{};
@@ -122,6 +120,30 @@ void VulkanCommandBuffer::End()
     vkEndCommandBuffer(m_GraphicsCB);
 }
 
+void VulkanCommandBuffer::Draw(Ref<Buffer> vb)
+{
+    Ref<VulkanBuffer> vulkanBuffer = std::static_pointer_cast<VulkanBuffer>(vb);
+    VkBuffer vkBuffer = vulkanBuffer->GetBuffer();
+    VkDeviceSize offsets[] = { 0 };
+
+    vkCmdBindVertexBuffers(m_GraphicsCB, 0, 1, &vkBuffer, offsets);
+    vkCmdDraw(m_GraphicsCB, vulkanBuffer->GetElementsCount(), 1, 0, 0);
+}
+
+void VulkanCommandBuffer::DrawIndexed(Ref<Buffer> vb, Ref<Buffer> ib)
+{
+    Ref<VulkanBuffer> vulkanVB = std::static_pointer_cast<VulkanBuffer>(vb);
+    Ref<VulkanBuffer> vulkanIB = std::static_pointer_cast<VulkanBuffer>(vb);
+
+    VkBuffer vkVbBuffer = vulkanVB->GetBuffer();
+    VkBuffer vkIbBuffer = vulkanIB->GetBuffer();
+    VkDeviceSize offsets[] = { 0 };
+
+    vkCmdBindVertexBuffers(m_GraphicsCB, 0, 1, &vkVbBuffer, offsets);
+    vkCmdBindIndexBuffer(m_GraphicsCB, vkIbBuffer, 0, vulkanIB->GetIndexType());
+    vkCmdDraw(m_GraphicsCB, vulkanIB->GetElementsCount(), 1, 0, 0);
+}
+
 void VulkanCommandBuffer::Execute()
 {
     VkPipelineStageFlags waitFlags = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
@@ -144,21 +166,6 @@ void VulkanCommandBuffer::Execute()
 
     vkWaitForFences(m_Context->GetDevice(), 1, &m_Fence, VK_TRUE, UINT64_MAX);
     vkResetFences(m_Context->GetDevice(), 1, &m_Fence);
-}
-
-void VulkanCommandBuffer::BindBuffer(Ref<Buffer> buffer)
-{
-    Ref<VulkanBuffer> vulkanBuffer = std::static_pointer_cast<VulkanBuffer>(buffer);
-    VkBuffer vkBuffer = vulkanBuffer->GetBuffer();
-    if (vulkanBuffer->GetUsage() == Buffer::BufferType::VERTEX)
-    {
-        VkDeviceSize offsets[] = { 0 };
-        vkCmdBindVertexBuffers(m_GraphicsCB, 0, 1, &vkBuffer, offsets);
-    }
-    else
-    {
-        vkCmdBindIndexBuffer(m_GraphicsCB, vkBuffer, 0, vulkanBuffer->GetIndexType());
-    }
 }
 
 void VulkanCommandBuffer::BindPipeline(Ref<Pipeline> pipeline)

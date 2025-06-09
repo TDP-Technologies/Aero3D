@@ -14,7 +14,9 @@ public:
     virtual void Record() = 0;
     virtual void End() = 0;
 
-    virtual void BindBuffer(Ref<Buffer> buffer) = 0;
+    virtual void Draw(Ref<Buffer> vb) = 0;
+    virtual void DrawIndexed(Ref<Buffer> vb, Ref<Buffer> ib) = 0;
+
     virtual void BindPipeline(Ref<Pipeline> pipeline) = 0;
 
     virtual void Execute() = 0;

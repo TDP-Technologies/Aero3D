@@ -244,7 +244,8 @@ static VkBufferUsageFlagBits GetVkBufferTypeBit(Buffer::BufferType type)
 }
 
 VulkanBuffer::VulkanBuffer(Ref<VulkanContext> context, Buffer::Description desc)
-    : m_Context(context), m_Usage(desc.Usage), m_IndexType(GetVkIndexType(desc.IndexSize))
+    : m_Context(context), m_Usage(desc.Usage), m_IndexType(GetVkIndexType(desc.IndexSize)),
+    m_ElementsCount(desc.ElementsCount)
 {
     VkDeviceSize bufferSize = desc.Size;
 

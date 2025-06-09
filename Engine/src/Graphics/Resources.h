@@ -115,6 +115,32 @@ public:
 
 };
     
+class Buffer
+{
+public:
+    enum class BufferType
+    {
+        VERTEX, INDEX
+    };
+
+    enum class IndexType
+    {
+        UNDEFINED, UNSIGNED_SHORT, UNSIGNED_INT
+    };
+
+    struct Description
+    {
+        BufferType Usage;
+        IndexType IndexSize;
+        uint32_t Size;
+        void* Data;
+    };
+
+public:
+    virtual ~Buffer() = default;
+
+};
+
 } // namespace aero3d
 
 #endif // AERO3D_GRAPHICS_RESOURCES_H_

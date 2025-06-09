@@ -38,6 +38,8 @@ public:
     VulkanContext(SDL_Window* window);
     ~VulkanContext();
 
+    uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
+
     SDL_Window* GetWindow() { return m_Window; }
     VkInstance GetInstance() { return m_Instance; }
     VkSurfaceKHR GetSurface() { return m_Surface; }

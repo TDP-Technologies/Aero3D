@@ -33,6 +33,20 @@ VulkanContext::~VulkanContext()
     vkDestroyInstance(m_Instance, nullptr);
 }
 
+uint32_t VulkanContext::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) {
+    VkPhysicalDeviceMemoryProperties memProperties;
+    vkGetPhysicalDeviceMemoryProperties(m_PhysDevice, &memProperties);
+
+    for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
+        if ((typeFilter & (1 << i)) &&
+            (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
+            return i;
+        }
+    }
+
+    return 0;
+}
+
 void VulkanContext::CreateInstance()
 {
     uint32_t extensionCount;

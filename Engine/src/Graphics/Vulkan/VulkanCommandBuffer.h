@@ -17,21 +17,25 @@ public:
     virtual void Record() override;
     virtual void End() override;
 
+    virtual void BindBuffer(Ref<Buffer> buffer) override;
     virtual void BindPipeline(Ref<Pipeline> pipeline) override;
 
     virtual void Execute() override;
 
-    VkCommandBuffer GetCommandBuffer() { return m_CommandBuffer; }
+    virtual Ref<Buffer> CreateBuffer(Buffer::Description desc) override;
+
+    VkCommandBuffer GetCommandBuffer() { return m_GraphicsCB; }
 
 private:
-    void CreateCommandBuffer();
+    void CreateCommandBuffers();
     void CreateQueue();
 
 private:
     Ref<VulkanContext> m_Context = nullptr;
     Ref<VulkanViewport> m_Viewport = nullptr;
 
-    VkCommandBuffer m_CommandBuffer = VK_NULL_HANDLE;
+    VkCommandBuffer m_GraphicsCB = VK_NULL_HANDLE;
+    VkCommandBuffer m_TransferCB = VK_NULL_HANDLE;
     VkQueue m_GraphicsQueue = VK_NULL_HANDLE;
     VkFence m_Fence = VK_NULL_HANDLE;
 

@@ -37,8 +37,8 @@ void Application::Run()
     });
 
     Pipeline::InputAttributeDescription pipelineAttributeDesc = Pipeline::InputAttributeDescription({
-        //Pipeline::Attribute("inPos", Pipeline::AttributeType::FLOAT2),
-        //Pipeline::Attribute("inColor", Pipeline::AttributeType::FLOAT3)
+        Pipeline::Attribute("inPos", Pipeline::AttributeType::FLOAT2),
+        Pipeline::Attribute("inColor", Pipeline::AttributeType::FLOAT3)
     });
 
     Pipeline::Description pipelineDescription { 
@@ -49,6 +49,16 @@ void Application::Run()
 
     Ref<Pipeline> pipeline = RenderSystem::CreatePipeline(context, viewport, pipelineDescription);
 
+    float vertices[] = {
+         0.0f, -0.5f,   1.0f, 0.0f, 0.0f,
+         0.5f,  0.5f,   0.0f, 1.0f, 0.0f,
+        -0.5f,  0.5f,   0.0f, 0.0f, 1.0f
+    };
+
+    Buffer::Description bufferDesc = { Buffer::BufferType::VERTEX, 
+        Buffer::IndexType::UNDEFINED, sizeof(vertices), vertices };
+    Ref<Buffer> buffer = commandBuffer->CreateBuffer(bufferDesc);
+
     while (m_IsRunning)
     {
         Window::PollEvents(m_IsRunning, m_Minimized);
@@ -58,6 +68,7 @@ void Application::Run()
             commandBuffer->Record();
 
             commandBuffer->BindPipeline(pipeline);
+            commandBuffer->BindBuffer(buffer);
 
             commandBuffer->End();
 

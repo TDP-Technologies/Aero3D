@@ -33,6 +33,26 @@ private:
 
 };
 
+class VulkanBuffer : public Buffer
+{
+public:
+    VulkanBuffer(Ref<VulkanContext> context, Buffer::Description desc);
+    ~VulkanBuffer();
+
+    Buffer::BufferType GetUsage() { return m_Usage; }
+    VkIndexType GetIndexType() { return m_IndexType; }
+    VkBuffer GetBuffer() { return m_Buffer; }
+    VkDeviceMemory GetMemory() { return m_Memory; }
+
+private:
+    Ref<VulkanContext> m_Context;
+    Buffer::BufferType m_Usage = Buffer::BufferType::VERTEX;
+    VkIndexType m_IndexType = VK_INDEX_TYPE_NONE_NV;
+    VkBuffer m_Buffer = VK_NULL_HANDLE;
+    VkDeviceMemory m_Memory = VK_NULL_HANDLE;
+
+};
+
 } // namespace aero3d
 
 #endif // AERO3D_GRAPHICS_VULKAN_VULKANRESOURCES_H_

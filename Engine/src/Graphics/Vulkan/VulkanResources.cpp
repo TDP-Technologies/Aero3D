@@ -169,14 +169,15 @@ void VulkanPipeline::CreatePipeline(Ref<VulkanViewport> viewport, Pipeline::Desc
 
     auto attributes = desc.AttribDesc.GetAttributes();
 
+    std::vector<VkVertexInputAttributeDescription> attributeDescriptions(attributes.size());
+    VkVertexInputBindingDescription bindingDescription{};
+
     if (attributes.size())
     {
-        VkVertexInputBindingDescription bindingDescription{};
         bindingDescription.binding = 0;
         bindingDescription.stride = desc.AttribDesc.GetStride();
         bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
-        std::vector<VkVertexInputAttributeDescription> attributeDescriptions(attributes.size());
 
         for (int i = 0; i < attributes.size(); i++)
         {
@@ -220,6 +221,61 @@ void VulkanPipeline::CreatePipeline(Ref<VulkanViewport> viewport, Pipeline::Desc
     vkCreateGraphicsPipelines(m_Context->GetDevice(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_Pipeline);
     vkDestroyShaderModule(m_Context->GetDevice(), vertexShader, nullptr);
     vkDestroyShaderModule(m_Context->GetDevice(), pixelShader, nullptr);
+}
+
+static VkIndexType GetVkIndexType(Buffer::IndexType type)
+{
+    switch (type)
+    {
+    case Buffer::IndexType::UNSIGNED_SHORT: return VK_INDEX_TYPE_UINT16;
+    case Buffer::IndexType::UNSIGNED_INT: return VK_INDEX_TYPE_UINT32;
+    default: return VK_INDEX_TYPE_NONE_NV;
+    }
+}
+
+static VkBufferUsageFlagBits GetVkBufferTypeBit(Buffer::BufferType type)
+{
+    switch (type)
+    {
+    case Buffer::BufferType::VERTEX: return VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+    case Buffer::BufferType::INDEX: return VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+    default: return VK_BUFFER_USAGE_FLAG_BITS_MAX_ENUM;
+    }
+}
+
+VulkanBuffer::VulkanBuffer(Ref<VulkanContext> context, Buffer::Description desc)
+    : m_Context(context), m_Usage(desc.Usage), m_IndexType(GetVkIndexType(desc.IndexSize))
+{
+    VkDeviceSize bufferSize = desc.Size;
+
+    VkBufferUsageFlagBits typeFlag = GetVkBufferTypeBit(desc.Usage);
+
+    VkBufferCreateInfo bufferInfo{};
+    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    bufferInfo.size = bufferSize;
+    bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | typeFlag;
+    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+    vkCreateBuffer(m_Context->GetDevice(), &bufferInfo, nullptr, &m_Buffer);
+
+    VkMemoryRequirements memRequirements;
+    vkGetBufferMemoryRequirements(m_Context->GetDevice(), m_Buffer, &memRequirements);
+
+    VkMemoryAllocateInfo allocInfo{};
+    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocInfo.allocationSize = memRequirements.size;
+    allocInfo.memoryTypeIndex = m_Context->FindMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+    vkAllocateMemory(m_Context->GetDevice(), &allocInfo, nullptr, &m_Memory);
+
+    vkBindBufferMemory(m_Context->GetDevice(), m_Buffer, m_Memory, 0);
+}
+
+VulkanBuffer::~VulkanBuffer()
+{
+    vkDeviceWaitIdle(m_Context->GetDevice());
+    vkDestroyBuffer(m_Context->GetDevice(), m_Buffer, nullptr);
+    vkFreeMemory(m_Context->GetDevice(), m_Memory, nullptr);
 }
 
 } // namespace aero3d

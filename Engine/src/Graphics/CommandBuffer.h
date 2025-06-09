@@ -14,9 +14,12 @@ public:
     virtual void Record() = 0;
     virtual void End() = 0;
 
+    virtual void BindBuffer(Ref<Buffer> buffer) = 0;
     virtual void BindPipeline(Ref<Pipeline> pipeline) = 0;
 
     virtual void Execute() = 0;
+
+    virtual Ref<Buffer> CreateBuffer(Buffer::Description desc) = 0;
 
 };
 

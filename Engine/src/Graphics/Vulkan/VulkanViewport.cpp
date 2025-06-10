@@ -1,5 +1,7 @@
 #include "Graphics/Vulkan/VulkanViewport.h"
 
+#include "Graphics/Vulkan/VulkanUtils.h"
+
 namespace aero3d {
 
 static SwapChainSupportDetails QuerySwapChainSupport(VkPhysicalDevice device, VkSurfaceKHR surface)
@@ -76,7 +78,7 @@ void VulkanViewport::SwapBuffers()
     presentInfo.pSwapchains = &m_Swapchain;
     presentInfo.pImageIndices = m_Context->GetCurrentImageAddress();
 
-    vkQueuePresentKHR(m_PresentQueue, &presentInfo);
+    A3D_CHECK_VKRESULT(vkQueuePresentKHR(m_PresentQueue, &presentInfo));
 }
 
 void VulkanViewport::Resize(int width, int height)
@@ -131,11 +133,11 @@ void VulkanViewport::CreateSwapchain(int width, int height)
     createInfo.clipped = VK_TRUE;
     createInfo.oldSwapchain = VK_NULL_HANDLE;
 
-    vkCreateSwapchainKHR(m_Context->GetDevice(), &createInfo, nullptr, &m_Swapchain);
+    A3D_CHECK_VKRESULT(vkCreateSwapchainKHR(m_Context->GetDevice(), &createInfo, nullptr, &m_Swapchain));
 
-    vkGetSwapchainImagesKHR(m_Context->GetDevice(), m_Swapchain, &m_NumImages, nullptr);
+    A3D_CHECK_VKRESULT(vkGetSwapchainImagesKHR(m_Context->GetDevice(), m_Swapchain, &m_NumImages, nullptr));
     m_Images.resize(m_NumImages);
-    vkGetSwapchainImagesKHR(m_Context->GetDevice(), m_Swapchain, &m_NumImages, m_Images.data());
+    A3D_CHECK_VKRESULT(vkGetSwapchainImagesKHR(m_Context->GetDevice(), m_Swapchain, &m_NumImages, m_Images.data()));
 
     m_ImageFormat = surfaceFormat.format;
     m_Extent = extent;
@@ -170,7 +172,7 @@ void VulkanViewport::CreateImageViews()
         viewInfo.subresourceRange.baseArrayLayer = 0;
         viewInfo.subresourceRange.layerCount = 1;
 
-        vkCreateImageView(m_Context->GetDevice(), &viewInfo, nullptr, &m_ImageViews[i]);
+        A3D_CHECK_VKRESULT(vkCreateImageView(m_Context->GetDevice(), &viewInfo, nullptr, &m_ImageViews[i]));
     }
 }
 

@@ -1,5 +1,6 @@
 #include "Graphics/Vulkan/VulkanCommandBuffer.h"
 
+#include "Graphics/Vulkan/VulkanUtils.h"
 #include "Graphics/Vulkan/VulkanResources.h"
 
 namespace aero3d {
@@ -19,16 +20,16 @@ VulkanCommandBuffer::~VulkanCommandBuffer()
 
 void VulkanCommandBuffer::Record()
 {
-    vkAcquireNextImageKHR(m_Context->GetDevice(), m_Viewport->GetSwapchain(),
-        UINT64_MAX, m_Context->GetImageAvailableSemaphore(), VK_NULL_HANDLE, m_Context->GetCurrentImageAddress());
+    A3D_CHECK_VKRESULT(vkAcquireNextImageKHR(m_Context->GetDevice(), m_Viewport->GetSwapchain(),
+        UINT64_MAX, m_Context->GetImageAvailableSemaphore(), VK_NULL_HANDLE, m_Context->GetCurrentImageAddress()));
 
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     beginInfo.flags = 0;
     beginInfo.pInheritanceInfo = nullptr;
 
-    vkResetCommandBuffer(m_GraphicsCB, 0);
-    vkBeginCommandBuffer(m_GraphicsCB, &beginInfo);
+    A3D_CHECK_VKRESULT(vkResetCommandBuffer(m_GraphicsCB, 0));
+    A3D_CHECK_VKRESULT(vkBeginCommandBuffer(m_GraphicsCB, &beginInfo));
 
     VkImageMemoryBarrier barrier{};
     barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -117,7 +118,7 @@ void VulkanCommandBuffer::End()
         1, &barrier
     );
 
-    vkEndCommandBuffer(m_GraphicsCB);
+    A3D_CHECK_VKRESULT(vkEndCommandBuffer(m_GraphicsCB));
 }
 
 void VulkanCommandBuffer::Draw(Ref<Buffer> vb)
@@ -162,10 +163,10 @@ void VulkanCommandBuffer::Execute()
 	submitInfo.signalSemaphoreCount = 1;			
 	submitInfo.pSignalSemaphores = &renderFinishedSemaphore;
 
-	vkQueueSubmit(m_GraphicsQueue, 1, &submitInfo, m_Fence);
+	A3D_CHECK_VKRESULT(vkQueueSubmit(m_GraphicsQueue, 1, &submitInfo, m_Fence));
 
-    vkWaitForFences(m_Context->GetDevice(), 1, &m_Fence, VK_TRUE, UINT64_MAX);
-    vkResetFences(m_Context->GetDevice(), 1, &m_Fence);
+    A3D_CHECK_VKRESULT(vkWaitForFences(m_Context->GetDevice(), 1, &m_Fence, VK_TRUE, UINT64_MAX));
+    A3D_CHECK_VKRESULT(vkResetFences(m_Context->GetDevice(), 1, &m_Fence));
 }
 
 void VulkanCommandBuffer::BindPipeline(Ref<Pipeline> pipeline)
@@ -183,29 +184,11 @@ Ref<Buffer> VulkanCommandBuffer::CreateBuffer(Buffer::Description desc)
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
 
-    VkBufferCreateInfo bufferInfo{};
-    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-    bufferInfo.size = bufferSize;
-    bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-
-    vkCreateBuffer(m_Context->GetDevice(), &bufferInfo, nullptr, &stagingBuffer);
-
-    VkMemoryRequirements memRequirements;
-    vkGetBufferMemoryRequirements(m_Context->GetDevice(), stagingBuffer, &memRequirements);
-
-    VkMemoryAllocateInfo allocInfo{};
-    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    allocInfo.allocationSize = memRequirements.size;
-    allocInfo.memoryTypeIndex = m_Context->FindMemoryType(memRequirements.memoryTypeBits, 
-        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-
-    vkAllocateMemory(m_Context->GetDevice(), &allocInfo, nullptr, &stagingBufferMemory);
-
-    vkBindBufferMemory(m_Context->GetDevice(), stagingBuffer, stagingBufferMemory, 0);
+    m_Context->CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
     void* data;
-    vkMapMemory(m_Context->GetDevice(), stagingBufferMemory, 0, bufferSize, 0, &data);
+    A3D_CHECK_VKRESULT(vkMapMemory(m_Context->GetDevice(), stagingBufferMemory, 0, bufferSize, 0, &data));
     memcpy(data, desc.Data, (size_t)bufferSize);
     vkUnmapMemory(m_Context->GetDevice(), stagingBufferMemory);
 
@@ -213,7 +196,7 @@ Ref<Buffer> VulkanCommandBuffer::CreateBuffer(Buffer::Description desc)
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
-    vkBeginCommandBuffer(m_TransferCB, &beginInfo);
+    A3D_CHECK_VKRESULT(vkBeginCommandBuffer(m_TransferCB, &beginInfo));
 
     VkBufferCopy copyRegion{};
     copyRegion.srcOffset = 0;
@@ -221,15 +204,15 @@ Ref<Buffer> VulkanCommandBuffer::CreateBuffer(Buffer::Description desc)
     copyRegion.size = bufferSize;
     vkCmdCopyBuffer(m_TransferCB, stagingBuffer, buffer->GetBuffer(), 1, &copyRegion);
 
-    vkEndCommandBuffer(m_TransferCB);
+    A3D_CHECK_VKRESULT(vkEndCommandBuffer(m_TransferCB));
 
     VkSubmitInfo submitInfo{};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = &m_TransferCB;
 
-    vkQueueSubmit(m_GraphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
-    vkQueueWaitIdle(m_GraphicsQueue);
+    A3D_CHECK_VKRESULT(vkQueueSubmit(m_GraphicsQueue, 1, &submitInfo, VK_NULL_HANDLE));
+    A3D_CHECK_VKRESULT(vkQueueWaitIdle(m_GraphicsQueue));
 
     vkDestroyBuffer(m_Context->GetDevice(), stagingBuffer, nullptr);
     vkFreeMemory(m_Context->GetDevice(), stagingBufferMemory, nullptr);
@@ -245,8 +228,8 @@ void VulkanCommandBuffer::CreateCommandBuffers()
     allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
     allocInfo.commandBufferCount = 1;
 
-    vkAllocateCommandBuffers(m_Context->GetDevice(), &allocInfo, &m_GraphicsCB);
-    vkAllocateCommandBuffers(m_Context->GetDevice(), &allocInfo, &m_TransferCB);
+    A3D_CHECK_VKRESULT(vkAllocateCommandBuffers(m_Context->GetDevice(), &allocInfo, &m_GraphicsCB));
+    A3D_CHECK_VKRESULT(vkAllocateCommandBuffers(m_Context->GetDevice(), &allocInfo, &m_TransferCB));
 }
 
 void VulkanCommandBuffer::CreateQueue()
@@ -258,8 +241,8 @@ void VulkanCommandBuffer::CreateQueue()
     fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
     fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-    vkCreateFence(m_Context->GetDevice(), &fenceInfo, nullptr, &m_Fence);
-    vkResetFences(m_Context->GetDevice(), 1, &m_Fence);
+    A3D_CHECK_VKRESULT(vkCreateFence(m_Context->GetDevice(), &fenceInfo, nullptr, &m_Fence));
+    A3D_CHECK_VKRESULT(vkResetFences(m_Context->GetDevice(), 1, &m_Fence));
 }
 
 } // namespace aero3d

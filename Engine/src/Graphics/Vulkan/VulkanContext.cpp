@@ -6,6 +6,7 @@
 #include <SDL3/SDL_vulkan.h>
 
 #include "Utils/Log.h"
+#include "Graphics/Vulkan/VulkanUtils.h"
 
 namespace aero3d {
 
@@ -47,6 +48,30 @@ uint32_t VulkanContext::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlag
     return 0;
 }
 
+void VulkanContext::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, 
+    VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory) 
+{
+    VkBufferCreateInfo bufferInfo{};
+    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    bufferInfo.size = size;
+    bufferInfo.usage = usage;
+    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+    A3D_CHECK_VKRESULT(vkCreateBuffer(m_Device, &bufferInfo, nullptr, &buffer));
+
+    VkMemoryRequirements memRequirements;
+    vkGetBufferMemoryRequirements(m_Device, buffer, &memRequirements);
+
+    VkMemoryAllocateInfo allocInfo{};
+    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocInfo.allocationSize = memRequirements.size;
+    allocInfo.memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits, properties);
+
+    A3D_CHECK_VKRESULT(vkAllocateMemory(m_Device, &allocInfo, nullptr, &bufferMemory));
+
+    A3D_CHECK_VKRESULT(vkBindBufferMemory(m_Device, buffer, bufferMemory, 0));
+}
+
 void VulkanContext::CreateInstance()
 {
     uint32_t extensionCount;
@@ -77,7 +102,7 @@ void VulkanContext::CreateInstance()
     createInfo.enabledLayerCount = 1;
     createInfo.ppEnabledLayerNames = validationLayers;
 
-    vkCreateInstance(&createInfo, nullptr, &m_Instance);
+    A3D_CHECK_VKRESULT(vkCreateInstance(&createInfo, nullptr, &m_Instance));
     volkLoadInstance(m_Instance);
 }
 
@@ -92,11 +117,11 @@ void VulkanContext::CreateSurface()
 void VulkanContext::CreatePhysDevice()
 {
     uint32_t physDeviceCount;
-    vkEnumeratePhysicalDevices(m_Instance, &physDeviceCount, nullptr);
+    A3D_CHECK_VKRESULT(vkEnumeratePhysicalDevices(m_Instance, &physDeviceCount, nullptr));
 
     std::vector<VkPhysicalDevice> vkDevices(physDeviceCount);
 
-    vkEnumeratePhysicalDevices(m_Instance, &physDeviceCount, vkDevices.data());
+    A3D_CHECK_VKRESULT(vkEnumeratePhysicalDevices(m_Instance, &physDeviceCount, vkDevices.data()));
 
     for (auto& vkDevice : vkDevices) 
     {
@@ -191,7 +216,7 @@ void VulkanContext::CreateDevice()
 
     createInfo.enabledLayerCount = 0;
 
-    vkCreateDevice(m_PhysDevice, &createInfo, nullptr, &m_Device);
+    A3D_CHECK_VKRESULT(vkCreateDevice(m_PhysDevice, &createInfo, nullptr, &m_Device));
     volkLoadDevice(m_Device);
 }
 
@@ -202,7 +227,7 @@ void VulkanContext::CreateCommandPool()
     poolInfo.queueFamilyIndex = m_PhysDeviceInfo.QueueFamilyIndices.GraphicsFamily.value();
     poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 
-    vkCreateCommandPool(m_Device, &poolInfo, nullptr, &m_CommandPool);
+    A3D_CHECK_VKRESULT(vkCreateCommandPool(m_Device, &poolInfo, nullptr, &m_CommandPool));
 }
 
 void VulkanContext::CreateSemaphores()
@@ -210,8 +235,8 @@ void VulkanContext::CreateSemaphores()
     VkSemaphoreCreateInfo semaphoreInfo{};
     semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
-    vkCreateSemaphore(m_Device, &semaphoreInfo, nullptr, &m_RenderFinishedSemaphore);
-    vkCreateSemaphore(m_Device, &semaphoreInfo, nullptr, &m_ImageAvailableSemaphore);
+    A3D_CHECK_VKRESULT(vkCreateSemaphore(m_Device, &semaphoreInfo, nullptr, &m_RenderFinishedSemaphore));
+    A3D_CHECK_VKRESULT(vkCreateSemaphore(m_Device, &semaphoreInfo, nullptr, &m_ImageAvailableSemaphore));
 }
 
 } // namespace aero3d

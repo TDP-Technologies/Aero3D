@@ -2,6 +2,7 @@
 
 #include "Utils/Log.h"
 #include "IO/VFS.h"
+#include "Graphics/Vulkan/VulkanUtils.h"
 
 namespace aero3d {
 
@@ -82,7 +83,7 @@ VkShaderModule VulkanPipeline::CreateShaderModule(Pipeline::Shader& shader)
     createInfo.pCode = spirv.data();
 
     VkShaderModule shaderModule = VK_NULL_HANDLE;
-    vkCreateShaderModule(m_Context->GetDevice(), &createInfo, nullptr, &shaderModule);
+    A3D_CHECK_VKRESULT(vkCreateShaderModule(m_Context->GetDevice(), &createInfo, nullptr, &shaderModule));
 
     return shaderModule;
 }
@@ -94,7 +95,7 @@ void VulkanPipeline::CreatePipelineLayout()
     pipelineLayoutInfo.setLayoutCount = 0;
     pipelineLayoutInfo.pushConstantRangeCount = 0;
 
-    vkCreatePipelineLayout(m_Context->GetDevice(), &pipelineLayoutInfo, nullptr, &m_Layout);
+    A3D_CHECK_VKRESULT(vkCreatePipelineLayout(m_Context->GetDevice(), &pipelineLayoutInfo, nullptr, &m_Layout));
 }
 
 void VulkanPipeline::CreatePipeline(Ref<VulkanViewport> viewport, Pipeline::Description& desc)
@@ -218,7 +219,7 @@ void VulkanPipeline::CreatePipeline(Ref<VulkanViewport> viewport, Pipeline::Desc
     pipelineInfo.subpass = 0;
     pipelineInfo.pDynamicState = &dynamicState;
 
-    vkCreateGraphicsPipelines(m_Context->GetDevice(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_Pipeline);
+    A3D_CHECK_VKRESULT(vkCreateGraphicsPipelines(m_Context->GetDevice(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_Pipeline));
     vkDestroyShaderModule(m_Context->GetDevice(), vertexShader, nullptr);
     vkDestroyShaderModule(m_Context->GetDevice(), pixelShader, nullptr);
 }
@@ -251,25 +252,8 @@ VulkanBuffer::VulkanBuffer(Ref<VulkanContext> context, Buffer::Description desc)
 
     VkBufferUsageFlagBits typeFlag = GetVkBufferTypeBit(desc.Usage);
 
-    VkBufferCreateInfo bufferInfo{};
-    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-    bufferInfo.size = bufferSize;
-    bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | typeFlag;
-    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-
-    vkCreateBuffer(m_Context->GetDevice(), &bufferInfo, nullptr, &m_Buffer);
-
-    VkMemoryRequirements memRequirements;
-    vkGetBufferMemoryRequirements(m_Context->GetDevice(), m_Buffer, &memRequirements);
-
-    VkMemoryAllocateInfo allocInfo{};
-    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    allocInfo.allocationSize = memRequirements.size;
-    allocInfo.memoryTypeIndex = m_Context->FindMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-
-    vkAllocateMemory(m_Context->GetDevice(), &allocInfo, nullptr, &m_Memory);
-
-    vkBindBufferMemory(m_Context->GetDevice(), m_Buffer, m_Memory, 0);
+    m_Context->CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | typeFlag, 
+        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_Buffer, m_Memory);
 }
 
 VulkanBuffer::~VulkanBuffer()

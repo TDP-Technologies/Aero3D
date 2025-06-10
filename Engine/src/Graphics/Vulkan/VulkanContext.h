@@ -39,6 +39,8 @@ public:
     ~VulkanContext();
 
     uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
+    void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage,
+        VkMemoryPropertyFlags properties,VkBuffer& buffer, VkDeviceMemory& bufferMemory);
 
     SDL_Window* GetWindow() { return m_Window; }
     VkInstance GetInstance() { return m_Instance; }

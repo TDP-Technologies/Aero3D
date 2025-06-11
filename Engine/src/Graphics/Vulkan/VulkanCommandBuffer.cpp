@@ -23,13 +23,7 @@ void VulkanCommandBuffer::Record()
     A3D_CHECK_VKRESULT(vkAcquireNextImageKHR(m_Context->GetDevice(), m_Viewport->GetSwapchain(),
         UINT64_MAX, m_Context->GetImageAvailableSemaphore(), VK_NULL_HANDLE, m_Context->GetCurrentImageAddress()));
 
-    VkCommandBufferBeginInfo beginInfo{};
-    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-    beginInfo.flags = 0;
-    beginInfo.pInheritanceInfo = nullptr;
-
-    A3D_CHECK_VKRESULT(vkResetCommandBuffer(m_GraphicsCB, 0));
-    A3D_CHECK_VKRESULT(vkBeginCommandBuffer(m_GraphicsCB, &beginInfo));
+    BeginCommandBuffer(m_GraphicsCB, 0);
 
     VkImageMemoryBarrier barrier{};
     barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -147,26 +141,7 @@ void VulkanCommandBuffer::DrawIndexed(Ref<Buffer> vb, Ref<Buffer> ib)
 
 void VulkanCommandBuffer::Execute()
 {
-    VkPipelineStageFlags waitFlags = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-
-    VkSemaphore imageAvailebleSemaphore = m_Context->GetImageAvailableSemaphore();
-    VkSemaphore renderFinishedSemaphore = m_Context->GetRenderFinishedSemaphore();
-
-	VkSubmitInfo submitInfo{};
-	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-	submitInfo.pNext = nullptr;
-	submitInfo.waitSemaphoreCount = 1;
-	submitInfo.pWaitSemaphores = &imageAvailebleSemaphore;
-	submitInfo.pWaitDstStageMask = &waitFlags;
-	submitInfo.commandBufferCount = 1;
-	submitInfo.pCommandBuffers = &m_GraphicsCB;
-	submitInfo.signalSemaphoreCount = 1;			
-	submitInfo.pSignalSemaphores = &renderFinishedSemaphore;
-
-	A3D_CHECK_VKRESULT(vkQueueSubmit(m_GraphicsQueue, 1, &submitInfo, m_Fence));
-
-    A3D_CHECK_VKRESULT(vkWaitForFences(m_Context->GetDevice(), 1, &m_Fence, VK_TRUE, UINT64_MAX));
-    A3D_CHECK_VKRESULT(vkResetFences(m_Context->GetDevice(), 1, &m_Fence));
+    SubmitGraphicsQueue();
 }
 
 void VulkanCommandBuffer::BindPipeline(Ref<Pipeline> pipeline)
@@ -192,27 +167,18 @@ Ref<Buffer> VulkanCommandBuffer::CreateBuffer(Buffer::Description desc)
     memcpy(data, desc.Data, (size_t)bufferSize);
     vkUnmapMemory(m_Context->GetDevice(), stagingBufferMemory);
 
-    VkCommandBufferBeginInfo beginInfo{};
-    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-
-    A3D_CHECK_VKRESULT(vkBeginCommandBuffer(m_TransferCB, &beginInfo));
+    BeginCommandBuffer(m_TransferCB, VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
 
     VkBufferCopy copyRegion{};
     copyRegion.srcOffset = 0;
-    copyRegion.dstOffset = 0;
+    copyRegion.dstOffset = 0;   
     copyRegion.size = bufferSize;
+
     vkCmdCopyBuffer(m_TransferCB, stagingBuffer, buffer->GetBuffer(), 1, &copyRegion);
 
     A3D_CHECK_VKRESULT(vkEndCommandBuffer(m_TransferCB));
 
-    VkSubmitInfo submitInfo{};
-    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-    submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = &m_TransferCB;
-
-    A3D_CHECK_VKRESULT(vkQueueSubmit(m_GraphicsQueue, 1, &submitInfo, VK_NULL_HANDLE));
-    A3D_CHECK_VKRESULT(vkQueueWaitIdle(m_GraphicsQueue));
+    SubmitTransferQueue();
 
     vkDestroyBuffer(m_Context->GetDevice(), stagingBuffer, nullptr);
     vkFreeMemory(m_Context->GetDevice(), stagingBufferMemory, nullptr);
@@ -243,6 +209,41 @@ void VulkanCommandBuffer::CreateQueue()
 
     A3D_CHECK_VKRESULT(vkCreateFence(m_Context->GetDevice(), &fenceInfo, nullptr, &m_Fence));
     A3D_CHECK_VKRESULT(vkResetFences(m_Context->GetDevice(), 1, &m_Fence));
+}
+
+void VulkanCommandBuffer::SubmitGraphicsQueue()
+{
+    VkPipelineStageFlags waitFlags = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+
+    VkSemaphore imageAvailebleSemaphore = m_Context->GetImageAvailableSemaphore();
+    VkSemaphore renderFinishedSemaphore = m_Context->GetRenderFinishedSemaphore();
+
+	VkSubmitInfo submitInfo{};
+	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	submitInfo.pNext = nullptr;
+	submitInfo.waitSemaphoreCount = 1;
+	submitInfo.pWaitSemaphores = &imageAvailebleSemaphore;
+	submitInfo.pWaitDstStageMask = &waitFlags;
+	submitInfo.commandBufferCount = 1;
+	submitInfo.pCommandBuffers = &m_GraphicsCB;
+	submitInfo.signalSemaphoreCount = 1;			
+	submitInfo.pSignalSemaphores = &renderFinishedSemaphore;
+
+	A3D_CHECK_VKRESULT(vkQueueSubmit(m_GraphicsQueue, 1, &submitInfo, m_Fence));
+
+    A3D_CHECK_VKRESULT(vkWaitForFences(m_Context->GetDevice(), 1, &m_Fence, VK_TRUE, UINT64_MAX));
+    A3D_CHECK_VKRESULT(vkResetFences(m_Context->GetDevice(), 1, &m_Fence));
+}
+
+void VulkanCommandBuffer::SubmitTransferQueue()
+{
+    VkSubmitInfo submitInfo{};
+    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers = &m_TransferCB;
+
+    A3D_CHECK_VKRESULT(vkQueueSubmit(m_GraphicsQueue, 1, &submitInfo, VK_NULL_HANDLE));
+    A3D_CHECK_VKRESULT(vkQueueWaitIdle(m_GraphicsQueue));
 }
 
 } // namespace aero3d

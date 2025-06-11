@@ -1,6 +1,8 @@
 #ifndef AERO3D_GRAPHICS_VULKAN_VULKANCOMMANDBUFFER_H_
 #define AERO3D_GRAPHICS_VULKAN_VULKANCOMMANDBUFFER_H_
 
+#include <volk.h>
+
 #include "Utils/Common.h"
 #include "Graphics/CommandBuffer.h"
 #include "Graphics/Vulkan/VulkanContext.h"
@@ -31,6 +33,9 @@ public:
 private:
     void CreateCommandBuffers();
     void CreateQueue();
+
+    void SubmitGraphicsQueue();
+    void SubmitTransferQueue();
 
 private:
     Ref<VulkanContext> m_Context = nullptr;

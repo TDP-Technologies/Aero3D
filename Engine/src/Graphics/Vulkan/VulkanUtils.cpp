@@ -35,4 +35,14 @@ const char* VkResultToString(VkResult result)
     }
 }
 
+void BeginCommandBuffer(VkCommandBuffer& buffer, VkCommandBufferUsageFlags flags)
+{
+    VkCommandBufferBeginInfo beginInfo{};
+    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    beginInfo.flags = flags;
+
+    A3D_CHECK_VKRESULT(vkResetCommandBuffer(buffer, 0));
+    A3D_CHECK_VKRESULT(vkBeginCommandBuffer(buffer, &beginInfo));
+}
+
 } // namespace aero3d

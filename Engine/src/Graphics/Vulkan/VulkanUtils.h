@@ -1,7 +1,7 @@
 #ifndef AERO3D_GRAPHICS_VULKAN_VULKANUTILS_H_
 #define AERO3D_GRAPHICS_VULKAN_VULKANUTILS_H_
 
-#include <vulkan/vulkan.h>
+#include <volk.h>
 
 #include "Utils/Log.h"
 
@@ -13,6 +13,8 @@
 namespace aero3d {
 
 const char* VkResultToString(VkResult result);
+
+void BeginCommandBuffer(VkCommandBuffer& buffer, VkCommandBufferUsageFlags flags);
 
 } // namespace aero3d
 

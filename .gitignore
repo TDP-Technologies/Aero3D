@@ -1,0 +1,17 @@
+# Binaries
+**/bin/
+bin-int/
+Intermediates/
+Dependencies/
+
+# Visual Studio files and folder
+.vs/
+**.sln
+**.vcxproj
+**.vcxproj.filters
+**.vcxproj.user
+**.csproj
+
+#Build and vscode
+build/
+.vscode/

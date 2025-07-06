@@ -1,0 +1,288 @@
+#ifndef AERO3D_GRAPHICS_RESOURCES_H_
+#define AERO3D_GRAPHICS_RESOURCES_H_
+
+#include <string>
+#include <vector>
+#include <cstdint>
+
+#include "Utils/Common.h"
+
+namespace aero3d {
+
+enum BufferUsage 
+{
+    USAGE_VERTEX    = 1 << 0,
+    USAGE_INDEX     = 1 << 1,
+    USAGE_UNIFORM   = 1 << 2,
+    USAGE_STORAGE   = 1 << 3,
+    USAGE_STAGING   = 1 << 4
+};
+
+enum class IndexFormat
+{
+    UNSIGNED_SHORT, 
+    UNSIGNED_INT
+};
+
+struct BufferDesc {
+    size_t size;
+    BufferUsage usage;
+    bool dynamic = false;
+};
+
+class DeviceBuffer 
+{
+public:
+    virtual ~DeviceBuffer() = default;
+
+};
+
+enum class TextureUsage 
+{
+    SAMPLED,
+    STORAGE,
+    RENDERTARGET,
+    DEPTHSTENCIL
+};
+
+enum class TextureFormat 
+{
+    RGBA8,
+    BGRA8,
+    RGBA8_SRGB,
+    BGRA8_SRGB,
+    R32FLOAT,
+    D32FLOAT,
+    D24S8,
+    D32S8
+};
+
+struct TextureDesc {
+    uint32_t width;
+    uint32_t height;
+    uint32_t depth = 1;
+    uint32_t mipLevels = 1;
+    uint32_t arrayLayers = 1;
+    TextureFormat format;
+    TextureUsage usage;
+    bool generateMipmaps = false;
+};
+
+class Texture 
+{
+public:
+    virtual ~Texture() = default;
+
+};
+
+struct TextureViewDesc 
+{
+    Ref<Texture> texture;
+    TextureFormat format;
+    uint32_t baseMipLevel = 0;
+    uint32_t mipLevels = 1;
+    uint32_t baseArrayLayer = 0;
+    uint32_t arrayLayers = 1;
+};
+
+class TextureView 
+{
+public:
+    virtual ~TextureView() = default;
+
+    virtual Ref<Texture> GetTargetTexture() = 0;
+
+};
+
+enum class SamplerFilter
+{
+    NEAREST,
+    LINEAR
+};
+
+enum class SamplerAddressMode
+{
+    REPEAT,
+    CLAMP_TO_EDGE,
+    CLAMP_TO_BORDER
+};
+
+struct SamplerDesc
+{
+    SamplerFilter filter = SamplerFilter::LINEAR;
+    SamplerAddressMode addressModeU = SamplerAddressMode::REPEAT;
+    SamplerAddressMode addressModeV = SamplerAddressMode::REPEAT;
+    SamplerAddressMode addressModeW = SamplerAddressMode::REPEAT;
+    float maxAnisotropy = 1.0f;
+};
+
+class Sampler
+{
+public:
+    virtual ~Sampler() = default;
+
+};
+
+struct FramebufferDesc 
+{
+    std::vector<Ref<Texture>> colorTargets;
+    Ref<Texture> depthTarget = nullptr;
+};
+
+class Framebuffer 
+{
+public:
+    virtual ~Framebuffer() = default;
+
+};
+
+enum ShaderStages
+{
+    STAGE_NONE          = 0,
+    STAGE_VERTEX        = 1 << 0,
+    STAGE_FRAGMENT      = 1 << 1,
+    STAGE_COMPUTE       = 1 << 2,
+    STAGE_GEOMETRY      = 1 << 3,
+    STAGE_TESSCONTROL   = 1 << 4,
+    STAGE_TESSEVAL      = 1 << 5
+};
+
+struct ShaderDesc 
+{
+    ShaderStages stage;
+    std::string path;
+    std::string entryPoint = "main";
+};
+
+class Shader 
+{
+public:
+    virtual ~Shader() = default;
+
+};
+
+enum class ResourceKind 
+{
+    UNIFORMBUFFER,
+    STORAGEBUFFER,
+    TEXTUREREADONLY,
+    TEXTUREREADWRITE,
+    SAMPLER
+};
+
+struct ResourceBinding 
+{
+    uint32_t binding;
+    ResourceKind kind;
+    ShaderStages stages;
+};
+
+struct ResourceLayoutDesc 
+{
+    std::vector<ResourceBinding> bindings;
+};
+
+class ResourceLayout 
+{
+public:
+    virtual ~ResourceLayout() = default;
+
+};
+
+struct ResourceSetDesc 
+{
+    Ref<ResourceLayout> layout;
+    std::vector<void*> resources;
+};
+
+class ResourceSet 
+{
+public:
+    virtual ~ResourceSet() = default;
+
+};
+
+enum class PrimitiveTopology 
+{
+    TRIANGLELIST,
+    TRIANGLESTRIP,
+    LINELIST,
+    LINESTRIP,
+    POINTLIST
+};
+
+enum class CullMode 
+{
+    NONE,
+    FRONT,
+    BACK
+};
+
+enum class FrontFace 
+{
+    CLOCKWISE,
+    COUNTERCLOCKWISE
+};
+
+enum class PolygonMode 
+{
+    FILL,
+    LINE,
+    POINT
+};
+
+enum class VertexFormat 
+{
+    FLOAT, FLOAT2, FLOAT3, FLOAT4, INT, INT2, INT3, INT4,
+    BOOL, MAT2, MAT3, MAT4
+};
+
+struct VertexAttributeDesc 
+{
+    uint32_t location;
+    uint32_t binding;
+    VertexFormat format;
+    uint32_t offset;
+};
+
+struct VertexBindingDesc 
+{
+    uint32_t binding;
+    uint32_t stride;
+    bool perInstance = false;
+};
+
+struct VertexLayoutDesc 
+{
+    std::vector<VertexBindingDesc> bindings;
+    std::vector<VertexAttributeDesc> attributes;
+};
+
+struct PipelineDesc 
+{
+    Ref<Shader> vertexShader;
+    Ref<Shader> fragmentShader;
+
+    Ref<ResourceLayout> resourceLayout;
+
+    VertexLayoutDesc vertexLayout;
+
+    PrimitiveTopology topology = PrimitiveTopology::TRIANGLELIST;
+    CullMode cullMode = CullMode::BACK;
+    FrontFace frontFace = FrontFace::COUNTERCLOCKWISE;
+    PolygonMode polygonMode = PolygonMode::FILL;
+
+    bool depthTest = true;
+    bool depthWrite = true;
+};
+
+class Pipeline 
+{
+public:
+    virtual ~Pipeline() = default;
+
+};
+
+} // namespace aero3d
+
+#endif // AERO3D_GRAPHICS_RESOURCES_H_

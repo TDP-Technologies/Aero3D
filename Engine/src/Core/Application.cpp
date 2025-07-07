@@ -7,6 +7,7 @@
 #include "Utils/Log.h"
 #include "IO/VFS.h"
 #include "Event/EventBus.h"
+#include "Utils/ImageLoader.h"
 
 #include "Graphics/Vulkan/VulkanGraphicsDevice.h"
 
@@ -116,28 +117,23 @@ void Application::Run()
 
     Ref<Pipeline> p = rf->CreatePipeline(pd);
 
+    ImageData id = ImageLoader::LoadImage("res/textures/texture.jpg");
+
     TextureDesc td;
-    td.width = 2;
-    td.height = 2;
-    td.format = TextureFormat::RGBA8;
+    td.width = id.width;
+    td.height = id.height;
+    td.format = id.format;
     td.usage = TextureUsage::SAMPLED;
 
     Ref<Texture> t = rf->CreateTexture(td);
 
     TextureViewDesc tvd;
-    tvd.format = TextureFormat::RGBA8;
+    tvd.format = id.format;
     tvd.texture = t;
     
     Ref<TextureView> tv = rf->CreateTextureView(tvd);
 
-    uint8_t pixels[4 * 4] = {
-        255, 0,   0,   255,
-        0,   255, 0,   255,
-        0,   0,   255, 255,
-        255, 255, 0,   255
-    };
-
-    m_GraphicsDevice->UpdateTexture(t, pixels, sizeof(pixels));
+    m_GraphicsDevice->UpdateTexture(t, id.pixels.data(), id.pixels.size());
 
     SamplerDesc tsd;
     tsd.filter = SamplerFilter::LINEAR;

@@ -167,6 +167,22 @@ void Application::Run()
     Ref<DeviceBuffer> uniformBuffer = rf->CreateBuffer(ubd);
     m_GraphicsDevice->UpdateBuffer(uniformBuffer, &uboData, sizeof(uboData));
 
+    EventBus::Subscribe(typeid(WindowResizeEvent), [&](Event& event) 
+    {
+        WindowResizeEvent& windowResizeEvent = static_cast<WindowResizeEvent&>(event);
+        
+        float aspectRatio = static_cast<float>(windowResizeEvent.GetWidth()) / static_cast<float>(windowResizeEvent.GetHeight());
+
+        uboData.view = glm::lookAt(
+            glm::vec3(0.0f, 0.0f, 3.0f),
+            glm::vec3(0.0f, 0.0f, 0.0f),
+            glm::vec3(0.0f, 1.0f, 0.0f)
+        );
+        uboData.proj = glm::perspective(glm::radians(60.0f), aspectRatio, 0.1f, 100.0f);
+        
+        m_GraphicsDevice->UpdateBuffer(uniformBuffer, &uboData, sizeof(uboData));
+    });
+
     ResourceSetDesc rsd;
     rsd.layout = rl;
     rsd.resources = {

@@ -41,12 +41,14 @@ set(ENGINE_HEADERS ${ENGINE_HEADERS_COMMON} ${PLATFORM_HEADERS})
 
 # Vulkan dependency
 find_package(Vulkan REQUIRED)
+find_package(ZLIB REQUIRED)
 
 add_library(Engine SHARED ${ENGINE_SOURCES} ${ENGINE_HEADERS})
 
 target_include_directories(Engine PRIVATE ${DEPENDENCIES_DIR}/glm)
 target_include_directories(Engine PRIVATE ${DEPENDENCIES_DIR}/shaderc/libshaderc/include)
 target_include_directories(Engine PRIVATE ${DEPENDENCIES_DIR}/volk)
+target_include_directories(Engine PRIVATE ${DEPENDENCIES_DIR}/assimp/include)
 target_include_directories(Engine PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 target_include_directories(Engine PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/vendor)
 
@@ -55,6 +57,8 @@ target_include_directories(Engine PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/vendor)
 target_link_libraries(Engine PRIVATE SDL3::SDL3)
 target_link_libraries(Engine PRIVATE shaderc_combined)
 target_link_libraries(Engine PRIVATE volk)
+target_link_libraries(Engine PRIVATE assimp)
+target_link_libraries(Engine PRIVATE ZLIB::ZLIB)
 
 # Configurations
 target_compile_definitions(Engine PRIVATE

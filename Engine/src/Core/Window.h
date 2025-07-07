@@ -10,8 +10,8 @@ namespace aero3d {
 class Window
 {
 public:
-    void Init(const char* title, int width, int height);
-    void Shutdown();
+    Window(const char* title, int width, int height);
+    ~Window();
 
     void PollEvents(bool& running, bool& minimized);
 

@@ -7,7 +7,7 @@
 
 namespace aero3d {
 
-void Window::Init(const char* title, int width, int height)
+Window::Window(const char* title, int width, int height)
 {
     LogMsg("Window Initialize.");
 
@@ -32,7 +32,7 @@ void Window::Init(const char* title, int width, int height)
     }
 }
 
-void Window::Shutdown()
+Window::~Window()
 {
     LogMsg("Window Shutdown.");
 

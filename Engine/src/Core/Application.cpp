@@ -20,8 +20,8 @@ bool Application::Init()
 
     VFS::Mount("", "Sandbox/");
 
-    m_Window.Init("Aero3D", 800, 600);
-    m_GraphicsDevice = std::make_shared<VulkanGraphicsDevice>(static_cast<SDL_Window*>(m_Window.GetSDLWindow()));
+    m_Window = new Window("Aero3D", 800, 600);
+    m_GraphicsDevice = new VulkanGraphicsDevice(static_cast<SDL_Window*>(m_Window->GetSDLWindow()));
 
     m_IsRunning = true;
 
@@ -183,7 +183,7 @@ void Application::Run()
 
     while (m_IsRunning)
     {
-        m_Window.PollEvents(m_IsRunning, m_Minimized);
+        m_Window->PollEvents(m_IsRunning, m_Minimized);
 
         if (!m_Minimized)
         {
@@ -205,8 +205,16 @@ void Application::Shutdown()
 {
     LogMsg("Application Shutdown.");
 
-    m_GraphicsDevice = nullptr;
-    m_Window.Shutdown();
+    if (m_GraphicsDevice != nullptr)
+    {
+        delete m_GraphicsDevice;
+        m_GraphicsDevice = nullptr;
+    }
+    if(m_Window != nullptr)
+    {
+        delete m_Window;
+        m_Window = nullptr;
+    }
 }
 
 } // namespace aero3d

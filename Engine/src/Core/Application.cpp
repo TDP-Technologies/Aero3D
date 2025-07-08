@@ -210,6 +210,8 @@ void Application::Run()
             cl->End();
             m_GraphicsDevice->SubmitCommands(cl);
             m_GraphicsDevice->Present();
+
+            m_ResourceManager->Clean();
         }
     }
 }

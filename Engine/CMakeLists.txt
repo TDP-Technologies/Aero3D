@@ -6,8 +6,10 @@ file(GLOB_RECURSE ENGINE_SOURCES_COMMON
     src/Event/*.cpp
     src/Graphics/*.cpp
     src/Platform/Vulkan/*.cpp
+    src/Resource/*.cpp
     src/IO/*.cpp
     src/Scene/*.cpp
+    src/Systems/*.cpp
     src/Utils/*.cpp
     vendor/*.cpp
 )
@@ -17,8 +19,10 @@ file(GLOB_RECURSE ENGINE_HEADERS_COMMON
     src/Event/*.h
     src/Graphics/*.h
     src/Platform/Vulkan/*.h
+    src/Resource/*.h
     src/IO/*.h
     src/Scene/*.h
+    src/Systems/*.h
     src/Utils/*.h
     vendor/*.h
 )

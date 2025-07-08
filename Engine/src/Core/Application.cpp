@@ -23,6 +23,7 @@ bool Application::Init()
 
     m_Window = new Window("Aero3D", 800, 600);
     m_GraphicsDevice = new VulkanGraphicsDevice(static_cast<SDL_Window*>(m_Window->GetSDLWindow()));
+    m_ResourceManager = new ResourceManager(m_GraphicsDevice, m_GraphicsDevice->GetResourceFactory());
     m_Scene = new Scene();
 
     m_IsRunning = true;
@@ -118,23 +119,13 @@ void Application::Run()
 
     Ref<Pipeline> p = rf->CreatePipeline(pd);
 
-    ImageData id = ImageLoader::LoadImage("res/textures/texture.jpg");
-
-    TextureDesc td;
-    td.width = id.width;
-    td.height = id.height;
-    td.format = id.format;
-    td.usage = TextureUsage::SAMPLED;
-
-    Ref<Texture> t = rf->CreateTexture(td);
+    Ref<Texture> t = m_ResourceManager->LoadTexture("res/textures/texture.jpg");
 
     TextureViewDesc tvd;
-    tvd.format = id.format;
+    tvd.format = TextureFormat::RGBA8;
     tvd.texture = t;
     
     Ref<TextureView> tv = rf->CreateTextureView(tvd);
-
-    m_GraphicsDevice->UpdateTexture(t, id.pixels.data(), id.pixels.size());
 
     SamplerDesc tsd;
     tsd.filter = SamplerFilter::LINEAR;
@@ -231,6 +222,11 @@ void Application::Shutdown()
     {
         delete m_Scene;
         m_Scene = nullptr;
+    }
+    if (m_ResourceManager != nullptr)
+    {
+        delete m_ResourceManager;
+        m_ResourceManager = nullptr;
     }
     if (m_GraphicsDevice != nullptr)
     {

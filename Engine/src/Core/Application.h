@@ -4,6 +4,7 @@
 #include "Core/Window.h"
 #include "Scene/Scene.h"
 #include "Graphics/GraphicsDevice.h"
+#include "Resource/ResourceManager.h"
 
 namespace aero3d {
 
@@ -24,6 +25,7 @@ public:
     static Application& Get() { return s_Application; }
     static Window* GetWindow() { return s_Application.m_Window; }
     static GraphicsDevice* GetGraphicsDevice() { return s_Application.m_GraphicsDevice; }
+    static ResourceManager* GetResourceManager() { return s_Application.m_ResourceManager; }
     static Scene* GetScene() { return s_Application.m_Scene; }
 
 private:
@@ -32,6 +34,7 @@ private:
 
     Window* m_Window = nullptr;
     GraphicsDevice* m_GraphicsDevice = nullptr;
+    ResourceManager* m_ResourceManager = nullptr;
     Scene* m_Scene = nullptr;
 
 };

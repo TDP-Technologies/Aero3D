@@ -9,14 +9,10 @@ namespace aero3d {
 GameObject::GameObject(std::string objectName)
 {
     name = objectName;
-
-    Application::GetScene()->AddGameObject(this);
 }
 
 GameObject::~GameObject()
 {
-    Application::GetScene()->RemoveGameObject(this);
-
     while (!m_Components.empty())
 	{
 		delete m_Components.back();

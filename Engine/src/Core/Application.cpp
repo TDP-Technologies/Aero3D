@@ -23,6 +23,7 @@ bool Application::Init()
 
     m_Window = new Window("Aero3D", 800, 600);
     m_GraphicsDevice = new VulkanGraphicsDevice(static_cast<SDL_Window*>(m_Window->GetSDLWindow()));
+    m_Scene = new Scene();
 
     m_IsRunning = true;
 
@@ -193,12 +194,21 @@ void Application::Run()
 
     Ref<ResourceSet> rs = rf->CreateResourceSet(rsd);
 
+    uint64_t previousTicks = SDL_GetPerformanceCounter();
+    double frequency = static_cast<double>(SDL_GetPerformanceFrequency());
+
     while (m_IsRunning)
     {
         m_Window->PollEvents(m_IsRunning, m_Minimized);
 
         if (!m_Minimized)
         {
+            uint64_t currentTicks = SDL_GetPerformanceCounter();
+            float deltaTime = static_cast<float>((currentTicks - previousTicks) / frequency);
+            previousTicks = currentTicks;
+
+            m_Scene->Update(deltaTime);
+
             cl->Begin();
             cl->SetFramebuffer(m_GraphicsDevice->GetSwapchain()->GetFramebuffer());
             cl->SetPipeline(p);
@@ -217,6 +227,11 @@ void Application::Shutdown()
 {
     LogMsg("Application Shutdown.");
 
+    if (m_Scene != nullptr)
+    {
+        delete m_Scene;
+        m_Scene = nullptr;
+    }
     if (m_GraphicsDevice != nullptr)
     {
         delete m_GraphicsDevice;

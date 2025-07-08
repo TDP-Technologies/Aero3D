@@ -1,16 +1,28 @@
 #ifndef AERO3D_SCENE_COMPONENTS_H_
 #define AERO3D_SCENE_COMPONENTS_H_
 
-#include <glm/glm.hpp>
-#include <glm/gtc/quaternion.hpp>
-
 namespace aero3d {
 
-struct TransformComponent 
+class GameObject;
+
+class Component 
 {
-    glm::vec3 position {0.0f};
-    glm::quat rotation {1, 0, 0, 0};
-    glm::vec3 scale {1.0f};
+public:
+    virtual ~Component() = default;
+
+    virtual void OnAttach() = 0;
+    virtual void OnDetach() = 0;
+    virtual void Update(float deltaTime) = 0;
+    
+    void SetOwner(GameObject* gameObject) { owner = gameObject; }
+    GameObject* GetOwner() { return owner; }
+
+public:
+    int updateOrder = 100;
+    
+protected:
+    GameObject* owner = nullptr;
+
 };
 
 } // namespace aero3d

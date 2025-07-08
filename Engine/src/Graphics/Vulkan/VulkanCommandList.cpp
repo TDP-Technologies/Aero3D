@@ -123,14 +123,16 @@ void VulkanCommandList::SetResourceSet(uint32_t slot, Ref<ResourceSet> resourceS
     );
 }
 
-void VulkanCommandList::Draw(uint32_t vertexCount, uint32_t instanceCount)
+void VulkanCommandList::Draw(uint32_t vertexCount, uint32_t instanceCount, 
+    uint32_t firstVertex, uint32_t firstInstance)
 {
-    vkCmdDraw(commandBuffer, vertexCount, instanceCount, 0, 0);
+    vkCmdDraw(commandBuffer, vertexCount, instanceCount, firstVertex, firstInstance);
 }
 
-void VulkanCommandList::DrawIndexed(uint32_t indexCount, uint32_t instanceCount)
+void VulkanCommandList::DrawIndexed(uint32_t indexCount, uint32_t instanceCount,
+    uint32_t firstIndex, uint32_t vertexOffset, uint32_t firstInstance)
 {
-    vkCmdDrawIndexed(commandBuffer, indexCount, instanceCount, 0, 0, 0);
+    vkCmdDrawIndexed(commandBuffer, indexCount, instanceCount, firstIndex, vertexOffset, firstInstance);
 }
 
 void VulkanCommandList::CreateCommandPool()

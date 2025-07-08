@@ -27,8 +27,10 @@ public:
     virtual void SetIndexBuffer(Ref<DeviceBuffer> buffer, IndexFormat format, uint32_t offset = 0) override;
     virtual void SetResourceSet(uint32_t slot, Ref<ResourceSet> resourceSet) override;
 
-    virtual void Draw(uint32_t vertexCount, uint32_t instanceCount = 1) override;
-    virtual void DrawIndexed(uint32_t indexCount, uint32_t instanceCount = 1) override;
+    virtual void Draw(uint32_t vertexCount, uint32_t instanceCount = 1, 
+        uint32_t firstVertex = 0, uint32_t firstInstance = 0) override;
+    virtual void DrawIndexed(uint32_t indexCount, uint32_t instanceCount = 1,
+        uint32_t firstIndex = 0, uint32_t vertexOffset = 0, uint32_t firstInstance = 0) override;
 
 public:
     VkCommandBuffer commandBuffer = VK_NULL_HANDLE;

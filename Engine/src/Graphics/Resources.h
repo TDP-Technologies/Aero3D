@@ -36,6 +36,11 @@ class DeviceBuffer
 public:
     virtual ~DeviceBuffer() = default;
 
+    BufferDesc& GetDescription() { return m_Description; };
+
+protected:
+    BufferDesc m_Description;
+
 };
 
 enum class TextureUsage 
@@ -58,7 +63,8 @@ enum class TextureFormat
     D32S8
 };
 
-struct TextureDesc {
+struct TextureDesc 
+{
     uint32_t width;
     uint32_t height;
     uint32_t depth = 1;
@@ -73,6 +79,11 @@ class Texture
 {
 public:
     virtual ~Texture() = default;
+
+    TextureDesc& GetDescription() { return m_Description; };
+
+protected:
+    TextureDesc m_Description;
 
 };
 
@@ -92,6 +103,11 @@ public:
     virtual ~TextureView() = default;
 
     virtual Ref<Texture> GetTargetTexture() = 0;
+
+    TextureViewDesc& GetDescription() { return m_Description; }
+
+protected:
+    TextureViewDesc m_Description;
 
 };
 
@@ -122,6 +138,11 @@ class Sampler
 public:
     virtual ~Sampler() = default;
 
+    SamplerDesc GetDescription() { return m_Description; }
+
+protected:
+    SamplerDesc m_Description;
+
 };
 
 struct FramebufferDesc 
@@ -134,6 +155,11 @@ class Framebuffer
 {
 public:
     virtual ~Framebuffer() = default;
+
+    FramebufferDesc& GetDescription() { return m_Description; }
+
+protected:
+    FramebufferDesc m_Description;
 
 };
 
@@ -159,6 +185,11 @@ class Shader
 {
 public:
     virtual ~Shader() = default;
+
+    ShaderDesc& GetDescription() { return m_Description; }
+
+protected:
+    ShaderDesc m_Description;
 
 };
 
@@ -188,6 +219,11 @@ class ResourceLayout
 public:
     virtual ~ResourceLayout() = default;
 
+    ResourceLayoutDesc& GetDescription() { return m_Description; }
+
+protected:
+    ResourceLayoutDesc m_Description;
+
 };
 
 using ResourceRef = std::variant<
@@ -206,6 +242,11 @@ class ResourceSet
 {
 public:
     virtual ~ResourceSet() = default;
+
+    ResourceSetDesc& GetDescription() { return m_Description; }
+
+protected:
+    ResourceSetDesc m_Description;
 
 };
 
@@ -287,6 +328,11 @@ class Pipeline
 {
 public:
     virtual ~Pipeline() = default;
+
+    PipelineDesc& GetDescription() { return m_Description; }
+
+protected:
+    PipelineDesc m_Description;
 
 };
 

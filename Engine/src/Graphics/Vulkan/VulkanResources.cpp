@@ -9,6 +9,7 @@ namespace aero3d {
 VulkanDeviceBuffer::VulkanDeviceBuffer(VulkanGraphicsDevice* gd, BufferDesc desc) 
 {
     m_GraphicsDevice = gd;
+    m_Description = desc;
 
     size = desc.size;
 
@@ -86,6 +87,8 @@ inline VkFormat ToVkFormat(TextureFormat format)
 VulkanTexture::VulkanTexture(VulkanGraphicsDevice* gd, TextureDesc desc) 
 {
     m_GraphicsDevice = gd;
+    m_Description = desc;
+
     vkFormat = ToVkFormat(desc.format);
     width = desc.width;
     height = desc.height;
@@ -174,6 +177,8 @@ VulkanTexture::~VulkanTexture()
 VulkanTextureView::VulkanTextureView(VulkanGraphicsDevice* gd, TextureViewDesc desc)
 {
     m_GraphicsDevice = gd;
+    m_Description = desc;
+
     texture = std::static_pointer_cast<VulkanTexture>(desc.texture);
 
     VkImageViewCreateInfo viewInfo{};
@@ -219,6 +224,7 @@ VkSamplerAddressMode ToVkSamplerAddressMode(SamplerAddressMode mode)
 VulkanSampler::VulkanSampler(VulkanGraphicsDevice* gd, SamplerDesc& desc)
 {
     m_GraphicsDevice = gd;
+    m_Description = desc;
 
     VkSamplerCreateInfo samplerInfo{};
     samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
@@ -253,8 +259,10 @@ VulkanSampler::~VulkanSampler()
 
 VulkanFramebuffer::VulkanFramebuffer(VulkanGraphicsDevice* gd, FramebufferDesc desc) 
 {
-    uint32_t targets = desc.colorTargets.size();
     m_GraphicsDevice = gd;
+    m_Description = desc;
+
+    uint32_t targets = desc.colorTargets.size();
 
     frames.resize(targets);
     imageViews.resize(targets);
@@ -346,6 +354,7 @@ static shaderc_shader_kind ShaderStageToShaderCKind(ShaderStages stage)
 VulkanShader::VulkanShader(VulkanGraphicsDevice* gd, ShaderDesc desc) 
 {
     m_GraphicsDevice = gd;
+    m_Description = desc;
 
     std::string filePath = desc.path + ".glsl";
 
@@ -389,6 +398,8 @@ std::vector<uint32_t> VulkanShader::CompileGLSL(const std::string& source,
 VulkanResourceLayout::VulkanResourceLayout(VulkanGraphicsDevice* gd, ResourceLayoutDesc desc) 
 {
     m_GraphicsDevice = gd;
+    m_Description = desc;
+
     bindings = desc.bindings;
 
     std::vector<VkDescriptorSetLayoutBinding> layoutBindings;
@@ -477,18 +488,22 @@ VulkanResourceSet::VulkanResourceSet(VulkanGraphicsDevice* gd, ResourceSetDesc d
         write.dstArrayElement = 0;
         write.descriptorCount = 1;
 
-        std::visit([&](auto&& res) {
+        std::visit([&](auto&& res) 
+        {
             using T = std::decay_t<decltype(res)>;
 
-            if constexpr (std::is_same_v<T, Ref<DeviceBuffer>>) {
+            if constexpr (std::is_same_v<T, Ref<DeviceBuffer>>) 
+            {
                 bufferInfos.emplace_back();
                 PrepareBufferWrite(binding, res.get(), write, bufferInfos.back());
             } 
-            else if constexpr (std::is_same_v<T, Ref<TextureView>>) {
+            else if constexpr (std::is_same_v<T, Ref<TextureView>>) 
+            {
                 imageInfos.emplace_back();
                 PrepareImageWrite(binding, res.get(), write, imageInfos.back());
             } 
-            else if constexpr (std::is_same_v<T, Ref<Sampler>>) {
+            else if constexpr (std::is_same_v<T, Ref<Sampler>>) 
+            {
                 samplerInfos.emplace_back();
                 PrepareSamplerWrite(binding, res.get(), write, samplerInfos.back());
             }
@@ -611,6 +626,7 @@ static VkFormat VertexFormatToVkFormat(VertexFormat type)
 VulkanPipeline::VulkanPipeline(VulkanGraphicsDevice* gd, PipelineDesc desc) 
 {
     m_GraphicsDevice = gd;
+    m_Description = desc;
 
     std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
 

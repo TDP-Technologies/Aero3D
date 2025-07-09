@@ -468,7 +468,7 @@ VulkanResourceSet::VulkanResourceSet(VulkanGraphicsDevice* gd, ResourceSetDesc d
     for (size_t i = 0; i < vulkanLayout->bindings.size(); ++i)
     {
         const auto& binding = vulkanLayout->bindings[i];
-        void* resource = desc.resources[i];
+        const auto& resource = desc.resources[i];
 
         VkWriteDescriptorSet write{};
         write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -477,29 +477,23 @@ VulkanResourceSet::VulkanResourceSet(VulkanGraphicsDevice* gd, ResourceSetDesc d
         write.dstArrayElement = 0;
         write.descriptorCount = 1;
 
-        switch (binding.kind)
-        {
-            case ResourceKind::UNIFORMBUFFER:
-            case ResourceKind::STORAGEBUFFER:
-            {
+        std::visit([&](auto&& res) {
+            using T = std::decay_t<decltype(res)>;
+
+            if constexpr (std::is_same_v<T, Ref<DeviceBuffer>>) {
                 bufferInfos.emplace_back();
-                PrepareBufferWrite(binding, resource, write, bufferInfos.back());
-                break;
-            }
-            case ResourceKind::TEXTUREREADONLY:
-            case ResourceKind::TEXTUREREADWRITE:
-            {
+                PrepareBufferWrite(binding, res.get(), write, bufferInfos.back());
+            } 
+            else if constexpr (std::is_same_v<T, Ref<TextureView>>) {
                 imageInfos.emplace_back();
-                PrepareImageWrite(binding, resource, write, imageInfos.back());
-                break;
-            }
-            case ResourceKind::SAMPLER:
-            {
+                PrepareImageWrite(binding, res.get(), write, imageInfos.back());
+            } 
+            else if constexpr (std::is_same_v<T, Ref<Sampler>>) {
                 samplerInfos.emplace_back();
-                PrepareSamplerWrite(binding, resource, write, samplerInfos.back());
-                break;
+                PrepareSamplerWrite(binding, res.get(), write, samplerInfos.back());
             }
-        }
+
+        }, resource);
 
         writes.push_back(write);
     }

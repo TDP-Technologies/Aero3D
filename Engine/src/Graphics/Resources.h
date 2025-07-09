@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <cstdint>
+#include <variant>
 
 #include "Utils/Common.h"
 
@@ -189,10 +190,16 @@ public:
 
 };
 
+using ResourceRef = std::variant<
+    Ref<DeviceBuffer>,
+    Ref<TextureView>,
+    Ref<Sampler>
+>;
+
 struct ResourceSetDesc 
 {
     Ref<ResourceLayout> layout;
-    std::vector<void*> resources;
+    std::vector<ResourceRef> resources;
 };
 
 class ResourceSet 

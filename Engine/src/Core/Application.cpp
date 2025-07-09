@@ -171,11 +171,7 @@ void Application::Run()
 
     ResourceSetDesc rsd;
     rsd.layout = rl;
-    rsd.resources = {
-        uniformBuffer.get(),
-        tv.get(),
-        s.get()
-    };
+    rsd.resources = { uniformBuffer, tv, s };
 
     Ref<ResourceSet> rs = rf->CreateResourceSet(rsd);
 

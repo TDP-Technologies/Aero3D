@@ -119,14 +119,8 @@ void Application::Run()
 
     Ref<Pipeline> p = rf->CreatePipeline(pd);
 
-    Ref<Texture> t = m_ResourceManager->LoadTexture("res/textures/texture.jpg");
-
-    TextureViewDesc tvd;
-    tvd.format = TextureFormat::RGBA8;
-    tvd.texture = t;
+    Ref<TextureView> tv = m_ResourceManager->LoadTexture("res/textures/texture.jpg");
     
-    Ref<TextureView> tv = rf->CreateTextureView(tvd);
-
     SamplerDesc tsd;
     tsd.filter = SamplerFilter::LINEAR;
     tsd.addressModeU = SamplerAddressMode::REPEAT;

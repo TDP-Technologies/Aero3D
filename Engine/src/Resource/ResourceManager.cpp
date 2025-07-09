@@ -16,7 +16,7 @@ ResourceManager::~ResourceManager()
     Clean();
 }
 
-Ref<Texture> ResourceManager::LoadTexture(std::string path)
+Ref<TextureView> ResourceManager::LoadTexture(std::string path)
 {
     auto it = m_Textures.find(path);
     if (it != m_Textures.end())
@@ -39,9 +39,15 @@ Ref<Texture> ResourceManager::LoadTexture(std::string path)
 
     m_GraphicsDevice->UpdateTexture(texture, id.pixels.data(), id.pixels.size());
 
-    m_Textures[path] = texture;
+    TextureViewDesc tvd;
+    tvd.format = id.format;
+    tvd.texture = texture;
 
-    return texture;
+    Ref<TextureView> textureView = m_ResourceFactory->CreateTextureView(tvd);
+
+    m_Textures[path] = textureView;
+
+    return textureView;
 }
 
 void ResourceManager::Clean()

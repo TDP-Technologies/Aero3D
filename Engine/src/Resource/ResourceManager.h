@@ -14,14 +14,14 @@ public:
     ResourceManager(GraphicsDevice* graphicsDevice, ResourceFactory* resourceFactory);
     ~ResourceManager();
 
-    Ref<Texture> LoadTexture(std::string path);
+    Ref<TextureView> LoadTexture(std::string path);
 
     void Clean();
 
 private:
     GraphicsDevice* m_GraphicsDevice = nullptr;
     ResourceFactory* m_ResourceFactory = nullptr;
-    std::unordered_map<std::string, std::weak_ptr<Texture>> m_Textures;
+    std::unordered_map<std::string, std::weak_ptr<TextureView>> m_Textures;
 
 };
 

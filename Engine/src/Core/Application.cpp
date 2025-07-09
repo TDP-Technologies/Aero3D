@@ -45,12 +45,12 @@ void Application::Run()
 
     ShaderDesc sd;
     sd.entryPoint = "main";
-    sd.path = "res/shaders/vertex.glsl";
+    sd.path = "res/shaders/vertex";
     sd.stage = STAGE_VERTEX;
 
     Ref<Shader> vs = rf->CreateShader(sd);
 
-    sd.path = "res/shaders/pixel.glsl";
+    sd.path = "res/shaders/pixel";
     sd.stage = STAGE_FRAGMENT;
    
     Ref<Shader> fs = rf->CreateShader(sd);

@@ -347,7 +347,9 @@ VulkanShader::VulkanShader(VulkanGraphicsDevice* gd, ShaderDesc desc)
 {
     m_GraphicsDevice = gd;
 
-    std::string source = VFS::ReadFile(desc.path)->ReadString();
+    std::string filePath = desc.path + ".glsl";
+
+    std::string source = VFS::ReadFile(filePath)->ReadString();
 
     std::vector<uint32_t> spirv = CompileGLSL(source, ShaderStageToShaderCKind(desc.stage), desc.path);
 

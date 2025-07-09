@@ -1,61 +1,37 @@
 #include "Scene/Scene.h"
-
-#include <algorithm>
+#include "Scene/Actor.h"
+#include "Scene/Components.h"
 
 namespace aero3d {
 
-Scene::Scene()
+void Scene::AddActor(std::unique_ptr<Actor> actor) 
 {
-
+    actor->SetScene(this);
+    m_Actors.emplace_back(std::move(actor));
 }
 
-Scene::~Scene()
+void Scene::Update(float deltaTime) 
 {
-    while (!m_GameObjects.empty())
-	{
-		delete m_GameObjects.back();
-	}
-}
-
-void Scene::Update(float deltaTime)
-{
-    for (auto gameObject : m_GameObjects)
-	{
-		gameObject->Update(deltaTime);
-	}
-}
-
-void Scene::AddGameObject(GameObject* gameObject)
-{
-    m_GameObjects.emplace_back(gameObject);
-}
-
-void Scene::RemoveGameObject(std::string name)
-{
-    auto iter = std::find_if(m_GameObjects.begin(), m_GameObjects.end(),
-        [&name](GameObject* obj) {
-            return obj->name == name;
-        });
-
-    if (iter != m_GameObjects.end())
+    for (auto& actor : m_Actors) 
     {
-        delete *iter;
-        std::iter_swap(iter, m_GameObjects.end() - 1);
-        m_GameObjects.pop_back();
+        actor->Update(deltaTime);
+
+        if (auto* script = actor->GetComponent<ScriptComponent>()) 
+        {
+            script->OnUpdate(deltaTime);
+        }
     }
 }
 
-GameObject* Scene::GetGameObject(std::string name)
+void Scene::Render() 
 {
-    auto iter = std::find_if(m_GameObjects.begin(), m_GameObjects.end(),
-        [&name](GameObject* obj) {
-            return obj->name == name;
-        });
-
-    if (iter != m_GameObjects.end())
-        return *iter;
-
-    return nullptr;
+    for (auto& actor : m_Actors) 
+    {
+        if (auto* mesh = actor->GetComponent<MeshComponent>()) 
+        {
+            mesh->Render();
+        }
+    }
 }
 
-} // namespace aero3d
+}

@@ -2,27 +2,21 @@
 #define AERO3D_SCENE_SCENE_H_
 
 #include <vector>
-#include <string>
+#include <memory>
 
-#include "Scene/GameObject.h"
+#include "Scene/Actor.h"
 
 namespace aero3d {
 
-class Scene
+class Scene 
 {
 public:
-    Scene();
-    ~Scene();
-
+    void AddActor(std::unique_ptr<Actor> actor);
     void Update(float deltaTime);
-
-    void AddGameObject(GameObject* gameObject);
-
-	void RemoveGameObject(std::string name);
-    GameObject* GetGameObject(std::string name);
+    void Render();
 
 private:
-    std::vector<GameObject*> m_GameObjects;
+    std::vector<std::unique_ptr<Actor>> m_Actors;
 
 };
 

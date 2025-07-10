@@ -28,7 +28,7 @@ public:
         uint32_t firstIndex = 0, uint32_t vertexOffset = 0, uint32_t firstInstance = 0) = 0;
 
     virtual void ClearRenderTargets(float r, float g, float b, float a) = 0;
-    virtual void CleatDepthStencil() = 0;
+    virtual void ClearDepthStencil() = 0;
 
 };
 

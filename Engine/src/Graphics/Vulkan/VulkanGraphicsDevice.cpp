@@ -128,7 +128,8 @@ void VulkanGraphicsDevice::Present()
     if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
     {
         swapchain->Resize();
-    } 
+        return;
+    }
     else
     {
         A3D_CHECK_VKRESULT(result);

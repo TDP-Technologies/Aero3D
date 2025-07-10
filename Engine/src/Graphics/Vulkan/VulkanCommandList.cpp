@@ -155,7 +155,7 @@ void VulkanCommandList::ClearRenderTargets(float r, float g, float b, float a)
     vkCmdClearAttachments(commandBuffer, clearAttachments.size(), clearAttachments.data(), 1, &clearRect);
 }
 
-void VulkanCommandList::CleatDepthStencil()
+void VulkanCommandList::ClearDepthStencil()
 {
     VkClearAttachment clearAttachment{};
     clearAttachment.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
@@ -200,7 +200,7 @@ void VulkanCommandList::BeginRendering()
     {
         VkImageMemoryBarrier barrier{};
         barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-        barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        barrier.oldLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
         barrier.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
         barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
         barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
@@ -243,7 +243,7 @@ void VulkanCommandList::BeginRendering()
     {
         VkImageMemoryBarrier depthBarrier{};
         depthBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-        depthBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        depthBarrier.oldLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
         depthBarrier.newLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
         depthBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
         depthBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;

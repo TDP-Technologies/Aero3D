@@ -5,6 +5,7 @@
 #include "Scene/Scene.h"
 #include "Graphics/GraphicsDevice.h"
 #include "Resource/ResourceManager.h"
+#include "Systems/RenderSystem.h"
 
 namespace aero3d {
 
@@ -27,6 +28,7 @@ public:
     static GraphicsDevice* GetGraphicsDevice() { return s_Application.m_GraphicsDevice; }
     static ResourceManager* GetResourceManager() { return s_Application.m_ResourceManager; }
     static Scene* GetScene() { return s_Application.m_Scene; }
+    static RenderSystem* GetRenderSystem() { return s_Application.m_RenderSystem; }
 
 private:
     bool m_IsRunning = false;
@@ -36,6 +38,7 @@ private:
     GraphicsDevice* m_GraphicsDevice = nullptr;
     ResourceManager* m_ResourceManager = nullptr;
     Scene* m_Scene = nullptr;
+    RenderSystem* m_RenderSystem = nullptr;
 
 };
 

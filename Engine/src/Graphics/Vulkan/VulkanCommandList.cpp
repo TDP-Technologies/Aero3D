@@ -133,6 +133,43 @@ void VulkanCommandList::DrawIndexed(uint32_t indexCount, uint32_t instanceCount,
     vkCmdDrawIndexed(commandBuffer, indexCount, instanceCount, firstIndex, vertexOffset, firstInstance);
 }
 
+void VulkanCommandList::ClearRenderTargets(float r, float g, float b, float a)
+{
+    std::vector<VkClearAttachment> clearAttachments;
+
+    for (uint32_t i = 0; i < m_CurrentFramebuffer->imageViews.size(); ++i)
+    {
+        VkClearAttachment clearAttachment{};
+        clearAttachment.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        clearAttachment.colorAttachment = i;
+        clearAttachment.clearValue.color = {{r, g, b, a}};
+        clearAttachments.push_back(clearAttachment);
+    }
+
+    VkClearRect clearRect{};
+    clearRect.rect.offset = {0, 0};
+    clearRect.rect.extent = m_CurrentFramebuffer->renderArea;
+    clearRect.baseArrayLayer = 0;
+    clearRect.layerCount = 1;
+
+    vkCmdClearAttachments(commandBuffer, clearAttachments.size(), clearAttachments.data(), 1, &clearRect);
+}
+
+void VulkanCommandList::CleatDepthStencil()
+{
+    VkClearAttachment clearAttachment{};
+    clearAttachment.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+    clearAttachment.clearValue.depthStencil = {1.0f, 0};
+
+    VkClearRect clearRect{};
+    clearRect.rect.offset = {0, 0};
+    clearRect.rect.extent = m_CurrentFramebuffer->renderArea;
+    clearRect.baseArrayLayer = 0;
+    clearRect.layerCount = 1;
+
+    vkCmdClearAttachments(commandBuffer, 1, &clearAttachment, 1, &clearRect);
+}
+
 void VulkanCommandList::CreateCommandPool()
 {
     VkCommandPoolCreateInfo poolInfo{};
@@ -189,9 +226,8 @@ void VulkanCommandList::BeginRendering()
         colorAttachment.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
         colorAttachment.imageView = m_CurrentFramebuffer->imageViews[i];
         colorAttachment.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-        colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
         colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-        colorAttachment.clearValue.color = {0.0f, 0.0f, 0.0f, 1.0f};
 
         colorAttachments[i] = colorAttachment;
     }
@@ -233,9 +269,8 @@ void VulkanCommandList::BeginRendering()
         depthAttachment.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
         depthAttachment.imageView = m_CurrentFramebuffer->depthStencilImageView;
         depthAttachment.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-        depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
         depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-        depthAttachment.clearValue.depthStencil = {1.0f, 0};
 
         renderingInfo.pDepthAttachment = &depthAttachment;
     }

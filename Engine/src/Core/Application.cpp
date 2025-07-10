@@ -198,6 +198,8 @@ void Application::Run()
 
             cl->Begin();
             cl->SetFramebuffer(m_GraphicsDevice->GetSwapchain()->GetFramebuffer());
+            cl->ClearRenderTargets(0.0f, 0.0f, 0.0f, 1.0f);
+            cl->CleatDepthStencil();
             cl->SetPipeline(p);
             cl->SetResourceSet(0, rs);
             cl->SetVertexBuffer(vdb);

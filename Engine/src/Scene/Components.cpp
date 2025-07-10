@@ -26,11 +26,6 @@ void SceneComponent::Detach()
     m_Parent = nullptr;
 }
 
-void MeshComponent::Render() 
-{
-
-}
-
 void CameraComponent::SetPerspective(float fov, float aspect, float nearClip, float farClip) 
 {
     m_FOV = fov;

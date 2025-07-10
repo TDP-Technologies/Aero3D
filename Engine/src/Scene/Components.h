@@ -1,10 +1,13 @@
 #ifndef AERO3D_SCENE_COMPONENTS_H_
 #define AERO3D_SCENE_COMPONENTS_H_
 
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 #include <vector>
 #include <memory>
+
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
+#include "Graphics/Resources.h"
 
 namespace aero3d {
 
@@ -39,14 +42,17 @@ protected:
     SceneComponent* m_Parent = nullptr;
     std::vector<SceneComponent*> m_Children;
     glm::mat4 m_LocalTransform = glm::mat4(1.0f);
+    
 };
 
-class Mesh;
-
-class MeshComponent : public SceneComponent 
+class SpriteComponent : public SceneComponent 
 {
 public:
-    void Render();
+    void SetTexture(Ref<TextureView> texture) { m_Texture = texture; }
+    Ref<TextureView> GetTexture() { return m_Texture; }
+
+private:
+    Ref<TextureView> m_Texture = nullptr;
 
 };
 

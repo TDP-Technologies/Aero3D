@@ -13,7 +13,8 @@ class Scene
 public:
     void AddActor(std::unique_ptr<Actor> actor);
     void Update(float deltaTime);
-    void Render();
+
+    std::vector<std::unique_ptr<Actor>>& GetActors() { return m_Actors; };
 
 private:
     std::vector<std::unique_ptr<Actor>> m_Actors;

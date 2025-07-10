@@ -538,6 +538,9 @@ VulkanResourceSet::VulkanResourceSet(VulkanGraphicsDevice* gd, ResourceSetDesc d
                     imageInfos.emplace_back();
                     PrepareImageWrite(binding, tex.get(), write, imageInfos.back());
                 }
+                write.descriptorType = (binding.kind == ResourceKind::TEXTUREREADONLY || binding.kind == ResourceKind::TEXTUREREADONLY_ARRAY)
+                    ? VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE
+                    : VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
                 write.descriptorCount = static_cast<uint32_t>(res.size());
                 write.pImageInfo = imageInfos.data() + (imageInfos.size() - res.size());
             }
@@ -600,7 +603,7 @@ void VulkanResourceSet::PrepareImageWrite(const ResourceBinding& binding, void* 
 {
     auto* view = static_cast<VulkanTextureView*>(resource);
     imageInfo.imageView = view->imageView;
-    imageInfo.imageLayout = (binding.kind == ResourceKind::TEXTUREREADONLY)
+    imageInfo.imageLayout = (binding.kind == ResourceKind::TEXTUREREADONLY || binding.kind == ResourceKind::TEXTUREREADONLY_ARRAY)
         ? VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
         : VK_IMAGE_LAYOUT_GENERAL;
 }

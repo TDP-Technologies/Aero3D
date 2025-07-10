@@ -4,11 +4,14 @@
 #include "IO/VFS.h"
 #include "Event/EventBus.h"
 
+#include "Scene/Actor.h"
+#include "Scene/Components.h"
+
+#include "Systems/RenderSystem.h"
+
 #include "Graphics/Vulkan/VulkanGraphicsDevice.h"
 
 namespace aero3d {
-
-Application Application::s_Application;
 
 bool Application::Init()
 {
@@ -22,6 +25,15 @@ bool Application::Init()
     m_Scene = new Scene();
     m_RenderSystem = new RenderSystem(m_GraphicsDevice, m_GraphicsDevice->GetResourceFactory());
 
+    EventBus::Subscribe(typeid(WindowResizeEvent), [&](Event& event) 
+    {
+        WindowResizeEvent& windowResizeEvent = static_cast<WindowResizeEvent&>(event);
+        m_GraphicsDevice->GetSwapchain()->Resize();
+    });
+
+    m_PerformanceFrequency = static_cast<double>(SDL_GetPerformanceFrequency());
+    m_PreviousTicks = SDL_GetPerformanceCounter();
+
     m_IsRunning = true;
 
     return true;
@@ -29,14 +41,16 @@ bool Application::Init()
 
 void Application::Run()
 {
-    EventBus::Subscribe(typeid(WindowResizeEvent), [&](Event& event) 
-    {
-        WindowResizeEvent& windowResizeEvent = static_cast<WindowResizeEvent&>(event);
-        m_GraphicsDevice->GetSwapchain()->Resize();
-    });
+    auto actor = std::make_unique<Actor>();
 
-    uint64_t previousTicks = SDL_GetPerformanceCounter();
-    double frequency = static_cast<double>(SDL_GetPerformanceFrequency());
+    auto sprite = std::make_unique<SpriteComponent>();
+    sprite->SetTexture(m_ResourceManager->LoadTexture("res/textures/texture.jpg"));
+    sprite->SetLocalTransform(glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, 1.0f)));
+
+    actor->SetRootComponent(sprite.get());
+    actor->AddComponent(std::move(sprite));
+
+    m_Scene->AddActor(std::move(actor));
 
     while (m_IsRunning)
     {
@@ -45,11 +59,11 @@ void Application::Run()
         if (!m_Minimized)
         {
             uint64_t currentTicks = SDL_GetPerformanceCounter();
-            float deltaTime = static_cast<float>((currentTicks - previousTicks) / frequency);
-            previousTicks = currentTicks;
+            float deltaTime = static_cast<float>((currentTicks - m_PreviousTicks) / m_PerformanceFrequency);
+            m_PreviousTicks = currentTicks;
 
             m_Scene->Update(deltaTime);
-            m_RenderSystem->Update(deltaTime);
+            m_RenderSystem->Update(m_Scene);
 
             m_ResourceManager->Clean();
         }

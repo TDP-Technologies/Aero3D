@@ -23,15 +23,4 @@ void Scene::Update(float deltaTime)
     }
 }
 
-void Scene::Render() 
-{
-    for (auto& actor : m_Actors) 
-    {
-        if (auto* mesh = actor->GetComponent<MeshComponent>()) 
-        {
-            mesh->Render();
-        }
-    }
-}
-
 }

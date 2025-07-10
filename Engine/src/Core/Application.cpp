@@ -82,8 +82,7 @@ void Application::Run()
     ResourceLayoutDesc ld;
     ld.bindings = {
         {0, ResourceKind::UNIFORMBUFFER, STAGE_VERTEX},
-        {1, ResourceKind::TEXTUREREADONLY, STAGE_FRAGMENT},
-        {2, ResourceKind::SAMPLER, STAGE_FRAGMENT}
+        {1, ResourceKind::COMBINED_IMAGE_SAMPLER, STAGE_FRAGMENT},
     };
 
     Ref<ResourceLayout> rl = rf->CreateResourceLayout(ld);
@@ -171,7 +170,7 @@ void Application::Run()
 
     ResourceSetDesc rsd;
     rsd.layout = rl;
-    rsd.resources = { uniformBuffer, tv, s };
+    rsd.resources = { uniformBuffer, std::make_pair(tv, s) };
 
     Ref<ResourceSet> rs = rf->CreateResourceSet(rsd);
 

@@ -199,7 +199,11 @@ enum class ResourceKind
     STORAGEBUFFER,
     TEXTUREREADONLY,
     TEXTUREREADWRITE,
-    SAMPLER
+    SAMPLER,
+    COMBINED_IMAGE_SAMPLER,
+    TEXTUREREADONLY_ARRAY,
+    SAMPLER_ARRAY,
+    COMBINED_IMAGE_SAMPLER_ARRAY
 };
 
 struct ResourceBinding 
@@ -207,6 +211,7 @@ struct ResourceBinding
     uint32_t binding;
     ResourceKind kind;
     ShaderStages stages;
+    uint32_t count = 1;
 };
 
 struct ResourceLayoutDesc 
@@ -229,7 +234,11 @@ protected:
 using ResourceRef = std::variant<
     Ref<DeviceBuffer>,
     Ref<TextureView>,
-    Ref<Sampler>
+    Ref<Sampler>,
+    std::pair<Ref<TextureView>, Ref<Sampler>>,
+    std::vector<Ref<TextureView>>,
+    std::vector<Ref<Sampler>>,
+    std::vector<std::pair<Ref<TextureView>, Ref<Sampler>>>
 >;
 
 struct ResourceSetDesc 

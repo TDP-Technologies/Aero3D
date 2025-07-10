@@ -395,6 +395,23 @@ std::vector<uint32_t> VulkanShader::CompileGLSL(const std::string& source,
     return { result.cbegin(), result.cend() };
 }
 
+static VkDescriptorType ToDescriptorType(ResourceKind kind) 
+{
+    switch (kind) 
+    {
+        case ResourceKind::UNIFORMBUFFER: return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        case ResourceKind::STORAGEBUFFER: return VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+        case ResourceKind::TEXTUREREADONLY:
+        case ResourceKind::TEXTUREREADONLY_ARRAY: return VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+        case ResourceKind::TEXTUREREADWRITE: return VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+        case ResourceKind::SAMPLER:
+        case ResourceKind::SAMPLER_ARRAY: return VK_DESCRIPTOR_TYPE_SAMPLER;
+        case ResourceKind::COMBINED_IMAGE_SAMPLER:
+        case ResourceKind::COMBINED_IMAGE_SAMPLER_ARRAY: return VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        default: return VK_DESCRIPTOR_TYPE_MAX_ENUM;
+    }
+}
+
 VulkanResourceLayout::VulkanResourceLayout(VulkanGraphicsDevice* gd, ResourceLayoutDesc desc) 
 {
     m_GraphicsDevice = gd;
@@ -407,27 +424,8 @@ VulkanResourceLayout::VulkanResourceLayout(VulkanGraphicsDevice* gd, ResourceLay
     {
         VkDescriptorSetLayoutBinding layoutBinding{};
         layoutBinding.binding = binding.binding;
-        layoutBinding.descriptorCount = 1;
-
-        switch (binding.kind)
-        {
-        case ResourceKind::UNIFORMBUFFER:
-            layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-            break;
-        case ResourceKind::STORAGEBUFFER:
-            layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-            break;
-        case ResourceKind::TEXTUREREADONLY:
-            layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
-            break;
-        case ResourceKind::TEXTUREREADWRITE:
-            layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-            break;
-        case ResourceKind::SAMPLER:
-            layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;
-            break;
-        }
-
+        layoutBinding.descriptorCount = binding.count;
+        layoutBinding.descriptorType = ToDescriptorType(binding.kind);
         layoutBinding.stageFlags = 0;
 
         if (binding.stages & STAGE_VERTEX)
@@ -496,18 +494,80 @@ VulkanResourceSet::VulkanResourceSet(VulkanGraphicsDevice* gd, ResourceSetDesc d
             {
                 bufferInfos.emplace_back();
                 PrepareBufferWrite(binding, res.get(), write, bufferInfos.back());
+                write.descriptorType = (binding.kind == ResourceKind::UNIFORMBUFFER)
+                    ? VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER
+                    : VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+                write.pBufferInfo = &bufferInfos.back();
             } 
             else if constexpr (std::is_same_v<T, Ref<TextureView>>) 
             {
                 imageInfos.emplace_back();
                 PrepareImageWrite(binding, res.get(), write, imageInfos.back());
+
+                write.descriptorType = (binding.kind == ResourceKind::TEXTUREREADONLY)
+                    ? VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE
+                    : VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+                write.pImageInfo = &imageInfos.back();
             } 
             else if constexpr (std::is_same_v<T, Ref<Sampler>>) 
             {
                 samplerInfos.emplace_back();
                 PrepareSamplerWrite(binding, res.get(), write, samplerInfos.back());
-            }
 
+                write.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;
+                write.pImageInfo = &samplerInfos.back();
+            }
+            else if constexpr (std::is_same_v<T, std::pair<Ref<TextureView>, Ref<Sampler>>>) 
+            {
+                imageInfos.emplace_back();
+                auto* view = static_cast<VulkanTextureView*>(res.first.get());
+                auto* sampler = static_cast<VulkanSampler*>(res.second.get());
+
+                imageInfos.back().imageView = view->imageView;
+                imageInfos.back().sampler = sampler->sampler;
+                imageInfos.back().imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+                write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+                write.descriptorCount = 1;
+                write.pImageInfo = &imageInfos.back();
+            }
+            else if constexpr (std::is_same_v<T, std::vector<Ref<TextureView>>>)
+            {
+                for (auto& tex : res) 
+                {
+                    imageInfos.emplace_back();
+                    PrepareImageWrite(binding, tex.get(), write, imageInfos.back());
+                }
+                write.descriptorCount = static_cast<uint32_t>(res.size());
+                write.pImageInfo = imageInfos.data() + (imageInfos.size() - res.size());
+            }
+            else if constexpr (std::is_same_v<T, std::vector<Ref<Sampler>>>)
+            {
+                for (auto& samp : res) 
+                {
+                    samplerInfos.emplace_back();
+                    PrepareSamplerWrite(binding, samp.get(), write, samplerInfos.back());
+                }
+                write.descriptorCount = static_cast<uint32_t>(res.size());
+                write.pImageInfo = samplerInfos.data() + (samplerInfos.size() - res.size());
+            }
+            else if constexpr (std::is_same_v<T, std::vector<std::pair<Ref<TextureView>, Ref<Sampler>>>>) 
+            {
+                for (auto& [tex, samp] : res) 
+                {
+                    imageInfos.emplace_back();
+                    auto* view = static_cast<VulkanTextureView*>(tex.get());
+                    auto* sampler = static_cast<VulkanSampler*>(samp.get());
+
+                    imageInfos.back().imageView = view->imageView;
+                    imageInfos.back().sampler = sampler->sampler;
+                    imageInfos.back().imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+                }
+
+                write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+                write.descriptorCount = static_cast<uint32_t>(res.size());
+                write.pImageInfo = imageInfos.data() + (imageInfos.size() - res.size());
+            }
         }, resource);
 
         writes.push_back(write);
@@ -533,12 +593,6 @@ void VulkanResourceSet::PrepareBufferWrite(const ResourceBinding& binding, void*
     bufferInfo.buffer = buffer->buffer;
     bufferInfo.offset = 0;
     bufferInfo.range = VK_WHOLE_SIZE;
-
-    write.descriptorType = (binding.kind == ResourceKind::UNIFORMBUFFER)
-        ? VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER
-        : VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-
-    write.pBufferInfo = &bufferInfo;
 }
 
 void VulkanResourceSet::PrepareImageWrite(const ResourceBinding& binding, void* resource,
@@ -549,12 +603,6 @@ void VulkanResourceSet::PrepareImageWrite(const ResourceBinding& binding, void* 
     imageInfo.imageLayout = (binding.kind == ResourceKind::TEXTUREREADONLY)
         ? VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
         : VK_IMAGE_LAYOUT_GENERAL;
-
-    write.descriptorType = (binding.kind == ResourceKind::TEXTUREREADONLY)
-        ? VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE
-        : VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-
-    write.pImageInfo = &imageInfo;
 }
 
 void VulkanResourceSet::PrepareSamplerWrite(const ResourceBinding& binding, void* resource,
@@ -562,9 +610,6 @@ void VulkanResourceSet::PrepareSamplerWrite(const ResourceBinding& binding, void
 {
     auto* sampler = static_cast<VulkanSampler*>(resource);
     imageInfo.sampler = sampler->sampler;
-
-    write.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;
-    write.pImageInfo = &imageInfo;
 }
 
 static VkPolygonMode ToVkPolygonMode(PolygonMode mode) 

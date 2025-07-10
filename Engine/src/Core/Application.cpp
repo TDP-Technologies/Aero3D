@@ -82,7 +82,7 @@ void Application::Run()
     ResourceLayoutDesc ld;
     ld.bindings = {
         {0, ResourceKind::UNIFORMBUFFER, STAGE_VERTEX},
-        {1, ResourceKind::COMBINED_IMAGE_SAMPLER, STAGE_FRAGMENT},
+        {1, ResourceKind::COMBINED_IMAGE_SAMPLER_ARRAY, STAGE_FRAGMENT, 2},
     };
 
     Ref<ResourceLayout> rl = rf->CreateResourceLayout(ld);
@@ -168,9 +168,14 @@ void Application::Run()
         m_GraphicsDevice->UpdateBuffer(uniformBuffer, &uboData, sizeof(uboData));
     });
 
+    std::vector<std::pair<Ref<TextureView>, Ref<Sampler>>> vecPairs = {
+        std::make_pair(tv, s),
+        std::make_pair(tv, s)
+    };
+
     ResourceSetDesc rsd;
     rsd.layout = rl;
-    rsd.resources = { uniformBuffer, std::make_pair(tv, s) };
+    rsd.resources = { uniformBuffer, vecPairs };
 
     Ref<ResourceSet> rs = rf->CreateResourceSet(rsd);
 

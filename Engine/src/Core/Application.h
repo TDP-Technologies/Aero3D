@@ -8,8 +8,6 @@
 
 namespace aero3d {
 
-class RenderSystem;
-
 class Application
 {
 public:
@@ -31,8 +29,7 @@ private:
     GraphicsDevice* m_GraphicsDevice = nullptr;
     ResourceManager* m_ResourceManager = nullptr;
     Scene* m_Scene = nullptr;
-    RenderSystem* m_RenderSystem = nullptr;
-
+    
 };
 
 } // namespace aero3d

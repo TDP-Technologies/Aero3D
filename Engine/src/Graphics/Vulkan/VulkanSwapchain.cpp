@@ -209,6 +209,7 @@ void VulkanSwapchain::Create()
 {
     CreateSwapchain();
     CreateFramebuffer();
+    AcquireNextImage();
 }
 
 void VulkanSwapchain::Destroy()

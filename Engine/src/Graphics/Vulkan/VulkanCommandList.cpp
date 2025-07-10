@@ -25,8 +25,6 @@ VulkanCommandList::~VulkanCommandList()
 
 void VulkanCommandList::Begin()
 {
-    m_CurrentImage = m_GraphicsDevice->swapchain->AcquireNextImage();
-
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     beginInfo.flags = 0;

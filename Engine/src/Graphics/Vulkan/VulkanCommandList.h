@@ -47,7 +47,6 @@ private:
 
     VkCommandPool m_CommandPool = VK_NULL_HANDLE;
 
-    uint32_t m_CurrentImage = 0;
     Ref<VulkanFramebuffer> m_CurrentFramebuffer = nullptr;
     Ref<VulkanPipeline> m_CurrentPipeline = nullptr;
 

@@ -133,6 +133,8 @@ void VulkanGraphicsDevice::Present()
     {
         A3D_CHECK_VKRESULT(result);
     }
+
+    swapchain->AcquireNextImage();
 }
 
 void VulkanGraphicsDevice::UpdateBuffer(Ref<DeviceBuffer> buffer, void* data, size_t size, size_t offset)

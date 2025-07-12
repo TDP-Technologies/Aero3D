@@ -7,7 +7,35 @@
 #include "Graphics/ResourceFactory.h"
 #include "Utils/Common.h"
 
+class SDL_Window;
+
 namespace aero3d {
+
+struct RenderSurfaceCreateInfo 
+{
+    enum class WindowType 
+    {
+        SDL,
+        Win32,
+        X11,
+        Wayland,
+        Cocoa,
+        Unknown
+    } type;
+
+    union 
+    {
+        SDL_Window* sdlWindow;
+        struct {
+            void* hinstance;
+            void* hwnd;
+        } win32;
+        struct {
+            void* display;
+            unsigned long window;
+        } x11;
+    };
+};
 
 class GraphicsDevice 
 {

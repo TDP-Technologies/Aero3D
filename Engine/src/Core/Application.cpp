@@ -1,5 +1,7 @@
 #include "Application.h"
 
+#include <SDL3/SDL.h>
+
 #include "Utils/Log.h"
 #include "IO/VFS.h"
 #include "Event/EventBus.h"
@@ -19,7 +21,12 @@ bool Application::Init()
     VFS::Mount("", "Sandbox/");
 
     m_Window = new Window("Aero3D", 800, 600);
-    m_GraphicsDevice = new VulkanGraphicsDevice(static_cast<SDL_Window*>(m_Window->GetSDLWindow()));
+
+    RenderSurfaceCreateInfo renderSurfaceInfo;
+    renderSurfaceInfo.type = RenderSurfaceCreateInfo::WindowType::SDL;
+    renderSurfaceInfo.sdlWindow = m_Window->GetSDLWindow();
+
+    m_GraphicsDevice = new VulkanGraphicsDevice(renderSurfaceInfo);
     m_ResourceManager = new ResourceManager(m_GraphicsDevice, m_GraphicsDevice->GetResourceFactory());
     m_Scene = new Scene();
     m_RenderSystem = new RenderSystem(m_GraphicsDevice, m_GraphicsDevice->GetResourceFactory());

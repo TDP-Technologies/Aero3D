@@ -5,6 +5,8 @@
 
 #include "Utils/Common.h"
 
+class SDL_Window;
+
 namespace aero3d {
 
 class Window
@@ -15,10 +17,10 @@ public:
 
     void PollEvents(bool& running, bool& minimized);
 
-    void* GetSDLWindow();
+    SDL_Window* GetSDLWindow();
 
 private:
-    void* m_Window = nullptr;
+    SDL_Window* m_Window = nullptr;
 
 };
 

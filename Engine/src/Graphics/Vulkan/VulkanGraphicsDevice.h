@@ -1,7 +1,6 @@
 #ifndef AERO3D_GRAPHICS_VULKAN_VULKANGRAPHICSDEVICE_H_
 #define AERO3D_GRAPHICS_VULKAN_VULKANGRAPHICSDEVICE_H_
 
-#include <SDL3/SDL.h>
 #include <volk.h>
 
 #include "Utils/Common.h"
@@ -15,7 +14,7 @@ namespace aero3d {
 class VulkanGraphicsDevice : public GraphicsDevice
 {
 public:
-    VulkanGraphicsDevice(SDL_Window* sdl_window);
+    VulkanGraphicsDevice(RenderSurfaceCreateInfo& renderSurfaceInfo);
     ~VulkanGraphicsDevice();
 
     virtual Ref<CommandList> CreateCommandList() override;
@@ -31,7 +30,7 @@ public:
     uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
 public:
-    SDL_Window* window = nullptr;
+    RenderSurfaceCreateInfo surfaceInfo;
 
     VkInstance instance = VK_NULL_HANDLE;
     VkSurfaceKHR surface = VK_NULL_HANDLE;

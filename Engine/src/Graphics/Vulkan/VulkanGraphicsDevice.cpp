@@ -2,6 +2,7 @@
 
 #include <set>
 
+#include <SDL3/SDL.h>
 #include <SDL3/SDL_vulkan.h>
 
 #include "Graphics/Vulkan/VulkanUtils.h"
@@ -9,11 +10,11 @@
 
 namespace aero3d {
 
-VulkanGraphicsDevice::VulkanGraphicsDevice(SDL_Window* sdl_window)
+VulkanGraphicsDevice::VulkanGraphicsDevice(RenderSurfaceCreateInfo& renderSurfaceInfo)
 {
     LogMsg("Creating Vulkan Graphics Device...");
 
-    window = sdl_window;
+    surfaceInfo = renderSurfaceInfo;
 
     volkInitialize();
     CreateInstance();
@@ -284,19 +285,30 @@ uint32_t VulkanGraphicsDevice::FindMemoryType(uint32_t typeFilter, VkMemoryPrope
 
 void VulkanGraphicsDevice::CreateInstance()
 {
-    Uint32 sdlExtensionCount = 0;
-    const char* const* sdlExtensions = SDL_Vulkan_GetInstanceExtensions(&sdlExtensionCount);
-    if (!sdlExtensions) {
-        LogErr(ERROR_INFO, "Could not get Vulkan instance extensions: %s", SDL_GetError());
+    std::vector<const char*> extensions;
+    
+    if (surfaceInfo.type == RenderSurfaceCreateInfo::WindowType::SDL) {
+        Uint32 sdlExtensionCount = 0;
+        const char* const* sdlExtensions = SDL_Vulkan_GetInstanceExtensions(&sdlExtensionCount);
+        if (!sdlExtensions) {
+            LogErr(ERROR_INFO, "Could not get Vulkan instance extensions: %s", SDL_GetError());
+        }
+        extensions.insert(extensions.end(), sdlExtensions, sdlExtensions + sdlExtensionCount);
+    } else {
+#if defined(_WIN32)
+        extensions.push_back("VK_KHR_surface");
+        extensions.push_back("VK_KHR_win32_surface");
+#elif defined(__linux__)
+        extensions.push_back("VK_KHR_surface");
+        extensions.push_back("VK_KHR_xlib_surface");
+#endif
     }
-
-    std::vector<const char*> extensions(sdlExtensions, sdlExtensions + sdlExtensionCount);
 
     extensions.push_back("VK_EXT_debug_utils");
 
-    std::vector<const char*> layers;
-    
-    layers.push_back("VK_LAYER_KHRONOS_validation");
+    std::vector<const char*> layers = {
+        "VK_LAYER_KHRONOS_validation"
+    };
 
     VkApplicationInfo appInfo{};
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -304,7 +316,7 @@ void VulkanGraphicsDevice::CreateInstance()
     appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
     appInfo.pEngineName = "Aero3D";
     appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-    appInfo.apiVersion = VK_API_VERSION_1_4;
+    appInfo.apiVersion = VK_API_VERSION_1_3;
 
     VkInstanceCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
@@ -320,9 +332,46 @@ void VulkanGraphicsDevice::CreateInstance()
 
 void VulkanGraphicsDevice::CreateSurface()
 {
-    if (!SDL_Vulkan_CreateSurface(window, instance, nullptr, &surface)) 
+     switch (surfaceInfo.type)
     {
-        LogErr(ERROR_INFO, "Failed to create Vulkan surface: %s", SDL_GetError());
+        case RenderSurfaceCreateInfo::WindowType::SDL:
+        {
+            if (!SDL_Vulkan_CreateSurface(surfaceInfo.sdlWindow, instance, nullptr, &surface)) {
+                LogErr(ERROR_INFO, "Failed to create Vulkan surface: %s", SDL_GetError());
+            }
+            break;
+        }
+
+        
+#ifdef _WIN32
+        case RenderSurfaceCreateInfo::WindowType::Win32:
+        {
+            VkWin32SurfaceCreateInfoKHR createInfo{};
+            createInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
+            createInfo.hinstance = static_cast<HINSTANCE>(surfaceInfo.win32.hinstance);
+            createInfo.hwnd = static_cast<HWND>(surfaceInfo.win32.hwnd);
+
+            A3D_CHECK_VKRESULT(vkCreateWin32SurfaceKHR(instance, &createInfo, nullptr, &surface));
+            break;
+        }
+#endif
+
+#if defined(__linux__) && !defined(__ANDROID__)
+        case RenderSurfaceCreateInfo::WindowType::X11:
+        {
+            VkXlibSurfaceCreateInfoKHR createInfo{};
+            createInfo.sType = VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR;
+            createInfo.dpy = static_cast<Display*>(surfaceInfo.x11.display);
+            createInfo.window = surfaceInfo.x11.window;
+
+            A3D_CHECK_VKRESULT(vkCreateXlibSurfaceKHR(instance, &createInfo, nullptr, &surface));
+            break;
+        }
+#endif
+
+        default:
+            LogErr(ERROR_INFO, "Unsupported window type for surface creation");
+            break;
     }
 }
 

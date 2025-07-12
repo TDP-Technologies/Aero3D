@@ -80,7 +80,7 @@ void Window::PollEvents(bool& running, bool& minimized)
     }
 }
 
-void* Window::GetSDLWindow()
+SDL_Window* Window::GetSDLWindow()
 {
     return m_Window;
 }

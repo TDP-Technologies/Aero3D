@@ -49,6 +49,12 @@ find_package(ZLIB REQUIRED)
 
 add_library(Engine SHARED ${ENGINE_SOURCES} ${ENGINE_HEADERS})
 
+if(WIN32)
+    add_compile_definitions(VK_USE_PLATFORM_WIN32_KHR)
+elseif(UNIX AND NOT APPLE)
+    add_compile_definitions(VK_USE_PLATFORM_XLIB_KHR)
+endif()
+
 target_include_directories(Engine PRIVATE ${DEPENDENCIES_DIR}/glm)
 target_include_directories(Engine PRIVATE ${DEPENDENCIES_DIR}/shaderc/libshaderc/include)
 target_include_directories(Engine PRIVATE ${DEPENDENCIES_DIR}/volk)
@@ -57,7 +63,7 @@ target_include_directories(Engine PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 target_include_directories(Engine PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/vendor)
 
 # Projects dependencies
-#target_link_libraries(Engine PRIVATE ${Vulkan_LIBRARIES})
+target_link_libraries(Engine PRIVATE ${Vulkan_LIBRARIES})
 target_link_libraries(Engine PRIVATE SDL3::SDL3)
 target_link_libraries(Engine PRIVATE shaderc_combined)
 target_link_libraries(Engine PRIVATE volk)

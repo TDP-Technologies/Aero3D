@@ -22,8 +22,13 @@ public:
     virtual void SetIndexBuffer(Ref<DeviceBuffer> buffer, IndexFormat format, uint32_t offset = 0) = 0;
     virtual void SetResourceSet(uint32_t slot, Ref<ResourceSet> resourceSet) = 0;
 
-    virtual void Draw(uint32_t vertexCount, uint32_t instanceCount = 1) = 0;
-    virtual void DrawIndexed(uint32_t indexCount, uint32_t instanceCount = 1) = 0;
+    virtual void Draw(uint32_t vertexCount, uint32_t instanceCount = 1, 
+        uint32_t firstVertex = 0, uint32_t firstInstance = 0) = 0;
+    virtual void DrawIndexed(uint32_t indexCount, uint32_t instanceCount = 1, 
+        uint32_t firstIndex = 0, uint32_t vertexOffset = 0, uint32_t firstInstance = 0) = 0;
+
+    virtual void ClearRenderTargets(float r, float g, float b, float a) = 0;
+    virtual void ClearDepthStencil() = 0;
 
 };
 

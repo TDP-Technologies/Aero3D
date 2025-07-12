@@ -177,7 +177,7 @@ void VulkanSwapchain::CreateSwapchain()
         desc.width = extent.width;
         desc.height = extent.height;
         desc.format = FromVkFormat(surfaceFormat.format);
-        desc.usage = TextureUsage::RENDERTARGET;
+        desc.usage = TextureUsage::RenderTarget;
 
         frames[i] = std::make_shared<VulkanTexture>(m_GraphicsDevice, desc, swapchainImages[i]);
     }
@@ -186,7 +186,7 @@ void VulkanSwapchain::CreateSwapchain()
     depthDesc.width = extent.width;
     depthDesc.height = extent.height;
     depthDesc.format = TextureFormat::D24S8;
-    depthDesc.usage = TextureUsage::DEPTHSTENCIL;
+    depthDesc.usage = TextureUsage::DepthStencil;
 
     depthStencil = std::make_shared<VulkanTexture>(m_GraphicsDevice, depthDesc);
 }
@@ -209,6 +209,7 @@ void VulkanSwapchain::Create()
 {
     CreateSwapchain();
     CreateFramebuffer();
+    AcquireNextImage();
 }
 
 void VulkanSwapchain::Destroy()

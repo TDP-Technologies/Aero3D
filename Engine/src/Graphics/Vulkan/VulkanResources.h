@@ -58,7 +58,7 @@ public:
     uint32_t width = 0;
     uint32_t height = 0;
     TextureFormat format = TextureFormat::RGBA8;
-    TextureUsage usage = TextureUsage::STORAGE;
+    TextureUsage usage = TextureUsage::Storage;
 
     bool fromExisting = false;
 

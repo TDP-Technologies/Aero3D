@@ -2,6 +2,7 @@
 
 #include <set>
 
+#include <SDL3/SDL.h>
 #include <SDL3/SDL_vulkan.h>
 
 #include "Graphics/Vulkan/VulkanUtils.h"
@@ -9,11 +10,11 @@
 
 namespace aero3d {
 
-VulkanGraphicsDevice::VulkanGraphicsDevice(SDL_Window* sdl_window)
+VulkanGraphicsDevice::VulkanGraphicsDevice(RenderSurfaceCreateInfo& renderSurfaceInfo)
 {
     LogMsg("Creating Vulkan Graphics Device...");
 
-    window = sdl_window;
+    surfaceInfo = renderSurfaceInfo;
 
     volkInitialize();
     CreateInstance();
@@ -128,11 +129,14 @@ void VulkanGraphicsDevice::Present()
     if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
     {
         swapchain->Resize();
-    } 
+        return;
+    }
     else
     {
         A3D_CHECK_VKRESULT(result);
     }
+
+    swapchain->AcquireNextImage();
 }
 
 void VulkanGraphicsDevice::UpdateBuffer(Ref<DeviceBuffer> buffer, void* data, size_t size, size_t offset)
@@ -279,21 +283,103 @@ uint32_t VulkanGraphicsDevice::FindMemoryType(uint32_t typeFilter, VkMemoryPrope
     return 0;
 }
 
-void VulkanGraphicsDevice::CreateInstance()
+void VulkanGraphicsDevice::TransitionImageLayout(VkImage image, VkFormat format,
+    VkImageLayout oldLayout, VkImageLayout newLayout, VkImageAspectFlags aspectMask)
 {
-    Uint32 sdlExtensionCount = 0;
-    const char* const* sdlExtensions = SDL_Vulkan_GetInstanceExtensions(&sdlExtensionCount);
-    if (!sdlExtensions) {
-        LogErr(ERROR_INFO, "Could not get Vulkan instance extensions: %s", SDL_GetError());
+    VkCommandBufferBeginInfo beginInfo{};
+    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+    A3D_CHECK_VKRESULT(vkBeginCommandBuffer(transferCommandBuffer, &beginInfo));
+
+    VkImageMemoryBarrier barrier{};
+    barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    barrier.oldLayout = oldLayout;
+    barrier.newLayout = newLayout;
+    barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.image = image;
+
+    barrier.subresourceRange.aspectMask = aspectMask;
+    barrier.subresourceRange.baseMipLevel = 0;
+    barrier.subresourceRange.levelCount = 1;
+    barrier.subresourceRange.baseArrayLayer = 0;
+    barrier.subresourceRange.layerCount = 1;
+
+    VkPipelineStageFlags sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+    VkPipelineStageFlags destinationStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+
+    if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
+    {
+        barrier.srcAccessMask = 0;
+        barrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
+        destinationStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    }
+    else if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
+    {
+        barrier.srcAccessMask = 0;
+        barrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+        destinationStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+    }
+    else if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
+    {
+        barrier.srcAccessMask = 0;
+        barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+
+        destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
     }
 
-    std::vector<const char*> extensions(sdlExtensions, sdlExtensions + sdlExtensionCount);
+    vkCmdPipelineBarrier(
+        transferCommandBuffer,
+        sourceStage,
+        destinationStage,
+        0,
+        0, nullptr,
+        0, nullptr,
+        1, &barrier
+    );
+
+    A3D_CHECK_VKRESULT(vkEndCommandBuffer(transferCommandBuffer));
+
+    VkSubmitInfo submitInfo{};
+    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers = &transferCommandBuffer;
+
+    A3D_CHECK_VKRESULT(vkQueueSubmit(graphicsQueue, 1, &submitInfo, transferFinishedFence));
+
+    A3D_CHECK_VKRESULT(vkWaitForFences(device, 1, &transferFinishedFence, VK_TRUE, UINT64_MAX));
+    A3D_CHECK_VKRESULT(vkResetFences(device, 1, &transferFinishedFence));
+}
+
+void VulkanGraphicsDevice::CreateInstance()
+{
+    std::vector<const char*> extensions;
+    
+    if (surfaceInfo.type == RenderSurfaceCreateInfo::WindowType::SDL) {
+        Uint32 sdlExtensionCount = 0;
+        const char* const* sdlExtensions = SDL_Vulkan_GetInstanceExtensions(&sdlExtensionCount);
+        if (!sdlExtensions) {
+            LogErr(ERROR_INFO, "Could not get Vulkan instance extensions: %s", SDL_GetError());
+        }
+        extensions.insert(extensions.end(), sdlExtensions, sdlExtensions + sdlExtensionCount);
+    } else {
+#if defined(_WIN32)
+        extensions.push_back("VK_KHR_surface");
+        extensions.push_back("VK_KHR_win32_surface");
+#elif defined(__linux__)
+        extensions.push_back("VK_KHR_surface");
+        extensions.push_back("VK_KHR_xlib_surface");
+#endif
+    }
 
     extensions.push_back("VK_EXT_debug_utils");
 
-    std::vector<const char*> layers;
-    
-    layers.push_back("VK_LAYER_KHRONOS_validation");
+    std::vector<const char*> layers = {
+        "VK_LAYER_KHRONOS_validation"
+    };
 
     VkApplicationInfo appInfo{};
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -301,7 +387,7 @@ void VulkanGraphicsDevice::CreateInstance()
     appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
     appInfo.pEngineName = "Aero3D";
     appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-    appInfo.apiVersion = VK_API_VERSION_1_4;
+    appInfo.apiVersion = VK_API_VERSION_1_3;
 
     VkInstanceCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
@@ -317,9 +403,46 @@ void VulkanGraphicsDevice::CreateInstance()
 
 void VulkanGraphicsDevice::CreateSurface()
 {
-    if (!SDL_Vulkan_CreateSurface(window, instance, nullptr, &surface)) 
+     switch (surfaceInfo.type)
     {
-        LogErr(ERROR_INFO, "Failed to create Vulkan surface: %s", SDL_GetError());
+        case RenderSurfaceCreateInfo::WindowType::SDL:
+        {
+            if (!SDL_Vulkan_CreateSurface(surfaceInfo.sdlWindow, instance, nullptr, &surface)) {
+                LogErr(ERROR_INFO, "Failed to create Vulkan surface: %s", SDL_GetError());
+            }
+            break;
+        }
+
+        
+#ifdef _WIN32
+        case RenderSurfaceCreateInfo::WindowType::Win32:
+        {
+            VkWin32SurfaceCreateInfoKHR createInfo{};
+            createInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
+            createInfo.hinstance = static_cast<HINSTANCE>(surfaceInfo.win32.hinstance);
+            createInfo.hwnd = static_cast<HWND>(surfaceInfo.win32.hwnd);
+
+            A3D_CHECK_VKRESULT(vkCreateWin32SurfaceKHR(instance, &createInfo, nullptr, &surface));
+            break;
+        }
+#endif
+
+#if defined(__linux__) && !defined(__ANDROID__)
+        case RenderSurfaceCreateInfo::WindowType::X11:
+        {
+            VkXlibSurfaceCreateInfoKHR createInfo{};
+            createInfo.sType = VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR;
+            createInfo.dpy = static_cast<Display*>(surfaceInfo.x11.display);
+            createInfo.window = surfaceInfo.x11.window;
+
+            A3D_CHECK_VKRESULT(vkCreateXlibSurfaceKHR(instance, &createInfo, nullptr, &surface));
+            break;
+        }
+#endif
+
+        default:
+            LogErr(ERROR_INFO, "Unsupported window type for surface creation");
+            break;
     }
 }
 

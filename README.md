@@ -43,7 +43,7 @@ python git-sync-deps.py
 Go back to the root directory and run:
 
 ```bash
-cmake -DCMAKE_BUILD_TYPE=Debug -G Ninja -S . -B build -DSPIRV_TOOLS_SKIP_INSTALL=ON && cmake --build build
+cmake -DCMAKE_BUILD_TYPE=Debug -G Ninja -S . -B build && cmake --build build
 ```
 
 This will configure a Debug build using the Ninja generator and then build the project.

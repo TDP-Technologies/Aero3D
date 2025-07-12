@@ -2,7 +2,7 @@
 
 int main()
 {
-    aero3d::Application app = aero3d::Application::Get();
+    aero3d::Application app;
     if (app.Init())
     {
         app.Run();

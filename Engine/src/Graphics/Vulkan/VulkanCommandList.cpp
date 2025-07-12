@@ -25,8 +25,6 @@ VulkanCommandList::~VulkanCommandList()
 
 void VulkanCommandList::Begin()
 {
-    m_CurrentImage = m_GraphicsDevice->swapchain->AcquireNextImage();
-
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     beginInfo.flags = 0;
@@ -95,8 +93,8 @@ static VkIndexType IndexFormatToVkIndexType(IndexFormat format)
 {
     switch (format)
     {
-        case IndexFormat::UNSIGNED_SHORT: return VK_INDEX_TYPE_UINT16;
-        case IndexFormat::UNSIGNED_INT: return VK_INDEX_TYPE_UINT32;
+        case IndexFormat::UnsignedShort: return VK_INDEX_TYPE_UINT16;
+        case IndexFormat::UnsignedInt: return VK_INDEX_TYPE_UINT32;
         default: return VK_INDEX_TYPE_UINT32;
     }
 }
@@ -123,14 +121,53 @@ void VulkanCommandList::SetResourceSet(uint32_t slot, Ref<ResourceSet> resourceS
     );
 }
 
-void VulkanCommandList::Draw(uint32_t vertexCount, uint32_t instanceCount)
+void VulkanCommandList::Draw(uint32_t vertexCount, uint32_t instanceCount, 
+    uint32_t firstVertex, uint32_t firstInstance)
 {
-    vkCmdDraw(commandBuffer, vertexCount, instanceCount, 0, 0);
+    vkCmdDraw(commandBuffer, vertexCount, instanceCount, firstVertex, firstInstance);
 }
 
-void VulkanCommandList::DrawIndexed(uint32_t indexCount, uint32_t instanceCount)
+void VulkanCommandList::DrawIndexed(uint32_t indexCount, uint32_t instanceCount,
+    uint32_t firstIndex, uint32_t vertexOffset, uint32_t firstInstance)
 {
-    vkCmdDrawIndexed(commandBuffer, indexCount, instanceCount, 0, 0, 0);
+    vkCmdDrawIndexed(commandBuffer, indexCount, instanceCount, firstIndex, vertexOffset, firstInstance);
+}
+
+void VulkanCommandList::ClearRenderTargets(float r, float g, float b, float a)
+{
+    std::vector<VkClearAttachment> clearAttachments;
+
+    for (uint32_t i = 0; i < m_CurrentFramebuffer->imageViews.size(); ++i)
+    {
+        VkClearAttachment clearAttachment{};
+        clearAttachment.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        clearAttachment.colorAttachment = i;
+        clearAttachment.clearValue.color = {{r, g, b, a}};
+        clearAttachments.push_back(clearAttachment);
+    }
+
+    VkClearRect clearRect{};
+    clearRect.rect.offset = {0, 0};
+    clearRect.rect.extent = m_CurrentFramebuffer->renderArea;
+    clearRect.baseArrayLayer = 0;
+    clearRect.layerCount = 1;
+
+    vkCmdClearAttachments(commandBuffer, clearAttachments.size(), clearAttachments.data(), 1, &clearRect);
+}
+
+void VulkanCommandList::ClearDepthStencil()
+{
+    VkClearAttachment clearAttachment{};
+    clearAttachment.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+    clearAttachment.clearValue.depthStencil = {1.0f, 0};
+
+    VkClearRect clearRect{};
+    clearRect.rect.offset = {0, 0};
+    clearRect.rect.extent = m_CurrentFramebuffer->renderArea;
+    clearRect.baseArrayLayer = 0;
+    clearRect.layerCount = 1;
+
+    vkCmdClearAttachments(commandBuffer, 1, &clearAttachment, 1, &clearRect);
 }
 
 void VulkanCommandList::CreateCommandPool()
@@ -163,7 +200,7 @@ void VulkanCommandList::BeginRendering()
     {
         VkImageMemoryBarrier barrier{};
         barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-        barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        barrier.oldLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
         barrier.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
         barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
         barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
@@ -189,9 +226,8 @@ void VulkanCommandList::BeginRendering()
         colorAttachment.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
         colorAttachment.imageView = m_CurrentFramebuffer->imageViews[i];
         colorAttachment.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-        colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
         colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-        colorAttachment.clearValue.color = {0.2f, 0.8f, 0.1f, 1.0f};
 
         colorAttachments[i] = colorAttachment;
     }
@@ -203,11 +239,12 @@ void VulkanCommandList::BeginRendering()
     renderingInfo.colorAttachmentCount = colorAttachments.size();
     renderingInfo.pColorAttachments = colorAttachments.data();
 
+    VkRenderingAttachmentInfo depthAttachment = {};
     if (m_CurrentFramebuffer->depthStencil)
     {
         VkImageMemoryBarrier depthBarrier{};
         depthBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-        depthBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        depthBarrier.oldLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
         depthBarrier.newLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
         depthBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
         depthBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
@@ -229,13 +266,11 @@ void VulkanCommandList::BeginRendering()
             0, nullptr,
             1, &depthBarrier);
 
-        VkRenderingAttachmentInfo depthAttachment = {};
         depthAttachment.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
         depthAttachment.imageView = m_CurrentFramebuffer->depthStencilImageView;
         depthAttachment.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-        depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
         depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-        depthAttachment.clearValue.depthStencil = {1.0f, 0};
 
         renderingInfo.pDepthAttachment = &depthAttachment;
     }

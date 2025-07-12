@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <cstdint>
+#include <variant>
 
 #include "Utils/Common.h"
 
@@ -20,8 +21,8 @@ enum BufferUsage
 
 enum class IndexFormat
 {
-    UNSIGNED_SHORT, 
-    UNSIGNED_INT
+    UnsignedShort, 
+    UnsignedInt
 };
 
 struct BufferDesc {
@@ -35,14 +36,19 @@ class DeviceBuffer
 public:
     virtual ~DeviceBuffer() = default;
 
+    BufferDesc& GetDescription() { return m_Description; };
+
+protected:
+    BufferDesc m_Description;
+
 };
 
 enum class TextureUsage 
 {
-    SAMPLED,
-    STORAGE,
-    RENDERTARGET,
-    DEPTHSTENCIL
+    Sampled,
+    Storage,
+    RenderTarget,
+    DepthStencil
 };
 
 enum class TextureFormat 
@@ -57,7 +63,8 @@ enum class TextureFormat
     D32S8
 };
 
-struct TextureDesc {
+struct TextureDesc 
+{
     uint32_t width;
     uint32_t height;
     uint32_t depth = 1;
@@ -72,6 +79,11 @@ class Texture
 {
 public:
     virtual ~Texture() = default;
+
+    TextureDesc& GetDescription() { return m_Description; };
+
+protected:
+    TextureDesc m_Description;
 
 };
 
@@ -92,27 +104,32 @@ public:
 
     virtual Ref<Texture> GetTargetTexture() = 0;
 
+    TextureViewDesc& GetDescription() { return m_Description; }
+
+protected:
+    TextureViewDesc m_Description;
+
 };
 
 enum class SamplerFilter
 {
-    NEAREST,
-    LINEAR
+    Nearest,
+    Linear
 };
 
 enum class SamplerAddressMode
 {
-    REPEAT,
-    CLAMP_TO_EDGE,
-    CLAMP_TO_BORDER
+    Repeat,
+    ClampToEdge,
+    ClampToBorder
 };
 
 struct SamplerDesc
 {
-    SamplerFilter filter = SamplerFilter::LINEAR;
-    SamplerAddressMode addressModeU = SamplerAddressMode::REPEAT;
-    SamplerAddressMode addressModeV = SamplerAddressMode::REPEAT;
-    SamplerAddressMode addressModeW = SamplerAddressMode::REPEAT;
+    SamplerFilter filter = SamplerFilter::Linear;
+    SamplerAddressMode addressModeU = SamplerAddressMode::Repeat;
+    SamplerAddressMode addressModeV = SamplerAddressMode::Repeat;
+    SamplerAddressMode addressModeW = SamplerAddressMode::Repeat;
     float maxAnisotropy = 1.0f;
 };
 
@@ -120,6 +137,11 @@ class Sampler
 {
 public:
     virtual ~Sampler() = default;
+
+    SamplerDesc GetDescription() { return m_Description; }
+
+protected:
+    SamplerDesc m_Description;
 
 };
 
@@ -133,6 +155,11 @@ class Framebuffer
 {
 public:
     virtual ~Framebuffer() = default;
+
+    FramebufferDesc& GetDescription() { return m_Description; }
+
+protected:
+    FramebufferDesc m_Description;
 
 };
 
@@ -159,15 +186,24 @@ class Shader
 public:
     virtual ~Shader() = default;
 
+    ShaderDesc& GetDescription() { return m_Description; }
+
+protected:
+    ShaderDesc m_Description;
+
 };
 
 enum class ResourceKind 
 {
-    UNIFORMBUFFER,
-    STORAGEBUFFER,
-    TEXTUREREADONLY,
-    TEXTUREREADWRITE,
-    SAMPLER
+    UniformBuffer,
+    StorageBuffer,
+    TextureReadOnly,
+    TextureReadWrite,
+    Sampler,
+    CombinedImageSampler,
+    TextureReadOnlyArray,
+    SamplerArray,
+    CombinedImageSamplerArray
 };
 
 struct ResourceBinding 
@@ -175,6 +211,7 @@ struct ResourceBinding
     uint32_t binding;
     ResourceKind kind;
     ShaderStages stages;
+    uint32_t count = 1;
 };
 
 struct ResourceLayoutDesc 
@@ -187,12 +224,27 @@ class ResourceLayout
 public:
     virtual ~ResourceLayout() = default;
 
+    ResourceLayoutDesc& GetDescription() { return m_Description; }
+
+protected:
+    ResourceLayoutDesc m_Description;
+
 };
+
+using ResourceRef = std::variant<
+    Ref<DeviceBuffer>,
+    Ref<TextureView>,
+    Ref<Sampler>,
+    std::pair<Ref<TextureView>, Ref<Sampler>>,
+    std::vector<Ref<TextureView>>,
+    std::vector<Ref<Sampler>>,
+    std::vector<std::pair<Ref<TextureView>, Ref<Sampler>>>
+>;
 
 struct ResourceSetDesc 
 {
     Ref<ResourceLayout> layout;
-    std::vector<void*> resources;
+    std::vector<ResourceRef> resources;
 };
 
 class ResourceSet 
@@ -200,41 +252,46 @@ class ResourceSet
 public:
     virtual ~ResourceSet() = default;
 
+    ResourceSetDesc& GetDescription() { return m_Description; }
+
+protected:
+    ResourceSetDesc m_Description;
+
 };
 
 enum class PrimitiveTopology 
 {
-    TRIANGLELIST,
-    TRIANGLESTRIP,
-    LINELIST,
-    LINESTRIP,
-    POINTLIST
+    TriangleList,
+    TriangleStrip,
+    LineList,
+    LineStrip,
+    PointList
 };
 
 enum class CullMode 
 {
-    NONE,
-    FRONT,
-    BACK
+    None,
+    Front,
+    Back
 };
 
 enum class FrontFace 
 {
-    CLOCKWISE,
-    COUNTERCLOCKWISE
+    ClockWise,
+    CounterClockWise
 };
 
 enum class PolygonMode 
 {
-    FILL,
-    LINE,
-    POINT
+    Fill,
+    Line,
+    Point
 };
 
 enum class VertexFormat 
 {
-    FLOAT, FLOAT2, FLOAT3, FLOAT4, INT, INT2, INT3, INT4,
-    BOOL, MAT2, MAT3, MAT4
+    Float, Float2, Float3, Float4, Int, Int2, Int3, Int4,
+    Bool, Mat2, Mat3, Mat4
 };
 
 struct VertexAttributeDesc 
@@ -267,10 +324,10 @@ struct PipelineDesc
 
     VertexLayoutDesc vertexLayout;
 
-    PrimitiveTopology topology = PrimitiveTopology::TRIANGLELIST;
-    CullMode cullMode = CullMode::BACK;
-    FrontFace frontFace = FrontFace::COUNTERCLOCKWISE;
-    PolygonMode polygonMode = PolygonMode::FILL;
+    PrimitiveTopology topology = PrimitiveTopology::TriangleList;
+    CullMode cullMode = CullMode::Back;
+    FrontFace frontFace = FrontFace::CounterClockWise;
+    PolygonMode polygonMode = PolygonMode::Fill;
 
     bool depthTest = true;
     bool depthWrite = true;
@@ -280,6 +337,11 @@ class Pipeline
 {
 public:
     virtual ~Pipeline() = default;
+
+    PipelineDesc& GetDescription() { return m_Description; }
+
+protected:
+    PipelineDesc m_Description;
 
 };
 

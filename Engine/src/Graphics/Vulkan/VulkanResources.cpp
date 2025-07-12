@@ -9,6 +9,7 @@ namespace aero3d {
 VulkanDeviceBuffer::VulkanDeviceBuffer(VulkanGraphicsDevice* gd, BufferDesc desc) 
 {
     m_GraphicsDevice = gd;
+    m_Description = desc;
 
     size = desc.size;
 
@@ -86,6 +87,8 @@ inline VkFormat ToVkFormat(TextureFormat format)
 VulkanTexture::VulkanTexture(VulkanGraphicsDevice* gd, TextureDesc desc) 
 {
     m_GraphicsDevice = gd;
+    m_Description = desc;
+
     vkFormat = ToVkFormat(desc.format);
     width = desc.width;
     height = desc.height;
@@ -95,16 +98,16 @@ VulkanTexture::VulkanTexture(VulkanGraphicsDevice* gd, TextureDesc desc)
     VkImageUsageFlags usageFlags = 0;
     switch (desc.usage)
     {
-        case TextureUsage::SAMPLED:
+        case TextureUsage::Sampled:
             usageFlags = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
             break;
-        case TextureUsage::STORAGE:
+        case TextureUsage::Storage:
             usageFlags = VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
             break;
-        case TextureUsage::RENDERTARGET:
+        case TextureUsage::RenderTarget:
             usageFlags = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
             break;
-        case TextureUsage::DEPTHSTENCIL:
+        case TextureUsage::DepthStencil:
             usageFlags = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
             break;
     }
@@ -174,6 +177,8 @@ VulkanTexture::~VulkanTexture()
 VulkanTextureView::VulkanTextureView(VulkanGraphicsDevice* gd, TextureViewDesc desc)
 {
     m_GraphicsDevice = gd;
+    m_Description = desc;
+
     texture = std::static_pointer_cast<VulkanTexture>(desc.texture);
 
     VkImageViewCreateInfo viewInfo{};
@@ -209,9 +214,9 @@ VkSamplerAddressMode ToVkSamplerAddressMode(SamplerAddressMode mode)
 {
     switch (mode) 
     {
-        case SamplerAddressMode::REPEAT:            return VK_SAMPLER_ADDRESS_MODE_REPEAT;
-        case SamplerAddressMode::CLAMP_TO_EDGE:     return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
-        case SamplerAddressMode::CLAMP_TO_BORDER:   return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
+        case SamplerAddressMode::Repeat:            return VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        case SamplerAddressMode::ClampToEdge:       return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+        case SamplerAddressMode::ClampToBorder:     return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
         default:                                    return VK_SAMPLER_ADDRESS_MODE_REPEAT;
     }
 }
@@ -219,12 +224,13 @@ VkSamplerAddressMode ToVkSamplerAddressMode(SamplerAddressMode mode)
 VulkanSampler::VulkanSampler(VulkanGraphicsDevice* gd, SamplerDesc& desc)
 {
     m_GraphicsDevice = gd;
+    m_Description = desc;
 
     VkSamplerCreateInfo samplerInfo{};
     samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
 
-    samplerInfo.magFilter = (desc.filter == SamplerFilter::LINEAR) ? VK_FILTER_LINEAR : VK_FILTER_NEAREST;
-    samplerInfo.minFilter = (desc.filter == SamplerFilter::LINEAR) ? VK_FILTER_LINEAR : VK_FILTER_NEAREST;
+    samplerInfo.magFilter = (desc.filter == SamplerFilter::Linear) ? VK_FILTER_LINEAR : VK_FILTER_NEAREST;
+    samplerInfo.minFilter = (desc.filter == SamplerFilter::Linear) ? VK_FILTER_LINEAR : VK_FILTER_NEAREST;
 
     samplerInfo.addressModeU = ToVkSamplerAddressMode(desc.addressModeU);
     samplerInfo.addressModeV = ToVkSamplerAddressMode(desc.addressModeV);
@@ -253,8 +259,10 @@ VulkanSampler::~VulkanSampler()
 
 VulkanFramebuffer::VulkanFramebuffer(VulkanGraphicsDevice* gd, FramebufferDesc desc) 
 {
-    uint32_t targets = desc.colorTargets.size();
     m_GraphicsDevice = gd;
+    m_Description = desc;
+
+    uint32_t targets = desc.colorTargets.size();
 
     frames.resize(targets);
     imageViews.resize(targets);
@@ -282,6 +290,13 @@ VulkanFramebuffer::VulkanFramebuffer(VulkanGraphicsDevice* gd, FramebufferDesc d
         viewInfo.subresourceRange.layerCount = 1;
 
         A3D_CHECK_VKRESULT(vkCreateImageView(m_GraphicsDevice->device, &viewInfo, nullptr, &imageViews[i]));
+
+        m_GraphicsDevice->TransitionImageLayout(
+            vt->image,
+            vt->vkFormat,
+            VK_IMAGE_LAYOUT_UNDEFINED,
+            VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+            VK_IMAGE_ASPECT_COLOR_BIT);
     }
 
     renderArea = { frames[0]->width, frames[0]->height };
@@ -309,6 +324,13 @@ VulkanFramebuffer::VulkanFramebuffer(VulkanGraphicsDevice* gd, FramebufferDesc d
         viewInfo.subresourceRange.layerCount = 1;
 
         A3D_CHECK_VKRESULT(vkCreateImageView(m_GraphicsDevice->device, &viewInfo, nullptr, &depthStencilImageView));
+        
+        m_GraphicsDevice->TransitionImageLayout(
+            depthStencil->image,
+            depthStencil->vkFormat,
+            VK_IMAGE_LAYOUT_UNDEFINED,
+            VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+            aspectMask);
     }
 }
 
@@ -346,8 +368,11 @@ static shaderc_shader_kind ShaderStageToShaderCKind(ShaderStages stage)
 VulkanShader::VulkanShader(VulkanGraphicsDevice* gd, ShaderDesc desc) 
 {
     m_GraphicsDevice = gd;
+    m_Description = desc;
 
-    std::string source = VFS::ReadFile(desc.path)->ReadString();
+    std::string filePath = desc.path + ".glsl";
+
+    std::string source = VFS::ReadFile(filePath)->ReadString();
 
     std::vector<uint32_t> spirv = CompileGLSL(source, ShaderStageToShaderCKind(desc.stage), desc.path);
 
@@ -384,9 +409,28 @@ std::vector<uint32_t> VulkanShader::CompileGLSL(const std::string& source,
     return { result.cbegin(), result.cend() };
 }
 
+static VkDescriptorType ToDescriptorType(ResourceKind kind) 
+{
+    switch (kind) 
+    {
+        case ResourceKind::UniformBuffer: return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        case ResourceKind::StorageBuffer: return VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+        case ResourceKind::TextureReadOnly:
+        case ResourceKind::TextureReadOnlyArray: return VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+        case ResourceKind::TextureReadWrite: return VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+        case ResourceKind::Sampler:
+        case ResourceKind::SamplerArray: return VK_DESCRIPTOR_TYPE_SAMPLER;
+        case ResourceKind::CombinedImageSampler:
+        case ResourceKind::CombinedImageSamplerArray: return VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        default: return VK_DESCRIPTOR_TYPE_MAX_ENUM;
+    }
+}
+
 VulkanResourceLayout::VulkanResourceLayout(VulkanGraphicsDevice* gd, ResourceLayoutDesc desc) 
 {
     m_GraphicsDevice = gd;
+    m_Description = desc;
+
     bindings = desc.bindings;
 
     std::vector<VkDescriptorSetLayoutBinding> layoutBindings;
@@ -394,27 +438,8 @@ VulkanResourceLayout::VulkanResourceLayout(VulkanGraphicsDevice* gd, ResourceLay
     {
         VkDescriptorSetLayoutBinding layoutBinding{};
         layoutBinding.binding = binding.binding;
-        layoutBinding.descriptorCount = 1;
-
-        switch (binding.kind)
-        {
-        case ResourceKind::UNIFORMBUFFER:
-            layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-            break;
-        case ResourceKind::STORAGEBUFFER:
-            layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-            break;
-        case ResourceKind::TEXTUREREADONLY:
-            layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
-            break;
-        case ResourceKind::TEXTUREREADWRITE:
-            layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-            break;
-        case ResourceKind::SAMPLER:
-            layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;
-            break;
-        }
-
+        layoutBinding.descriptorCount = binding.count;
+        layoutBinding.descriptorType = ToDescriptorType(binding.kind);
         layoutBinding.stageFlags = 0;
 
         if (binding.stages & STAGE_VERTEX)
@@ -466,7 +491,7 @@ VulkanResourceSet::VulkanResourceSet(VulkanGraphicsDevice* gd, ResourceSetDesc d
     for (size_t i = 0; i < vulkanLayout->bindings.size(); ++i)
     {
         const auto& binding = vulkanLayout->bindings[i];
-        void* resource = desc.resources[i];
+        const auto& resource = desc.resources[i];
 
         VkWriteDescriptorSet write{};
         write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -475,29 +500,92 @@ VulkanResourceSet::VulkanResourceSet(VulkanGraphicsDevice* gd, ResourceSetDesc d
         write.dstArrayElement = 0;
         write.descriptorCount = 1;
 
-        switch (binding.kind)
+        std::visit([&](auto&& res) 
         {
-            case ResourceKind::UNIFORMBUFFER:
-            case ResourceKind::STORAGEBUFFER:
+            using T = std::decay_t<decltype(res)>;
+
+            if constexpr (std::is_same_v<T, Ref<DeviceBuffer>>) 
             {
                 bufferInfos.emplace_back();
-                PrepareBufferWrite(binding, resource, write, bufferInfos.back());
-                break;
-            }
-            case ResourceKind::TEXTUREREADONLY:
-            case ResourceKind::TEXTUREREADWRITE:
+                PrepareBufferWrite(binding, res.get(), write, bufferInfos.back());
+                write.descriptorType = (binding.kind == ResourceKind::UniformBuffer)
+                    ? VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER
+                    : VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+                write.pBufferInfo = &bufferInfos.back();
+            } 
+            else if constexpr (std::is_same_v<T, Ref<TextureView>>) 
             {
                 imageInfos.emplace_back();
-                PrepareImageWrite(binding, resource, write, imageInfos.back());
-                break;
-            }
-            case ResourceKind::SAMPLER:
+                PrepareImageWrite(binding, res.get(), write, imageInfos.back());
+
+                write.descriptorType = (binding.kind == ResourceKind::TextureReadOnly)
+                    ? VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE
+                    : VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+                write.pImageInfo = &imageInfos.back();
+            } 
+            else if constexpr (std::is_same_v<T, Ref<Sampler>>) 
             {
                 samplerInfos.emplace_back();
-                PrepareSamplerWrite(binding, resource, write, samplerInfos.back());
-                break;
+                PrepareSamplerWrite(binding, res.get(), write, samplerInfos.back());
+
+                write.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;
+                write.pImageInfo = &samplerInfos.back();
             }
-        }
+            else if constexpr (std::is_same_v<T, std::pair<Ref<TextureView>, Ref<Sampler>>>) 
+            {
+                imageInfos.emplace_back();
+                auto* view = static_cast<VulkanTextureView*>(res.first.get());
+                auto* sampler = static_cast<VulkanSampler*>(res.second.get());
+
+                imageInfos.back().imageView = view->imageView;
+                imageInfos.back().sampler = sampler->sampler;
+                imageInfos.back().imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+                write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+                write.descriptorCount = 1;
+                write.pImageInfo = &imageInfos.back();
+            }
+            else if constexpr (std::is_same_v<T, std::vector<Ref<TextureView>>>)
+            {
+                for (auto& tex : res) 
+                {
+                    imageInfos.emplace_back();
+                    PrepareImageWrite(binding, tex.get(), write, imageInfos.back());
+                }
+                write.descriptorType = (binding.kind == ResourceKind::TextureReadOnly || binding.kind == ResourceKind::TextureReadOnlyArray)
+                    ? VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE
+                    : VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+                write.descriptorCount = static_cast<uint32_t>(res.size());
+                write.pImageInfo = imageInfos.data() + (imageInfos.size() - res.size());
+            }
+            else if constexpr (std::is_same_v<T, std::vector<Ref<Sampler>>>)
+            {
+                for (auto& samp : res) 
+                {
+                    samplerInfos.emplace_back();
+                    PrepareSamplerWrite(binding, samp.get(), write, samplerInfos.back());
+                }
+                write.descriptorCount = static_cast<uint32_t>(res.size());
+                write.pImageInfo = samplerInfos.data() + (samplerInfos.size() - res.size());
+            }
+            else if constexpr (std::is_same_v<T, std::vector<std::pair<Ref<TextureView>, Ref<Sampler>>>>) 
+            {
+                for (auto& [tex, samp] : res) 
+                {
+                    imageInfos.emplace_back();
+                    auto* view = static_cast<VulkanTextureView*>(tex.get());
+                    auto* sampler = static_cast<VulkanSampler*>(samp.get());
+
+                    imageInfos.back().imageView = view->imageView;
+                    imageInfos.back().sampler = sampler->sampler;
+                    imageInfos.back().imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+                }
+
+                write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+                write.descriptorCount = static_cast<uint32_t>(res.size());
+                write.pImageInfo = imageInfos.data() + (imageInfos.size() - res.size());
+            }
+        }, resource);
 
         writes.push_back(write);
     }
@@ -522,12 +610,6 @@ void VulkanResourceSet::PrepareBufferWrite(const ResourceBinding& binding, void*
     bufferInfo.buffer = buffer->buffer;
     bufferInfo.offset = 0;
     bufferInfo.range = VK_WHOLE_SIZE;
-
-    write.descriptorType = (binding.kind == ResourceKind::UNIFORMBUFFER)
-        ? VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER
-        : VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-
-    write.pBufferInfo = &bufferInfo;
 }
 
 void VulkanResourceSet::PrepareImageWrite(const ResourceBinding& binding, void* resource,
@@ -535,15 +617,9 @@ void VulkanResourceSet::PrepareImageWrite(const ResourceBinding& binding, void* 
 {
     auto* view = static_cast<VulkanTextureView*>(resource);
     imageInfo.imageView = view->imageView;
-    imageInfo.imageLayout = (binding.kind == ResourceKind::TEXTUREREADONLY)
+    imageInfo.imageLayout = (binding.kind == ResourceKind::TextureReadOnly || binding.kind == ResourceKind::TextureReadOnlyArray)
         ? VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
         : VK_IMAGE_LAYOUT_GENERAL;
-
-    write.descriptorType = (binding.kind == ResourceKind::TEXTUREREADONLY)
-        ? VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE
-        : VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-
-    write.pImageInfo = &imageInfo;
 }
 
 void VulkanResourceSet::PrepareSamplerWrite(const ResourceBinding& binding, void* resource,
@@ -551,18 +627,15 @@ void VulkanResourceSet::PrepareSamplerWrite(const ResourceBinding& binding, void
 {
     auto* sampler = static_cast<VulkanSampler*>(resource);
     imageInfo.sampler = sampler->sampler;
-
-    write.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;
-    write.pImageInfo = &imageInfo;
 }
 
 static VkPolygonMode ToVkPolygonMode(PolygonMode mode) 
 {
     switch (mode) 
     {
-        case PolygonMode::FILL: return VK_POLYGON_MODE_FILL;
-        case PolygonMode::LINE: return VK_POLYGON_MODE_LINE;
-        case PolygonMode::POINT: return VK_POLYGON_MODE_POINT;
+        case PolygonMode::Fill: return VK_POLYGON_MODE_FILL;
+        case PolygonMode::Line: return VK_POLYGON_MODE_LINE;
+        case PolygonMode::Point: return VK_POLYGON_MODE_POINT;
         default: return VK_POLYGON_MODE_FILL;
     }
 }
@@ -571,9 +644,9 @@ static VkCullModeFlags ToVkCullMode(CullMode mode)
 {
     switch (mode) 
     {
-        case CullMode::NONE: return VK_CULL_MODE_NONE;
-        case CullMode::FRONT: return VK_CULL_MODE_FRONT_BIT;
-        case CullMode::BACK: return VK_CULL_MODE_BACK_BIT;
+        case CullMode::None: return VK_CULL_MODE_NONE;
+        case CullMode::Front: return VK_CULL_MODE_FRONT_BIT;
+        case CullMode::Back: return VK_CULL_MODE_BACK_BIT;
         default: return VK_CULL_MODE_BACK_BIT;
     }
 }
@@ -582,8 +655,8 @@ static VkFrontFace ToVkFrontFace(FrontFace face)
 {
     switch (face) 
     {
-        case FrontFace::CLOCKWISE: return VK_FRONT_FACE_CLOCKWISE;
-        case FrontFace::COUNTERCLOCKWISE: return VK_FRONT_FACE_COUNTER_CLOCKWISE;
+        case FrontFace::ClockWise: return VK_FRONT_FACE_CLOCKWISE;
+        case FrontFace::CounterClockWise: return VK_FRONT_FACE_COUNTER_CLOCKWISE;
         default: return VK_FRONT_FACE_COUNTER_CLOCKWISE;
     }
 }
@@ -592,21 +665,21 @@ static VkFormat VertexFormatToVkFormat(VertexFormat type)
 {
     switch (type)
     {
-        case VertexFormat::FLOAT:  return VK_FORMAT_R32_SFLOAT;
-        case VertexFormat::FLOAT2: return VK_FORMAT_R32G32_SFLOAT;
-        case VertexFormat::FLOAT3: return VK_FORMAT_R32G32B32_SFLOAT;
-        case VertexFormat::FLOAT4: return VK_FORMAT_R32G32B32A32_SFLOAT;
+        case VertexFormat::Float:  return VK_FORMAT_R32_SFLOAT;
+        case VertexFormat::Float2: return VK_FORMAT_R32G32_SFLOAT;
+        case VertexFormat::Float3: return VK_FORMAT_R32G32B32_SFLOAT;
+        case VertexFormat::Float4: return VK_FORMAT_R32G32B32A32_SFLOAT;
 
-        case VertexFormat::INT:  return VK_FORMAT_R32_SINT;
-        case VertexFormat::INT2: return VK_FORMAT_R32G32_SINT;
-        case VertexFormat::INT3: return VK_FORMAT_R32G32B32_SINT;
-        case VertexFormat::INT4: return VK_FORMAT_R32G32B32A32_SINT;
+        case VertexFormat::Int:  return VK_FORMAT_R32_SINT;
+        case VertexFormat::Int2: return VK_FORMAT_R32G32_SINT;
+        case VertexFormat::Int3: return VK_FORMAT_R32G32B32_SINT;
+        case VertexFormat::Int4: return VK_FORMAT_R32G32B32A32_SINT;
 
-        case VertexFormat::BOOL: return VK_FORMAT_R8_UINT;
+        case VertexFormat::Bool: return VK_FORMAT_R8_UINT;
 
-        case VertexFormat::MAT2: return VK_FORMAT_R32G32_SFLOAT;
-        case VertexFormat::MAT3: return VK_FORMAT_R32G32B32_SFLOAT;
-        case VertexFormat::MAT4: return VK_FORMAT_R32G32B32A32_SFLOAT;
+        case VertexFormat::Mat2: return VK_FORMAT_R32G32_SFLOAT;
+        case VertexFormat::Mat3: return VK_FORMAT_R32G32B32_SFLOAT;
+        case VertexFormat::Mat4: return VK_FORMAT_R32G32B32A32_SFLOAT;
 
         default: return VK_FORMAT_UNDEFINED;
     }
@@ -615,6 +688,7 @@ static VkFormat VertexFormatToVkFormat(VertexFormat type)
 VulkanPipeline::VulkanPipeline(VulkanGraphicsDevice* gd, PipelineDesc desc) 
 {
     m_GraphicsDevice = gd;
+    m_Description = desc;
 
     std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
 

@@ -7,7 +7,7 @@
 
 namespace aero3d {
 
-void Window::Init(const char* title, int width, int height)
+Window::Window(WindowInfo info)
 {
     LogMsg("Window Initialize.");
 
@@ -22,9 +22,19 @@ void Window::Init(const char* title, int width, int height)
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
-    m_Window = SDL_CreateWindow(title,
-        width, height,
-        SDL_WINDOW_RESIZABLE | SDL_WINDOW_VULKAN);
+    Uint32 windowFlags = SDL_WINDOW_RESIZABLE;
+
+    switch (info.graphicsContext)
+    {
+    case GraphicsContextType::Vulkan:
+        windowFlags |= SDL_WINDOW_VULKAN;
+        break;
+    default:
+        break;
+    }
+
+    m_Window = SDL_CreateWindow(info.title.c_str(),
+        info.width, info.height, windowFlags);
 
     if (!m_Window) 
     {
@@ -32,7 +42,7 @@ void Window::Init(const char* title, int width, int height)
     }
 }
 
-void Window::Shutdown()
+Window::~Window()
 {
     LogMsg("Window Shutdown.");
 
@@ -80,7 +90,7 @@ void Window::PollEvents(bool& running, bool& minimized)
     }
 }
 
-void* Window::GetSDLWindow()
+SDL_Window* Window::GetSDLWindow()
 {
     return m_Window;
 }

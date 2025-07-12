@@ -9,6 +9,11 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 # Support multiple build configurations
 set(CMAKE_CONFIGURATION_TYPES Debug Release Dist CACHE STRING "" FORCE)
 
+# Global compile flags per build type
+set(CMAKE_CXX_FLAGS_DEBUG "-g -O0")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
+set(CMAKE_CXX_FLAGS_DIST "-O3 -DNDEBUG -flto")
+
 # Output directories for binaries and libraries
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)

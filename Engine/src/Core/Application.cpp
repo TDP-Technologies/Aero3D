@@ -55,19 +55,16 @@ bool Application::Init()
 
 void Application::Run()
 {
-    for (int i = 0; i < 10000; i++)
-    {
-        auto actor = std::make_unique<Actor>();
+    auto actor = std::make_unique<Actor>();
 
-        auto sprite = std::make_unique<SpriteComponent>();
-        sprite->SetTexture(m_ResourceManager->LoadTexture("res/textures/texture.jpg"));
-        sprite->SetLocalTransform(glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, 1.0f)));
+    auto sprite = std::make_unique<SpriteComponent>();
+    sprite->SetTexture(m_ResourceManager->LoadTexture("res/textures/texture.jpg"));
+    sprite->SetLocalTransform(glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, 1.0f)));
 
-        actor->SetRootComponent(sprite.get());
-        actor->AddComponent(std::move(sprite));
+    actor->SetRootComponent(sprite.get());
+    actor->AddComponent(std::move(sprite));
 
-        m_Scene->AddActor(std::move(actor));
-    }
+    m_Scene->AddActor(std::move(actor));
 
     while (m_IsRunning)
     {

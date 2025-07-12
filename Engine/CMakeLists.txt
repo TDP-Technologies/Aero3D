@@ -84,10 +84,3 @@ target_compile_definitions(Engine PRIVATE
     $<$<CONFIG:Release>:A3D_RELEASE>
     $<$<CONFIG:Dist>:A3D_DIST>
 )
-
-# Add compile options (flags) per build configuration
-target_compile_options(Engine PRIVATE
-    $<$<CONFIG:Debug>:-g -O0>
-    $<$<CONFIG:Release>:-O3 -DNDEBUG>
-    $<$<CONFIG:Dist>:-O3 -DNDEBUG -flto>
-)

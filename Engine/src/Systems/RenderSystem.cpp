@@ -34,12 +34,9 @@ void RenderSystem::Update(Scene* scene)
 void RenderSystem::RenderSprites(Scene* scene)
 {
     BeginBatch();
-    for (auto& actor : scene->GetActors())
+    for (auto& sprite : scene->GetAllComponentsOfType<SpriteComponent>())
     {
-        if (auto* sprite = actor->GetComponent<SpriteComponent>()) 
-        {
-            DrawQuad(sprite->GetWorldTransform(), sprite->GetTexture());
-        }
+        DrawQuad(sprite->GetWorldTransform(), sprite->GetTexture());
     }
     Flush();
 }

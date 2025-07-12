@@ -3,14 +3,15 @@
 #include <SDL3/SDL.h>
 
 #include "Utils/Log.h"
+#include "Utils/StartupHelper.h"
 #include "IO/VFS.h"
+
 #include "Event/EventBus.h"
 
 #include "Scene/Actor.h"
 #include "Scene/Components.h"
 
 #include "Systems/RenderSystem.h"
-#include "Graphics/Vulkan/VulkanGraphicsDevice.h"
 
 namespace aero3d {
 
@@ -26,7 +27,7 @@ bool Application::Init()
     renderSurfaceInfo.type = RenderSurfaceCreateInfo::WindowType::SDL;
     renderSurfaceInfo.sdlWindow = m_Window->GetSDLWindow();
 
-    m_GraphicsDevice = new VulkanGraphicsDevice(renderSurfaceInfo);
+    m_GraphicsDevice = StartupHelper::CreateGraphicsDevice(RenderingAPI::Vulkan, renderSurfaceInfo);
     m_ResourceManager = new ResourceManager(m_GraphicsDevice, m_GraphicsDevice->GetResourceFactory());
     m_Scene = new Scene();
     m_RenderSystem = new RenderSystem(m_GraphicsDevice, m_GraphicsDevice->GetResourceFactory());

@@ -10,6 +10,7 @@ add_executable(Sandbox ${SANDBOX_SOURCES})
 target_include_directories(Sandbox PRIVATE
     src
     ${CMAKE_SOURCE_DIR}/Engine/src
+    ${DEPENDENCIES_DIR}/glm
 )
 
 target_link_libraries(Sandbox PRIVATE Engine)

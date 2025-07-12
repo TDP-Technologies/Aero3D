@@ -11,6 +11,12 @@ class SDL_Window;
 
 namespace aero3d {
 
+enum class RenderingAPI
+{
+    DirectX12,
+    Vulkan
+};
+
 struct RenderSurfaceCreateInfo 
 {
     enum class WindowType 

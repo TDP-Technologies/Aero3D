@@ -290,6 +290,13 @@ VulkanFramebuffer::VulkanFramebuffer(VulkanGraphicsDevice* gd, FramebufferDesc d
         viewInfo.subresourceRange.layerCount = 1;
 
         A3D_CHECK_VKRESULT(vkCreateImageView(m_GraphicsDevice->device, &viewInfo, nullptr, &imageViews[i]));
+
+        m_GraphicsDevice->TransitionImageLayout(
+            vt->image,
+            vt->vkFormat,
+            VK_IMAGE_LAYOUT_UNDEFINED,
+            VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+            VK_IMAGE_ASPECT_COLOR_BIT);
     }
 
     renderArea = { frames[0]->width, frames[0]->height };
@@ -317,6 +324,13 @@ VulkanFramebuffer::VulkanFramebuffer(VulkanGraphicsDevice* gd, FramebufferDesc d
         viewInfo.subresourceRange.layerCount = 1;
 
         A3D_CHECK_VKRESULT(vkCreateImageView(m_GraphicsDevice->device, &viewInfo, nullptr, &depthStencilImageView));
+        
+        m_GraphicsDevice->TransitionImageLayout(
+            depthStencil->image,
+            depthStencil->vkFormat,
+            VK_IMAGE_LAYOUT_UNDEFINED,
+            VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+            aspectMask);
     }
 }
 

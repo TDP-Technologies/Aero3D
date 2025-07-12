@@ -243,7 +243,7 @@ void VulkanCommandList::BeginRendering()
     {
         VkImageMemoryBarrier depthBarrier{};
         depthBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-        depthBarrier.oldLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+        depthBarrier.oldLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
         depthBarrier.newLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
         depthBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
         depthBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;

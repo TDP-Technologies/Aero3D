@@ -28,6 +28,8 @@ public:
     virtual void UpdateTexture(Ref<Texture> texture, void* data, size_t size) override;
 
     uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
+    void TransitionImageLayout(VkImage image, VkFormat format,
+        VkImageLayout oldLayout, VkImageLayout newLayout, VkImageAspectFlags aspectMask);
 
 public:
     RenderSurfaceCreateInfo surfaceInfo;

@@ -239,6 +239,7 @@ void VulkanCommandList::BeginRendering()
     renderingInfo.colorAttachmentCount = colorAttachments.size();
     renderingInfo.pColorAttachments = colorAttachments.data();
 
+    VkRenderingAttachmentInfo depthAttachment = {};
     if (m_CurrentFramebuffer->depthStencil)
     {
         VkImageMemoryBarrier depthBarrier{};
@@ -265,7 +266,6 @@ void VulkanCommandList::BeginRendering()
             0, nullptr,
             1, &depthBarrier);
 
-        VkRenderingAttachmentInfo depthAttachment = {};
         depthAttachment.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
         depthAttachment.imageView = m_CurrentFramebuffer->depthStencilImageView;
         depthAttachment.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;

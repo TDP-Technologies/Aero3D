@@ -1,6 +1,6 @@
-project(Engine)
+project(Engine LANGUAGES CXX)
 
-# Common sources
+# Collect common engine source files
 file(GLOB_RECURSE ENGINE_SOURCES_COMMON
     src/Core/*.cpp
     src/Event/*.cpp
@@ -14,6 +14,7 @@ file(GLOB_RECURSE ENGINE_SOURCES_COMMON
     vendor/*.cpp
 )
 
+# Collect common engine header files
 file(GLOB_RECURSE ENGINE_HEADERS_COMMON
     src/Core/*.h
     src/Event/*.h
@@ -27,52 +28,66 @@ file(GLOB_RECURSE ENGINE_HEADERS_COMMON
     vendor/*.h
 )
 
+# Platform-specific sources and headers
 set(PLATFORM_SOURCES)
 set(PLATFORM_HEADERS)
 
-# Platform dependent sources
 if(WIN32)
     file(GLOB_RECURSE PLATFORM_SOURCES src/Platform/Windows/*.cpp)
     file(GLOB_RECURSE PLATFORM_HEADERS src/Platform/Windows/*.h)
-elseif(UNIX)
+elseif(UNIX AND NOT APPLE)
     file(GLOB_RECURSE PLATFORM_SOURCES src/Platform/Linux/*.cpp)
     file(GLOB_RECURSE PLATFORM_HEADERS src/Platform/Linux/*.h)
 endif()
 
-# Merge all sources
+# Merge all sources and headers
 set(ENGINE_SOURCES ${ENGINE_SOURCES_COMMON} ${PLATFORM_SOURCES})
 set(ENGINE_HEADERS ${ENGINE_HEADERS_COMMON} ${PLATFORM_HEADERS})
 
-# Vulkan dependency
+# Find required packages
 find_package(Vulkan REQUIRED)
 find_package(ZLIB REQUIRED)
 
+# Create shared library target for the engine
 add_library(Engine SHARED ${ENGINE_SOURCES} ${ENGINE_HEADERS})
 
+# Define platform-specific Vulkan compile definitions
 if(WIN32)
-    add_compile_definitions(VK_USE_PLATFORM_WIN32_KHR)
+    target_compile_definitions(Engine PRIVATE VK_USE_PLATFORM_WIN32_KHR)
 elseif(UNIX AND NOT APPLE)
-    add_compile_definitions(VK_USE_PLATFORM_XLIB_KHR)
+    target_compile_definitions(Engine PRIVATE VK_USE_PLATFORM_XLIB_KHR)
 endif()
 
-target_include_directories(Engine PRIVATE ${DEPENDENCIES_DIR}/glm)
-target_include_directories(Engine PRIVATE ${DEPENDENCIES_DIR}/shaderc/libshaderc/include)
-target_include_directories(Engine PRIVATE ${DEPENDENCIES_DIR}/volk)
-target_include_directories(Engine PRIVATE ${DEPENDENCIES_DIR}/assimp/include)
-target_include_directories(Engine PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
-target_include_directories(Engine PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/vendor)
+# Include directories for dependencies and engine sources
+target_include_directories(Engine PRIVATE
+    ${CMAKE_SOURCE_DIR}/vendor/glm
+    ${CMAKE_SOURCE_DIR}/vendor/shaderc/libshaderc/include
+    ${CMAKE_SOURCE_DIR}/vendor/volk
+    ${CMAKE_SOURCE_DIR}/vendor/assimp/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/vendor
+)
 
-# Projects dependencies
-target_link_libraries(Engine PRIVATE ${Vulkan_LIBRARIES})
-target_link_libraries(Engine PRIVATE SDL3::SDL3)
-target_link_libraries(Engine PRIVATE shaderc_combined)
-target_link_libraries(Engine PRIVATE volk)
-target_link_libraries(Engine PRIVATE assimp)
-target_link_libraries(Engine PRIVATE ZLIB::ZLIB)
+# Link libraries required by the engine
+target_link_libraries(Engine PRIVATE
+    ${Vulkan_LIBRARIES}
+    SDL3::SDL3
+    shaderc_combined
+    volk
+    assimp
+    ZLIB::ZLIB
+)
 
-# Configurations
+# Define compile-time definitions based on build configuration
 target_compile_definitions(Engine PRIVATE
     $<$<CONFIG:Debug>:A3D_DEBUG>
     $<$<CONFIG:Release>:A3D_RELEASE>
     $<$<CONFIG:Dist>:A3D_DIST>
+)
+
+# Add compile options (flags) per build configuration
+target_compile_options(Engine PRIVATE
+    $<$<CONFIG:Debug>:-g -O0>
+    $<$<CONFIG:Release>:-O3 -DNDEBUG>
+    $<$<CONFIG:Dist>:-O3 -DNDEBUG -flto>
 )

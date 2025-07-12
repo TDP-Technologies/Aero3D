@@ -93,8 +93,8 @@ static VkIndexType IndexFormatToVkIndexType(IndexFormat format)
 {
     switch (format)
     {
-        case IndexFormat::UNSIGNED_SHORT: return VK_INDEX_TYPE_UINT16;
-        case IndexFormat::UNSIGNED_INT: return VK_INDEX_TYPE_UINT32;
+        case IndexFormat::UnsignedShort: return VK_INDEX_TYPE_UINT16;
+        case IndexFormat::UnsignedInt: return VK_INDEX_TYPE_UINT32;
         default: return VK_INDEX_TYPE_UINT32;
     }
 }

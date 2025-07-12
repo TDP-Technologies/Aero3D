@@ -2,6 +2,7 @@
 #define AERO3D_CORE_WINDOW_H_
 
 #include <memory>
+#include <string>
 
 #include "Utils/Common.h"
 
@@ -9,10 +10,24 @@ class SDL_Window;
 
 namespace aero3d {
 
+enum class GraphicsContextType 
+{
+    None,
+    Vulkan
+};
+
+struct WindowInfo
+{
+    std::string title;
+    int width;
+    int height;
+    GraphicsContextType graphicsContext;
+};
+
 class Window
 {
 public:
-    Window(const char* title, int width, int height);
+    Window(WindowInfo info);
     ~Window();
 
     void PollEvents(bool& running, bool& minimized);

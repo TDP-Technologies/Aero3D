@@ -33,7 +33,7 @@ Ref<TextureView> ResourceManager::LoadTexture(std::string path)
     td.width = id.width;
     td.height = id.height;
     td.format = id.format;
-    td.usage = TextureUsage::SAMPLED;
+    td.usage = TextureUsage::Sampled;
 
     Ref<Texture> texture = m_ResourceFactory->CreateTexture(td);
 

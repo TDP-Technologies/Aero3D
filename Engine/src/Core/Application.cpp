@@ -21,13 +21,20 @@ bool Application::Init()
 
     VFS::Mount("", "Sandbox/");
 
-    m_Window = new Window("Aero3D", 800, 600);
+    WindowInfo windowInfo;
+    windowInfo.title = "Aero3D";
+    windowInfo.width = 800;
+    windowInfo.height = 600;
+    windowInfo.graphicsContext = GraphicsContextType::Vulkan;
+
+    m_Window = StartupHelper::CreateWindow(windowInfo);
 
     RenderSurfaceCreateInfo renderSurfaceInfo;
     renderSurfaceInfo.type = RenderSurfaceCreateInfo::WindowType::SDL;
     renderSurfaceInfo.sdlWindow = m_Window->GetSDLWindow();
 
     m_GraphicsDevice = StartupHelper::CreateGraphicsDevice(RenderingAPI::Vulkan, renderSurfaceInfo);
+
     m_ResourceManager = new ResourceManager(m_GraphicsDevice, m_GraphicsDevice->GetResourceFactory());
     m_Scene = new Scene();
     m_RenderSystem = new RenderSystem(m_GraphicsDevice, m_GraphicsDevice->GetResourceFactory());

@@ -21,8 +21,8 @@ enum BufferUsage
 
 enum class IndexFormat
 {
-    UNSIGNED_SHORT, 
-    UNSIGNED_INT
+    UnsignedShort, 
+    UnsignedInt
 };
 
 struct BufferDesc {
@@ -45,10 +45,10 @@ protected:
 
 enum class TextureUsage 
 {
-    SAMPLED,
-    STORAGE,
-    RENDERTARGET,
-    DEPTHSTENCIL
+    Sampled,
+    Storage,
+    RenderTarget,
+    DepthStencil
 };
 
 enum class TextureFormat 
@@ -113,23 +113,23 @@ protected:
 
 enum class SamplerFilter
 {
-    NEAREST,
-    LINEAR
+    Nearest,
+    Linear
 };
 
 enum class SamplerAddressMode
 {
-    REPEAT,
-    CLAMP_TO_EDGE,
-    CLAMP_TO_BORDER
+    Repeat,
+    ClampToEdge,
+    ClampToBorder
 };
 
 struct SamplerDesc
 {
-    SamplerFilter filter = SamplerFilter::LINEAR;
-    SamplerAddressMode addressModeU = SamplerAddressMode::REPEAT;
-    SamplerAddressMode addressModeV = SamplerAddressMode::REPEAT;
-    SamplerAddressMode addressModeW = SamplerAddressMode::REPEAT;
+    SamplerFilter filter = SamplerFilter::Linear;
+    SamplerAddressMode addressModeU = SamplerAddressMode::Repeat;
+    SamplerAddressMode addressModeV = SamplerAddressMode::Repeat;
+    SamplerAddressMode addressModeW = SamplerAddressMode::Repeat;
     float maxAnisotropy = 1.0f;
 };
 
@@ -195,15 +195,15 @@ protected:
 
 enum class ResourceKind 
 {
-    UNIFORMBUFFER,
-    STORAGEBUFFER,
-    TEXTUREREADONLY,
-    TEXTUREREADWRITE,
-    SAMPLER,
-    COMBINED_IMAGE_SAMPLER,
-    TEXTUREREADONLY_ARRAY,
-    SAMPLER_ARRAY,
-    COMBINED_IMAGE_SAMPLER_ARRAY
+    UniformBuffer,
+    StorageBuffer,
+    TextureReadOnly,
+    TextureReadWrite,
+    Sampler,
+    CombinedImageSampler,
+    TextureReadOnlyArray,
+    SamplerArray,
+    CombinedImageSamplerArray
 };
 
 struct ResourceBinding 
@@ -261,37 +261,37 @@ protected:
 
 enum class PrimitiveTopology 
 {
-    TRIANGLELIST,
-    TRIANGLESTRIP,
-    LINELIST,
-    LINESTRIP,
-    POINTLIST
+    TriangleList,
+    TriangleStrip,
+    LineList,
+    LineStrip,
+    PointList
 };
 
 enum class CullMode 
 {
-    NONE,
-    FRONT,
-    BACK
+    None,
+    Front,
+    Back
 };
 
 enum class FrontFace 
 {
-    CLOCKWISE,
-    COUNTERCLOCKWISE
+    ClockWise,
+    CounterClockWise
 };
 
 enum class PolygonMode 
 {
-    FILL,
-    LINE,
-    POINT
+    Fill,
+    Line,
+    Point
 };
 
 enum class VertexFormat 
 {
-    FLOAT, FLOAT2, FLOAT3, FLOAT4, INT, INT2, INT3, INT4,
-    BOOL, MAT2, MAT3, MAT4
+    Float, Float2, Float3, Float4, Int, Int2, Int3, Int4,
+    Bool, Mat2, Mat3, Mat4
 };
 
 struct VertexAttributeDesc 
@@ -324,10 +324,10 @@ struct PipelineDesc
 
     VertexLayoutDesc vertexLayout;
 
-    PrimitiveTopology topology = PrimitiveTopology::TRIANGLELIST;
-    CullMode cullMode = CullMode::BACK;
-    FrontFace frontFace = FrontFace::COUNTERCLOCKWISE;
-    PolygonMode polygonMode = PolygonMode::FILL;
+    PrimitiveTopology topology = PrimitiveTopology::TriangleList;
+    CullMode cullMode = CullMode::Back;
+    FrontFace frontFace = FrontFace::CounterClockWise;
+    PolygonMode polygonMode = PolygonMode::Fill;
 
     bool depthTest = true;
     bool depthWrite = true;

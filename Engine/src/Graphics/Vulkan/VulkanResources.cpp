@@ -98,16 +98,16 @@ VulkanTexture::VulkanTexture(VulkanGraphicsDevice* gd, TextureDesc desc)
     VkImageUsageFlags usageFlags = 0;
     switch (desc.usage)
     {
-        case TextureUsage::SAMPLED:
+        case TextureUsage::Sampled:
             usageFlags = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
             break;
-        case TextureUsage::STORAGE:
+        case TextureUsage::Storage:
             usageFlags = VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
             break;
-        case TextureUsage::RENDERTARGET:
+        case TextureUsage::RenderTarget:
             usageFlags = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
             break;
-        case TextureUsage::DEPTHSTENCIL:
+        case TextureUsage::DepthStencil:
             usageFlags = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
             break;
     }
@@ -214,9 +214,9 @@ VkSamplerAddressMode ToVkSamplerAddressMode(SamplerAddressMode mode)
 {
     switch (mode) 
     {
-        case SamplerAddressMode::REPEAT:            return VK_SAMPLER_ADDRESS_MODE_REPEAT;
-        case SamplerAddressMode::CLAMP_TO_EDGE:     return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
-        case SamplerAddressMode::CLAMP_TO_BORDER:   return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
+        case SamplerAddressMode::Repeat:            return VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        case SamplerAddressMode::ClampToEdge:       return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+        case SamplerAddressMode::ClampToBorder:     return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
         default:                                    return VK_SAMPLER_ADDRESS_MODE_REPEAT;
     }
 }
@@ -229,8 +229,8 @@ VulkanSampler::VulkanSampler(VulkanGraphicsDevice* gd, SamplerDesc& desc)
     VkSamplerCreateInfo samplerInfo{};
     samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
 
-    samplerInfo.magFilter = (desc.filter == SamplerFilter::LINEAR) ? VK_FILTER_LINEAR : VK_FILTER_NEAREST;
-    samplerInfo.minFilter = (desc.filter == SamplerFilter::LINEAR) ? VK_FILTER_LINEAR : VK_FILTER_NEAREST;
+    samplerInfo.magFilter = (desc.filter == SamplerFilter::Linear) ? VK_FILTER_LINEAR : VK_FILTER_NEAREST;
+    samplerInfo.minFilter = (desc.filter == SamplerFilter::Linear) ? VK_FILTER_LINEAR : VK_FILTER_NEAREST;
 
     samplerInfo.addressModeU = ToVkSamplerAddressMode(desc.addressModeU);
     samplerInfo.addressModeV = ToVkSamplerAddressMode(desc.addressModeV);
@@ -413,15 +413,15 @@ static VkDescriptorType ToDescriptorType(ResourceKind kind)
 {
     switch (kind) 
     {
-        case ResourceKind::UNIFORMBUFFER: return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        case ResourceKind::STORAGEBUFFER: return VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-        case ResourceKind::TEXTUREREADONLY:
-        case ResourceKind::TEXTUREREADONLY_ARRAY: return VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
-        case ResourceKind::TEXTUREREADWRITE: return VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-        case ResourceKind::SAMPLER:
-        case ResourceKind::SAMPLER_ARRAY: return VK_DESCRIPTOR_TYPE_SAMPLER;
-        case ResourceKind::COMBINED_IMAGE_SAMPLER:
-        case ResourceKind::COMBINED_IMAGE_SAMPLER_ARRAY: return VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        case ResourceKind::UniformBuffer: return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        case ResourceKind::StorageBuffer: return VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+        case ResourceKind::TextureReadOnly:
+        case ResourceKind::TextureReadOnlyArray: return VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+        case ResourceKind::TextureReadWrite: return VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+        case ResourceKind::Sampler:
+        case ResourceKind::SamplerArray: return VK_DESCRIPTOR_TYPE_SAMPLER;
+        case ResourceKind::CombinedImageSampler:
+        case ResourceKind::CombinedImageSamplerArray: return VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
         default: return VK_DESCRIPTOR_TYPE_MAX_ENUM;
     }
 }
@@ -508,7 +508,7 @@ VulkanResourceSet::VulkanResourceSet(VulkanGraphicsDevice* gd, ResourceSetDesc d
             {
                 bufferInfos.emplace_back();
                 PrepareBufferWrite(binding, res.get(), write, bufferInfos.back());
-                write.descriptorType = (binding.kind == ResourceKind::UNIFORMBUFFER)
+                write.descriptorType = (binding.kind == ResourceKind::UniformBuffer)
                     ? VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER
                     : VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
                 write.pBufferInfo = &bufferInfos.back();
@@ -518,7 +518,7 @@ VulkanResourceSet::VulkanResourceSet(VulkanGraphicsDevice* gd, ResourceSetDesc d
                 imageInfos.emplace_back();
                 PrepareImageWrite(binding, res.get(), write, imageInfos.back());
 
-                write.descriptorType = (binding.kind == ResourceKind::TEXTUREREADONLY)
+                write.descriptorType = (binding.kind == ResourceKind::TextureReadOnly)
                     ? VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE
                     : VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
                 write.pImageInfo = &imageInfos.back();
@@ -552,7 +552,7 @@ VulkanResourceSet::VulkanResourceSet(VulkanGraphicsDevice* gd, ResourceSetDesc d
                     imageInfos.emplace_back();
                     PrepareImageWrite(binding, tex.get(), write, imageInfos.back());
                 }
-                write.descriptorType = (binding.kind == ResourceKind::TEXTUREREADONLY || binding.kind == ResourceKind::TEXTUREREADONLY_ARRAY)
+                write.descriptorType = (binding.kind == ResourceKind::TextureReadOnly || binding.kind == ResourceKind::TextureReadOnlyArray)
                     ? VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE
                     : VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
                 write.descriptorCount = static_cast<uint32_t>(res.size());
@@ -617,7 +617,7 @@ void VulkanResourceSet::PrepareImageWrite(const ResourceBinding& binding, void* 
 {
     auto* view = static_cast<VulkanTextureView*>(resource);
     imageInfo.imageView = view->imageView;
-    imageInfo.imageLayout = (binding.kind == ResourceKind::TEXTUREREADONLY || binding.kind == ResourceKind::TEXTUREREADONLY_ARRAY)
+    imageInfo.imageLayout = (binding.kind == ResourceKind::TextureReadOnly || binding.kind == ResourceKind::TextureReadOnlyArray)
         ? VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
         : VK_IMAGE_LAYOUT_GENERAL;
 }
@@ -633,9 +633,9 @@ static VkPolygonMode ToVkPolygonMode(PolygonMode mode)
 {
     switch (mode) 
     {
-        case PolygonMode::FILL: return VK_POLYGON_MODE_FILL;
-        case PolygonMode::LINE: return VK_POLYGON_MODE_LINE;
-        case PolygonMode::POINT: return VK_POLYGON_MODE_POINT;
+        case PolygonMode::Fill: return VK_POLYGON_MODE_FILL;
+        case PolygonMode::Line: return VK_POLYGON_MODE_LINE;
+        case PolygonMode::Point: return VK_POLYGON_MODE_POINT;
         default: return VK_POLYGON_MODE_FILL;
     }
 }
@@ -644,9 +644,9 @@ static VkCullModeFlags ToVkCullMode(CullMode mode)
 {
     switch (mode) 
     {
-        case CullMode::NONE: return VK_CULL_MODE_NONE;
-        case CullMode::FRONT: return VK_CULL_MODE_FRONT_BIT;
-        case CullMode::BACK: return VK_CULL_MODE_BACK_BIT;
+        case CullMode::None: return VK_CULL_MODE_NONE;
+        case CullMode::Front: return VK_CULL_MODE_FRONT_BIT;
+        case CullMode::Back: return VK_CULL_MODE_BACK_BIT;
         default: return VK_CULL_MODE_BACK_BIT;
     }
 }
@@ -655,8 +655,8 @@ static VkFrontFace ToVkFrontFace(FrontFace face)
 {
     switch (face) 
     {
-        case FrontFace::CLOCKWISE: return VK_FRONT_FACE_CLOCKWISE;
-        case FrontFace::COUNTERCLOCKWISE: return VK_FRONT_FACE_COUNTER_CLOCKWISE;
+        case FrontFace::ClockWise: return VK_FRONT_FACE_CLOCKWISE;
+        case FrontFace::CounterClockWise: return VK_FRONT_FACE_COUNTER_CLOCKWISE;
         default: return VK_FRONT_FACE_COUNTER_CLOCKWISE;
     }
 }
@@ -665,21 +665,21 @@ static VkFormat VertexFormatToVkFormat(VertexFormat type)
 {
     switch (type)
     {
-        case VertexFormat::FLOAT:  return VK_FORMAT_R32_SFLOAT;
-        case VertexFormat::FLOAT2: return VK_FORMAT_R32G32_SFLOAT;
-        case VertexFormat::FLOAT3: return VK_FORMAT_R32G32B32_SFLOAT;
-        case VertexFormat::FLOAT4: return VK_FORMAT_R32G32B32A32_SFLOAT;
+        case VertexFormat::Float:  return VK_FORMAT_R32_SFLOAT;
+        case VertexFormat::Float2: return VK_FORMAT_R32G32_SFLOAT;
+        case VertexFormat::Float3: return VK_FORMAT_R32G32B32_SFLOAT;
+        case VertexFormat::Float4: return VK_FORMAT_R32G32B32A32_SFLOAT;
 
-        case VertexFormat::INT:  return VK_FORMAT_R32_SINT;
-        case VertexFormat::INT2: return VK_FORMAT_R32G32_SINT;
-        case VertexFormat::INT3: return VK_FORMAT_R32G32B32_SINT;
-        case VertexFormat::INT4: return VK_FORMAT_R32G32B32A32_SINT;
+        case VertexFormat::Int:  return VK_FORMAT_R32_SINT;
+        case VertexFormat::Int2: return VK_FORMAT_R32G32_SINT;
+        case VertexFormat::Int3: return VK_FORMAT_R32G32B32_SINT;
+        case VertexFormat::Int4: return VK_FORMAT_R32G32B32A32_SINT;
 
-        case VertexFormat::BOOL: return VK_FORMAT_R8_UINT;
+        case VertexFormat::Bool: return VK_FORMAT_R8_UINT;
 
-        case VertexFormat::MAT2: return VK_FORMAT_R32G32_SFLOAT;
-        case VertexFormat::MAT3: return VK_FORMAT_R32G32B32_SFLOAT;
-        case VertexFormat::MAT4: return VK_FORMAT_R32G32B32A32_SFLOAT;
+        case VertexFormat::Mat2: return VK_FORMAT_R32G32_SFLOAT;
+        case VertexFormat::Mat3: return VK_FORMAT_R32G32B32_SFLOAT;
+        case VertexFormat::Mat4: return VK_FORMAT_R32G32B32A32_SFLOAT;
 
         default: return VK_FORMAT_UNDEFINED;
     }

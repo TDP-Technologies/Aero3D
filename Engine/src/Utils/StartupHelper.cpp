@@ -13,4 +13,9 @@ GraphicsDevice* StartupHelper::CreateGraphicsDevice(RenderingAPI api, RenderSurf
     }
 }
 
+Window* StartupHelper::CreateWindow(WindowInfo info)
+{
+    return new Window(info);
+}
+
 } // namespace aero3d

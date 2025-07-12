@@ -177,8 +177,8 @@ void RenderSystem::Prepare2D()
     ResourceLayoutDesc layoutDescription;
     layoutDescription.bindings = 
     {
-        {0, ResourceKind::SAMPLER, STAGE_FRAGMENT},
-        {1, ResourceKind::TEXTUREREADONLY_ARRAY, STAGE_FRAGMENT, MAX_TEXTURE_SLOTS},
+        {0, ResourceKind::Sampler, STAGE_FRAGMENT},
+        {1, ResourceKind::TextureReadOnlyArray, STAGE_FRAGMENT, MAX_TEXTURE_SLOTS},
     };
 
     m_SpriteResourceLayout = m_ResourceFactory->CreateResourceLayout(layoutDescription);
@@ -195,15 +195,15 @@ void RenderSystem::Prepare2D()
 
     pipelineDescription.vertexLayout.attributes = 
     {
-        { 0, 0, VertexFormat::FLOAT3, offsetof(SpriteVertex, position) },
-        { 1, 0, VertexFormat::FLOAT2, offsetof(SpriteVertex, uv) },
-        { 2, 0, VertexFormat::FLOAT, offsetof(SpriteVertex, texIndex) }
+        { 0, 0, VertexFormat::Float3, offsetof(SpriteVertex, position) },
+        { 1, 0, VertexFormat::Float2, offsetof(SpriteVertex, uv) },
+        { 2, 0, VertexFormat::Float, offsetof(SpriteVertex, texIndex) }
     };
 
-    pipelineDescription.topology = PrimitiveTopology::TRIANGLELIST;
-    pipelineDescription.cullMode = CullMode::BACK;
-    pipelineDescription.frontFace = FrontFace::CLOCKWISE;
-    pipelineDescription.polygonMode = PolygonMode::FILL;
+    pipelineDescription.topology = PrimitiveTopology::TriangleList;
+    pipelineDescription.cullMode = CullMode::Back;
+    pipelineDescription.frontFace = FrontFace::ClockWise;
+    pipelineDescription.polygonMode = PolygonMode::Fill;
 
     pipelineDescription.depthTest = true;
     pipelineDescription.depthWrite = true;
@@ -218,8 +218,8 @@ void RenderSystem::Prepare2D()
     m_SpriteVertices.reserve(MAX_VERTICES);
 
     SamplerDesc textureSamplerDescription;
-    textureSamplerDescription.filter = SamplerFilter::LINEAR;
-    textureSamplerDescription.addressModeU = SamplerAddressMode::REPEAT;
+    textureSamplerDescription.filter = SamplerFilter::Linear;
+    textureSamplerDescription.addressModeU = SamplerAddressMode::Repeat;
 
     m_SpriteTextureSampler = m_ResourceFactory->CreateSampler(textureSamplerDescription);
 }

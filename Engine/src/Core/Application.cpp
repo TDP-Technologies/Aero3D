@@ -55,9 +55,6 @@ bool Application::Init()
 
 void Application::Run()
 {
-    Scene::RegisterActor<Actor>();
-    Scene::RegisterComponent<SpriteComponent>();
-
     auto actor = Scene::CreateActor<Actor>();
 
     auto sprite = Scene::CreateComponent<SpriteComponent>();

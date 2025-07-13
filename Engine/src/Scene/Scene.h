@@ -30,6 +30,9 @@ public:
     static std::unordered_map<std::size_t, std::function<std::unique_ptr<Component>()>> s_ComponentRegistry;
 
 public:
+    Scene();
+    ~Scene();
+
     void AddActor(std::unique_ptr<Actor> actor);
     void Update(float deltaTime);
 

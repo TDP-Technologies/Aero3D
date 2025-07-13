@@ -55,9 +55,12 @@ bool Application::Init()
 
 void Application::Run()
 {
-    auto actor = std::make_unique<Actor>();
+    Scene::RegisterActor<Actor>();
+    Scene::RegisterComponent<SpriteComponent>();
 
-    auto sprite = std::make_unique<SpriteComponent>();
+    auto actor = Scene::CreateActor<Actor>();
+
+    auto sprite = Scene::CreateComponent<SpriteComponent>();
     sprite->SetTexture(m_ResourceManager->LoadTexture("res/textures/texture.jpg"));
     sprite->SetLocalTransform(glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, 1.0f)));
 

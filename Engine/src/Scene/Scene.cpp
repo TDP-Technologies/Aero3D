@@ -4,6 +4,9 @@
 
 namespace aero3d {
 
+std::unordered_map<std::size_t, std::function<std::unique_ptr<Actor>()>>  Scene::s_ActorRegistry;
+std::unordered_map<std::size_t, std::function<std::unique_ptr<Component>()>> Scene::s_ComponentRegistry;
+
 void Scene::AddActor(std::unique_ptr<Actor> actor) 
 {
     actor->SetScene(this);

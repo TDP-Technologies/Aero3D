@@ -71,38 +71,6 @@ private:
     float m_Far = 1000.0f;
 };
 
-enum class LightType 
-{
-    Directional,
-    Point,
-    Spot
-};
-
-class LightComponent : public SceneComponent 
-{
-public:
-    void SetType(LightType type) { m_Type = type; }
-    void SetColor(const glm::vec3& color) { m_Color = color; }
-    void SetIntensity(float intensity) { m_Intensity = intensity; }
-
-    LightType GetType() const { return m_Type; }
-    glm::vec3 GetColor() const { return m_Color; }
-    float GetIntensity() const { return m_Intensity; }
-
-private:
-    LightType m_Type = LightType::Directional;
-    glm::vec3 m_Color = {1.0f, 1.0f, 1.0f};
-    float m_Intensity = 1.0f;
-};
-
-class ScriptComponent : public Component 
-{
-public:
-    virtual void OnCreate() {}
-    virtual void OnDestroy() {}
-    virtual void OnUpdate(float deltaTime) {}
-};
-
 } // namespace aero3d
 
 #endif // AERO3D_SCENE_COMPONENTS_H_

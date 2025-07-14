@@ -19,7 +19,7 @@ RenderSystem::~RenderSystem()
 
 }
 
-void RenderSystem::Update(Scene* scene)
+void RenderSystem::Render(Scene* scene)
 {
     m_CommandList->Begin();
     m_CommandList->SetFramebuffer(m_GraphicsDevice->GetSwapchain()->GetFramebuffer());
@@ -27,11 +27,11 @@ void RenderSystem::Update(Scene* scene)
     m_CommandList->ClearDepthStencil();
     m_CommandList->End();
     m_GraphicsDevice->SubmitCommands(m_CommandList);
-    RenderSprites(scene);
+    SpritePass(scene);
     m_GraphicsDevice->Present();
 }
 
-void RenderSystem::RenderSprites(Scene* scene)
+void RenderSystem::SpritePass(Scene* scene)
 {
     BeginBatch();
     for (auto& sprite : scene->GetAllComponentsOfType<SpriteComponent>())
@@ -45,7 +45,6 @@ void RenderSystem::BeginBatch()
 {
     m_VertexCount = 0;
     m_TextureSlotIndex = 0;
-    m_SpriteVertices.clear();
 }
 
 void RenderSystem::Flush()
@@ -151,7 +150,7 @@ void RenderSystem::DrawQuad(const glm::mat4& transform, Ref<TextureView> texture
         vertex.uv = uvs[v];
         vertex.texIndex = textureIndex;
 
-        m_SpriteVertices.push_back(vertex);
+        m_SpriteVertices[m_VertexCount++] = vertex;
     }
 
     m_VertexCount += 6;
@@ -212,7 +211,7 @@ void RenderSystem::Prepare2D()
     bufferDesc.size = MAX_VERTICES * sizeof(SpriteVertex);
 
     m_SpriteVertexBuffer = m_ResourceFactory->CreateBuffer(bufferDesc);
-    m_SpriteVertices.reserve(MAX_VERTICES);
+    m_SpriteVertices.resize(MAX_VERTICES);
 
     SamplerDesc textureSamplerDescription;
     textureSamplerDescription.filter = SamplerFilter::Linear;

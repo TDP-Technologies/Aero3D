@@ -77,7 +77,7 @@ void Application::Run()
             m_PreviousTicks = currentTicks;
 
             m_Scene->Update(deltaTime);
-            m_RenderSystem->Update(m_Scene);
+            m_RenderSystem->Render(m_Scene);
 
             m_ResourceManager->Clean();
         }

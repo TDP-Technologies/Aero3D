@@ -27,9 +27,9 @@ public:
     RenderSystem(GraphicsDevice* graphicsDevice, ResourceFactory* resourceFactory);
     ~RenderSystem();
 
-    void Update(Scene* scene);
+    void Render(Scene* scene);
 
-    void RenderSprites(Scene* scene);
+    void SpritePass(Scene* scene);
 
     void BeginBatch();
     void Flush();
